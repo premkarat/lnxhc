@@ -1,0 +1,11 @@
+[title]
+Check if numad rpm package is installed and numad daemon is running
+
+[description]
+The 2 checks are important to ascertain if numad rpm is installed and started.
+
+1. Check if numad rpm is installed.
+2. Check if numad daemon is currently running.
+
+	User-level daemon that monitors NUMA topology and processes resource consumption to facilitate good NUMA resource alignment of applications/virtual machines to improve performance and minimize cost of remote memory latencies.
+

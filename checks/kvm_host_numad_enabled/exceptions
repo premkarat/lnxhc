@@ -1,0 +1,41 @@
+[summary numad_package_notfound]
+numad rpm package is not installed
+
+[explanation numad_package_notfound]
+numad rpm package is not installed
+	The numad package provides a daemon for NUMA systems, that monitors NUMA characteristics. As an alternative to manual static CPU pining and memory assignment, numad provides dynamic adjustment to minimize memory latency on an ongoing basis. The package also provides an interface that can be used to query the numad daemon for the best manual placement of an application.
+
+[solution numad_package_notfound]
+As root user, install the numad package using
+	# yum install numad
+
+[reference numad_package_notfound]
+See the yum man page.
+
+[summary chkconfig_numad_off]
+numad is not enabled during startup
+
+[explanation chkconfig_numad_off]
+numad is not enabled during startup.
+        The numad service can be configured to start up at boot time to ensure that users accrue performance benefits from automatic NUMA affinity grouping, without needing to explicitly place and bind processes themselves. This should improve the out-of-the-box performance experience on NUMA systems
+
+[solution chkconfig_numad_off]
+        # chkconfig numad on
+
+[reference chkconfig_numad_off]
+See the chkconfig man page.
+
+[summary numad_service_failed]
+numad daemon is not running
+
+[explanation numad_service_failed]
+numad daemon is not running.
+	'numad' daemon will attempt to match significant resource consumers with available memory and CPU resources in order to reduce cross node traffic. It will attempt to do some load balancing across NUMA nodes, and will provide a pre-placement advisory interface (to entities like libvirt), so significant processes can be pre-bound to nodes with sufficient available resources.
+	Redhat users will accrue performance benefits from automatic NUMA affinity grouping, without needing to explicitly place and bind processes themselves. This should improve the out-of-the-box performance experience on NUMA systems. With more and more systems, even at the low end, presenting NUMA topologies there is a real need to address the performance vagarities that such systems present.
+
+[solution numad_service_failed]
+As root user, start the numad daemon using
+	# service numad start
+
+[reference numad_service_failed]
+Refer service man page

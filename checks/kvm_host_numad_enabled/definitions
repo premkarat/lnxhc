@@ -1,0 +1,29 @@
+[check]
+author = "Prem Karat<prem.karat@linux.vnet.ibm.com>"
+component = "kvm-host"
+state = active
+
+[deps]
+sys_platform=i386 or sys_platform=x86_64
+sys_distro=RHEL and sys_rhel_version>=6.2
+
+[sysinfo rpm_qa]
+program = "rpm -qa"
+ignorerc = 1
+
+[sysinfo chkconfig_numad]
+program = "chkconfig numad"
+ignorerc = 1
+
+[sysinfo service_numad_status]
+program = "service numad status"
+ignorerc = 1
+
+[exception numad_package_notfound]
+severity = high
+
+[exception chkconfig_numad_off]
+severity = high
+
+[exception numad_service_failed]
+severity = high
