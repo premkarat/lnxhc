@@ -1,0 +1,11 @@
+[title]
+Check if tuned and tuned-utils rpm is installed and started.
+
+[description]
+The 2 checks are important to ascertain if tuned rpm is installed and started.
+
+1. Check if tuned and tuned-utils rpm is installed.
+2. Check if tuned daemon is currently running.
+
+tuned is a dynamic adaptive system tuning daemon that tunes system settings dynamically depending on usage. For  each  hardware subsystem  a  specific  monitoring plugin collects data periodically. This information is then used by tuning plugins to change system  settings  to lower or higher power saving modes in order to adapt to the current usage. Currently monitoring  and  tuning plugins  for CPU, ethernet network and ATA harddisk devices are implemented.
+

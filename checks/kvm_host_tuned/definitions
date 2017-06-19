@@ -1,0 +1,23 @@
+[check]
+author = "Prem Karat<prem.karat@linux.vnet.ibm.com>"
+component = "kvm-host"
+state = active
+
+[deps]
+sys_platform=i386 or sys_platform=x86_64
+sys_distro=RHEL and sys_rhel_version>=6.2
+
+[sysinfo rpm_qa]
+program = "rpm -qa"
+ignorerc = 1
+
+[sysinfo service_tuned_status]
+program = "service tuned status"
+ignorerc = 1
+
+[exception tuned_package_notfound]
+severity = high
+
+[exception tuned_service_failed]
+severity = high
+

@@ -1,0 +1,54 @@
+#!/usr/bin/python
+#
+# kvm_host_tuned
+# Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Prem Karat <prem.karat@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+import os, re, sys, commands
+
+# Import local modules
+checklib = os.path.join(os.environ['LNXHC_LIBDIR'], 'python')
+sys.path.insert(0, checklib)
+from check.base import *
+from check.util import *
+
+
+#check if cgroup is enabled or disabled
+def kvm_tuned():
+    #Check if VT is enabled in bios
+    SYSINFO_TUNED = os.environ["LNXHC_SYSINFO_rpm_qa"]
+    rpm_qa = lnxhc_get_fcontent(SYSINFO_TUNED)
+    tuned = re.findall(r"^tuned-\d+\S*", rpm_qa, re.M)
+    tuned_utils = re.findall(r"^tuned-utils\S*", rpm_qa, re.M)
+    if not tuned and not tuned_utils:
+        lnxhc_exception("tuned_package_notfound")
+        lnxhc_exception_var("tuned_package", "tuned tuned-utils")
+    elif not tuned_utils:
+        lnxhc_exception("tuned_package_notfound")
+        lnxhc_exception_var("tuned_package", "tuned-utils")
+    elif not tuned:
+        lnxhc_exception("tuned_package_notfound")
+        lnxhc_exception_var("tuned_package", "tuned")
+
+    # check the status of libvirtd service
+    SYSINFO_TUNED_RC = os.environ["LNXHC_SYSINFO_EXIT_" \
+                              "CODE_service_tuned_status"]
+    if int(SYSINFO_TUNED_RC):
+        lnxhc_exception("tuned_service_failed")
+
+def main():
+    kvm_tuned()
+
+
+if __name__ == '__main__':
+  main()

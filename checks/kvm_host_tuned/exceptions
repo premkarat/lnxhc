@@ -1,0 +1,28 @@
+[summary tuned_package_notfound]
+&tuned_package; rpm package is not installed
+
+[explanation tuned_package_notfound]
+&tuned_package; rpm package is not installed
+	tuned is a dynamic adaptive system tuning daemon that tunes system settings dynamically depending on usage. For  each  hardware subsystem  a  specific  monitoring plugin collects data periodically. This information is then used by tuning plugins to change system  settings  to lower or higher power saving modes in order to adapt to the current usage. Currently monitoring  and  tuning plugins  for CPU, ethernet network and ATA harddisk devices are implemented.
+
+[solution tuned_package_notfound]
+As root user, install the &tuned_package; using
+	# yum install &tuned_package;
+
+[reference tuned_package_notfound]
+See the yum man page.
+
+[summary tuned_service_failed]
+tuned daemon is not running
+
+[explanation tuned_service_failed]
+tuned daemon is not running.
+	Tuned is a daemon that monitors the use of system components and dynamically tunes system settings based on that monitoring information. Dynamic tuning accounts for the way that various system components are used differently throughout the uptime for any given system. For example, the hard drive is used heavily during startup and login, but is barely used later when a user might mainly work with applications like OpenOffice or email clients. Similarly, the CPU and network devices are used differently at different times. Tuned monitors the activity of these components and reacts to changes in their use. 
+
+[solution tuned_service_failed]
+As root user, start the tuned daemon using
+	# service tuned start
+
+[reference tuned_service_failed]
+Refer service man page
+https://access.redhat.com/knowledge/docs/en-US/Red_Hat_Enterprise_Linux/6/html/Power_Management_Guide/Tuned.html
