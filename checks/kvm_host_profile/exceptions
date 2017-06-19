@@ -1,0 +1,13 @@
+[summary unrecommended_profile]
+Current tuning profile is &tune_profile;. Recommended profile is 'enterprise-storage'
+
+[explanation unrecommended_profile]
+Current tuning profile is &tune_profile;. Recommended profile is 'enterprise-storage'.
+	'enterprise-storage' is a server profile to improve throughput performance for enterprise-sized server configurations. This switches to the deadline IO scheduler and disables certain I/O barriers, dramatically improving throughput. 
+
+[solution unrecommended_profile]
+As root user, change the tuning profile to 'enterprise-storage' by running
+	# tuned-adm profile enterprise-storage
+
+[reference unrecommended_profile]
+See the tuned-adm man page for futher details on available profiles.

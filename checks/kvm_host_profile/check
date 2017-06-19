@@ -1,0 +1,42 @@
+#!/usr/bin/python
+#
+# kvm_host_profile
+# Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Prem Karat <prem.karat@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+import os, re, sys, commands
+
+# Import local modules
+checklib = os.path.join(os.environ['LNXHC_LIBDIR'], 'python')
+sys.path.insert(0, checklib)
+from check.base import *
+from check.util import *
+
+
+#check if current profile is enterprise-storgae.
+def kvm_profile():
+    #Check if VT is enabled in bios
+    SYSINFO_PROFILE = os.environ["LNXHC_SYSINFO_tuned_active"]
+    get_profile = lnxhc_get_fcontent(SYSINFO_PROFILE)
+    cur_profile = re.findall(r"^Current active profile:\s(.*)", get_profile)
+    if cur_profile[0] != "enterprise-storage":
+        lnxhc_exception("unrecommended_profile")
+        lnxhc_exception_var("tune_profile", cur_profile[0])
+
+
+def main():
+    kvm_profile()
+
+
+if __name__ == '__main__':
+  main()

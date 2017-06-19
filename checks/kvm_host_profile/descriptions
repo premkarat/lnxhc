@@ -1,0 +1,8 @@
+[title]
+Check if tuning profile is enterprise-storage.
+
+[description]
+
+Get the current active profile using tuned-adm active command. Check if the profile is enterprise-storgae.
+
+'enterprise-storage' is a server profile to improve throughput performance for enterprise-sized server configurations. This switches to the deadline IO scheduler and disables certain I/O barriers, dramatically improving throughput
