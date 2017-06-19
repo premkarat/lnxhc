@@ -1,0 +1,12 @@
+[summary virbr0_exists]
+Default bridge virbr0, used for NAT networking, exists on this host.
+
+[explanation virbr0_exists]
+By default virbr0 bridge will be created for networking. Remove that bridge as all management stack use 'br0' bridge for VM networking.
+
+[solution virbr0_exists]
+Re-run this check by passing param value remove_virbr0=y
+
+[reference virbr0_exists]
+Refer, http://wiki.libvirt.org/page/VirtualNetworking for more details on virtual networking.
+

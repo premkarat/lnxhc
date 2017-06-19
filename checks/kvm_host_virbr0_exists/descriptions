@@ -1,0 +1,6 @@
+[title]
+Verify if default bridge virbr0 exists. 
+
+[description]
+By default virbr0 bridge will be created for networking. Remove that bridge as all management stack use 'br0' bridge for VM networking. If present, the admin has an option to remove it by passing param as "remove_virbr0=y"
+

@@ -1,0 +1,11 @@
+[check]
+author = "Prem Karat <prem.karat@linux.vnet.ibm.com>"
+component = "kvm-host"
+state = active
+
+[sysinfo virbr0_exists]
+program = "ifconfig virbr0"
+ignorerc = 1
+
+[exception virbr0_exists]
+severity = medium
