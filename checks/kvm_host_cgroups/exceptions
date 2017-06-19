@@ -1,0 +1,27 @@
+[summary chkconfig_cgconfig_off]
+cgroup is not enabled during startup
+
+[explanation chkconfig_cgconfig_off]
+cgroup is not enabled during startup.
+	The cgconfig ( control group config) service can be configured to start up at boot time and reestablish your predefined cgroups, thus making them persistent across reboots.
+
+[solution chkconfig_cgconfig_off]
+	# chkconfig cgconfig on
+
+[reference chkconfig_cgconfig_off]
+See the chkconfig man page.
+
+[summary cgconfig_service_failed]
+cgconfig daemon is not running
+
+[explanation cgconfig_service_failed]
+cgconfig daemon is not running.
+	The cgconfig service is not started by default on Red Hat Enterprise Linux 6. When you start the service with chkconfig, it reads the cgroup configuration file — /etc/cgconfig.conf. Depending on the contents of the configuration file, cgconfig can create hierarchies, mount necessary file systems, create cgroups, and set subsystem parameters for each group.
+	Cgroups allow you to allocate resources—such as CPU time, system memory, network bandwidth, or combinations of these resources—among user-defined groups of tasks (processes) running on a system. You can monitor the cgroups you configure, deny cgroups access to certain resources, and even reconfigure your cgroups dynamically on a running system. 
+
+[solution cgconfig_service_failed]
+As root user, start the cgconfig daemon using
+	# service cfconfig start
+
+[reference cgconfig_service_failed]
+Refer service man page

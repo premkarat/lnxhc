@@ -1,0 +1,44 @@
+#!/usr/bin/python
+#
+# kvm_host_cgroup
+# Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Prem Karat <prem.karat@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+import os, re, sys, commands
+
+# Import local modules
+checklib = os.path.join(os.environ['LNXHC_LIBDIR'], 'python')
+sys.path.insert(0, checklib)
+from check.base import *
+from check.util import *
+
+
+#check if cgroup is enabled or disabled
+def kvm_cgroup():
+    #Check if VT is enabled in bios
+    SYSINFO_CGRP_RC = os.environ["LNXHC_SYSINFO_EXIT_CODE_chkconfig_cgconfig"]
+    if int(SYSINFO_CGRP_RC):
+        lnxhc_exception("chkconfig_cgconfig_off")
+
+    # check the status of libvirtd service
+    SYSINFO_CGCONFIG_RC = os.environ["LNXHC_SYSINFO_EXIT_" \
+                              "CODE_service_cgconfig_status"]
+    if int(SYSINFO_CGCONFIG_RC):
+        lnxhc_exception("cgconfig_service_failed")
+
+def main():
+    kvm_cgroup()
+
+
+if __name__ == '__main__':
+  main()

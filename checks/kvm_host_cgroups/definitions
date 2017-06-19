@@ -1,0 +1,23 @@
+[check]
+author = "Prem Karat<prem.karat@linux.vnet.ibm.com>"
+component = "kvm-host"
+state = active
+
+[deps]
+sys_platform=i386 or sys_platform=x86_64
+sys_distro=RHEL and sys_rhel_version>=6.2
+
+[sysinfo chkconfig_cgconfig]
+program = "chkconfig cgconfig"
+ignorerc = 1
+
+[sysinfo service_cgconfig_status]
+program = "service cgconfig status"
+ignorerc = 1
+
+[exception chkconfig_cgconfig_off]
+severity = high
+
+[exception cgconfig_service_failed]
+severity = high
+

@@ -1,0 +1,11 @@
+[title]
+Check if cgroups is enabled during startup and is currently running.
+
+[description]
+The 2 checks are important to ascertain if cgroup is running and enabled during startup.
+
+1. Check if cgroup is enabled during startup using chkconfig output.
+
+2. Check if cgroup is currently running.
+
+cgroups (control groups) is a Linux kernel feature to limit, account and isolate resource usage (CPU, memory, disk I/O, etc.) of process groups. By using cgroups, system administrators gain fine-grained control over allocating, prioritizing, denying, managing, and monitoring system resources. Hardware resources can be smartly divided up among tasks and users, increasing overall efficiency.
