@@ -1,0 +1,7 @@
+[title]
+Check if ksm & ksm daemon is not running by default and is not enabled for startup
+
+[description]
+
+1. Check if ksm & ksmtuned daemon is not running.
+2. Check if ksm & ksmtuned daemon is not enabled by default during startup.

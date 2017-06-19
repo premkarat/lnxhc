@@ -1,0 +1,55 @@
+#!/usr/bin/python
+#
+# kvm_host_ksm_disabled
+# Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Prem Karat <prem.karat@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+import os, re, sys, commands
+
+# Import local modules
+checklib = os.path.join(os.environ['LNXHC_LIBDIR'], 'python')
+sys.path.insert(0, checklib)
+from check.base import *
+from check.util import *
+
+
+def ksm_disabled():
+
+    SYSINFO_KSM_STARTUP = os.environ["LNXHC_SYSINFO_EXIT_CODE_" \
+                                                "chkconfig_ksm"]
+    if not int(SYSINFO_KSM_STARTUP):
+        lnxhc_exception("chkconfig_ksm_on")
+
+    SYSINFO_KSMTUNED_STARTUP = os.environ["LNXHC_SYSINFO_EXIT_CODE_" \
+                                                "chkconfig_ksmtuned"]
+    if not int(SYSINFO_KSMTUNED_STARTUP):
+        lnxhc_exception("chkconfig_ksmtuned_on")
+
+    # check the status of ksm service
+    SYSINFO_KSM_RC = os.environ["LNXHC_SYSINFO_EXIT_" \
+                              "CODE_service_ksm_status"]
+    if not int(SYSINFO_KSM_RC):
+        lnxhc_exception("ksm_service_running")
+
+    SYSINFO_KSMTUNED_RC = os.environ["LNXHC_SYSINFO_EXIT_" \
+                              "CODE_service_ksmtuned_status"]
+    if not int(SYSINFO_KSMTUNED_RC):
+        lnxhc_exception("ksmtuned_service_running")
+
+
+def main():
+    ksm_disabled()
+
+
+if __name__ == '__main__':
+    main()

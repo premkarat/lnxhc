@@ -1,0 +1,51 @@
+[summary chkconfig_ksm_on]
+ksm is enabled during startup
+
+[explanation chkconfig_ksm_on]
+ksm is enabled during startup.
+
+[solution chkconfig_ksm_on]
+        # chkconfig ksm off
+
+[reference chkconfig_ksm_on]
+See the chkconfig man page.
+
+[summary chkconfig_ksmtuned_on] 
+ksmtuned is enabled during startup
+
+[explanation chkconfig_ksmtuned_on]
+ksmtuned is enabled during startup.
+
+[solution chkconfig_ksmtuned_on]
+        # chkconfig ksmtuned off
+
+[reference chkconfig_ksmtuned_on]
+See the chkconfig man page.
+
+
+[summary ksm_service_running]
+ksm daemon is running
+
+[explanation ksm_service_running]
+ksm daemon is  running.
+
+[solution ksm_service_running]
+As root user, stop the ksm daemon using
+	# service ksm stop
+
+[reference ksm_service_running]
+Refer service man page
+
+[summary ksmtuned_service_running]
+ksmtuned daemon is running
+
+[explanation ksmtuned_service_running]
+ksmtuned daemon is  running.
+
+[solution ksmtuned_service_running]
+As root user, stop the ksmtuned daemon using
+        # service ksmtuned stop
+
+[reference ksmtuned_service_running]
+Refer service man page
+

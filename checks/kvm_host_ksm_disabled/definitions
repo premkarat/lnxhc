@@ -1,0 +1,36 @@
+[check]
+author = "Prem Karat<prem.karat@linux.vnet.ibm.com>"
+component = "kvm-host"
+state = active
+
+[deps]
+sys_platform=i386 or sys_platform=x86_64
+sys_distro=RHEL and sys_rhel_version>=6.2
+
+[sysinfo chkconfig_ksm]
+program = "chkconfig ksm"
+ignorerc = 1
+
+[sysinfo chkconfig_ksmtuned]
+program = "chkconfig ksmtuned"
+ignorerc = 1
+
+[sysinfo service_ksm_status]
+program = "service ksm status"
+ignorerc = 1
+
+[sysinfo service_ksmtuned_status]
+program = "service ksmtuned status"
+ignorerc = 1
+
+[exception chkconfig_ksm_on]
+severity = medium
+
+[exception chkconfig_ksmtuned_on]
+severity = medium
+
+[exception ksm_service_running]
+severity = medium
+
+[exception ksmtuned_service_running]
+severity = medium
