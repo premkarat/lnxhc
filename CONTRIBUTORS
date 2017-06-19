@@ -103,3 +103,21 @@ Manik Bajpai <manibajp@in.ibm.com> (IBM Corp.)
 - zfcp_hba_shared_chpids implementation
 - zfcp_lun_configured_available implementation
 - zfcp_target_port_recovery_failed implementation
+
+Prem Karat <prem.karat@linux.vnet.ibm.com> (IBM Corp.)
+- kvm_guest_clock_policy
+- kvm_guest_vcpu_affinity
+- kvm_guest_virtio_disk
+- kvm_guest_virtio_memballoon
+- kvm_host_cgroups
+- kvm_host_iosched
+- kvm_host_ksm_disabled
+- kvm_host_mpath_enabled
+- kvm_host_numa_aware
+- kvm_host_numad_enabled
+- kvm_host_profile
+- kvm_host_tuned
+- kvm_host_virbr0_exists
+- kvm_host_virtio_background_ratio
+- kvm_host_virtio_dirty
+
