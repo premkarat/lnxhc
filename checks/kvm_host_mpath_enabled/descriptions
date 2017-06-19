@@ -1,0 +1,11 @@
+[title]
+Check if Mulitpath is installed and running
+
+[description]
+All the 3 checks/requirements are mandatory for multipath to work.
+
+1. Check if dm_multipath kernel module is loaded.
+
+2. Check if device-mapper-multipath rpm package is installed.
+
+3. Check if mulitpathd daemon is running.

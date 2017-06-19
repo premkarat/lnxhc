@@ -1,0 +1,39 @@
+[summary mpath_kernmod_notfound]
+Mulitpath kernel modules are not loaded
+
+[explanation mpath_kernmod_notfound]
+Mulitpath kernel modules are not loaded
+	dm_multipath kernel module is not loaded.
+
+[solution mpath_kernmod_notfound]
+As root user, try inserting the mpath module using
+ # modprobe -a dm_multipath
+
+[reference mpath_kernmod_notfound]
+See the modprobe man page.
+
+[summary mpath_package_missing]
+Mulitpath packages are not installed
+
+[explanation mpath_package_missing]
+Mulitpath packages are not installed
+
+[solution mpath_package_missing]
+As root user, try installing the package using
+  # yum install device-mapper-multipath;
+
+[reference mpath_package_missing]
+See the yum man page.
+
+[summary mpath_service_stopped]
+Mulitpath daemon is not running
+
+[explanation mpath_service_stopped]
+Mulitpath daemon is not running.
+
+[solution mpath_service_stopped]
+As root user, try starting the service using
+ # service multipathd start
+
+[reference mpath_service_stopped]
+See the service man page.

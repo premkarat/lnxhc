@@ -1,0 +1,49 @@
+#!/usr/bin/python
+################################################################################
+# health_check.py: Health Check utility for KVM environment
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# Copyright (C) IBM Corporation, 2012
+#
+#
+#   Author: Prem Karat<prem.karat@linux.vnet.ibm.com>
+#
+################################################################################
+
+import commands, re, os, sys
+
+def mpath_enabled():
+    mpath_mod = commands.getstatusoutput("lsmod|egrep '^dm_multipath'")
+    if not mpath_mod[0]:
+        # check if multipath, multipath-libs package is installed
+        mpath_rpm = commands.getstatusoutput("rpm -qa| \
+                                         grep device-mapper-multipath")
+        if not mpath_rpm[0]:
+            # check the status of multipathd service
+            mpathd = commands.getstatusoutput("service multipathd status")
+            if mpathd[0]:
+                print "mpath_service"
+        else:
+            print "mpath_rpm"
+            return False
+    else:
+        print "mpath_kern_mod"
+        return False
+
+def main():
+    mpath_enabled()
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,43 @@
+#!/usr/bin/python
+#
+# kvm_host_mpath_enabled
+# Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Prem Karat <prem.karat@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+import os, re, sys, commands
+
+# Import local modules
+checklib = os.path.join(os.environ['LNXHC_LIBDIR'], 'python')
+sys.path.insert(0, checklib)
+from check.base import *
+from check.util import *
+
+
+def mpath_enabled():
+    SYSINFO_MPATH = os.environ["LNXHC_SYSINFO_mpath_info"]
+    mpath_info = lnxhc_get_fcontent(SYSINFO_MPATH)
+    if mpath_info == "mpath_kern_mod":
+        lnxhc_exception("mpath_kernmod_notfound")
+
+    elif mpath_info == "mpath_rpm":
+        lnxhc_exception("mpath_package_missing")
+
+    elif mpath_info == "mpath_service":
+        lnxhc_exception("numad_service_stopped")
+
+def main():
+    mpath_enabled()
+
+
+if __name__ == '__main__':
+    main()
