@@ -1,0 +1,66 @@
+#!/usr/bin/python
+################################################################################
+# health_check.py: Health Check utility for KVM environment
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# Copyright (C) IBM Corporation, 2012
+#
+#
+#   Author: Prem Karat<prem.karat@linux.vnet.ibm.com>
+#
+################################################################################
+
+import commands, re, os, sys, pdb
+
+def domain_list():
+    """
+    Get a list of active domain names.
+    """
+    virsh_check = commands.getstatusoutput("virsh list --all --name")
+    if not virsh_check[0]:
+        virsh_list_cmd = commands.getstatusoutput("virsh list --all --name |" \
+                                                                "tr -s '\n'")
+        virsh_list =  virsh_list_cmd[1].strip('\n').split('\n')
+        if virsh_list:
+            return virsh_list
+        else:
+            return 1
+    else:
+      return 0
+
+def virtio_setting():
+    """
+    Output format is <domain name> <vcpu0> <CPU Affinity> ....
+    """
+    virsh_list =  domain_list() 
+    if virsh_list and not virsh_list == 1:
+        for domain in virsh_list:
+            target = commands.getstatusoutput("virsh dumpxml '%s' | \
+                          egrep \"<memballoon model='virtio'>\"" %domain)
+            if target[1].strip() != "<memballoon model='virtio'>":
+                print domain
+        exit(0)
+
+    elif virsh_list == 1:
+        exit(0)
+    else:
+        exit(64)
+
+
+def main():
+    virtio_setting()
+
+if __name__ == '__main__':
+    main()

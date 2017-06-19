@@ -1,0 +1,15 @@
+[summary memballoon_virtio_notset]
+One or more domain's memballoon is not virtio enabled
+
+[explanation memballoon_virtio_notset]
+One or more domain's memballoon is not virtio enabled
+List of the domains for which memballoon is not virtio enabled is listed under INFO section below.
+Run lnxhc run --replay -V -V to see the INFO section.
+
+[solution memballoon_virtio_notset]
+Edit the domain xml file and set memballoon=virtio
+Edit the domain xml using command
+ #virsh edit <domain>
+
+[reference memballoon_virtio_notset]
+Refer to libvirt xml manual to get more information.
