@@ -1,0 +1,14 @@
+[summary numa_off]
+sysfs not mounted or system not NUMA aware
+
+[explanation numa_off]
+sysfs not mounted or system not NUMA aware.
+
+
+
+[solution numa_off]
+As root user, change the tuning profile to 'enterprise-storage' by running
+
+
+[reference numa_off]
+See the numactl man page for futher details on available profiles.

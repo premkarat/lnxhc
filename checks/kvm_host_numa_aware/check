@@ -1,0 +1,42 @@
+#!/usr/bin/python
+#
+# kvm_host_numa_aware
+# Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Prem Karat <prem.karat@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+import os, re, sys, commands
+
+# Import local modules
+checklib = os.path.join(os.environ['LNXHC_LIBDIR'], 'python')
+sys.path.insert(0, checklib)
+from check.base import *
+from check.util import *
+
+
+def kvm_numa():
+    """
+    If host is NUMA-aware, check if NUMA mode is enabled.
+    """
+    SYSINFO_NUMA = os.environ["LNXHC_SYSINFO_numactl"]
+    numa = commands.getstatusoutput("sed -nr \
+                 's/available: (.+) nodes.*/\\1/p' %s" % SYSINFO_NUMA)
+    if int(numa[1]) <= 1:
+        lnxhc_exception("numa_off")
+
+
+def main():
+    kvm_numa()
+
+
+if __name__ == '__main__':
+  main()
