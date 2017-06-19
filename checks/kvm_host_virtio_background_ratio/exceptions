@@ -1,0 +1,12 @@
+[summary warn_vmdirty_background_ratio]
+vmdirty_background_ratio is not set to recommended value (default 5)
+
+[explanation warn_vmdirty_background_ratio]
+vmdirty_background_ratio is not set to recommended value (default 5). Current value for vm.dirty_background_ratio = &vmdirty_background_ratio;
+
+[solution warn_vmdirty_background_ratio]
+Set vmdirty_background_ratio to recommended value (default=5) by
+ # sysctl vm.dirty_ratio=<value>
+
+[reference warn_vmdirty_background_ratio]
+See the sysctl man page.
