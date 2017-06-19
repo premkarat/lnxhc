@@ -1,0 +1,12 @@
+[summary warn_vmdirty_ratio]
+vmdirty_ratio is not set to recommended value (default 1)
+
+[explanation warn_vmdirty_ratio]
+vmdirty_ratio is not set to recommended value (default 1). Current value for vm.dirty_ratio = &vmdirty_ratio;
+
+[solution warn_vmdirty_ratio]
+Set vmdirty_ratio to recommended value (default=1) by
+ # sysctl vm.dirty_ratio=<value>
+
+[reference warn_vmdirty_ratio]
+See the sysctl man page.

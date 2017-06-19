@@ -1,0 +1,8 @@
+[title]
+Check if virtio_dirty ratio is set to recommended value (default 1)
+
+[description]
+Check if virtio_dirty ratio is set to recommended value (default 1).
+
+[param warn_vmdirty_ratio]
+Valid values are integers.

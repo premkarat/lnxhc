@@ -1,0 +1,18 @@
+[check]
+author = "Prem Karat<prem.karat@linux.vnet.ibm.com>"
+component = "kvm-host"
+state = active
+
+[deps]
+sys_platform=i386 or sys_platform=x86_64
+sys_distro=RHEL and sys_rhel_version>=6.2
+
+[param warn_vmdirty_ratio]
+default = "1"
+
+[sysinfo sysctl_vmdirty_ratio]
+program = "sysctl vm.dirty_ratio"
+ignorerc = 1
+
+[exception warn_vmdirty_ratio]
+severity = medium
