@@ -1,0 +1,15 @@
+[check]
+author = "Prem Karat <prem.karat@in.ibm.com>"
+component = "kvm-guest"
+state = active
+
+[deps]
+sys_platform=i386 or sys_platform=x86_64
+sys_distro=RHEL and sys_rhel_version>=6.2
+
+[sysinfo guest_vcpu_affinity]
+program = "$LNXHC_CHECK_DIR/domvcpuinfo"
+extrafile = "domvcpuinfo"
+
+[exception vcpu_affinity_set]
+severity = high

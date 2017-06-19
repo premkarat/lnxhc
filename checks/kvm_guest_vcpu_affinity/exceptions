@@ -1,0 +1,17 @@
+[summary vcpu_affinity_set]
+One or more domain's vcpu's have cpu affinity set
+
+[explanation vcpu_affinity_set]
+One or more domain's vcpu's have cpu affinity set
+List of the domains & cpu affinity information is listed under INFO section below.
+Run lnxhc run --replay -V -V to see see the INFO section.
+
+[solution vcpu_affinity_set]
+Run the virsh vcpupin to remove the cpu affinity for each vcpu.
+
+	# virsh vcpupin <domain> --vcpu <vcpu #> <cpulist> --live --config
+
+          where cpulist = 0-n (n being total number of cpus on the host)
+
+[reference vcpu_affinity_set]
+Run "# virsh help vcpupin" to get more info on changing the cpu affinity of domain vcpu's.

@@ -1,0 +1,6 @@
+[title]
+Check if running domains' vcpu is set for cpu affinity. 
+
+[description]
+
+Check if running domains' vcpu is set for cpu affinity. 

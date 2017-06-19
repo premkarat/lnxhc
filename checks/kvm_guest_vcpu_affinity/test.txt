@@ -1,0 +1,5 @@
+sles10-64 0 yyy----- 1 ---yyy-- 2 yyyyyyyy 3 yyyyyyyy 4 yyyyyyyy 5 yyyyyyyy 6 yyyyyyyy 7 yyyyyyyy 
+Rhel7-Alpha2 0 yyyyyyyy 1 yyyyyyyy 2 yyyyyyyy 3 yyyyyyyy 4 yyyyyyyy 5 yyyyyyyy 6 yyyyyyyy 7 yyyyyyyy 
+Rhel7-Alpha2-new 0 yyyyyyyy 1 yyyyyyyy 2 yyyyyyyy 3 yyyyyyyy 4 yyyyyyyy 5 yyyyyyyy 6 yyyyyyyy 7 yyyyyyyy 
+win7-32 0 yyyyyyyy 1 yyyyyyyy 2 yyyyyyyy 3 yyyyyyyy 4 yyyyyyyy 5 yyyyyyyy 6 yyyyyyyy 7 yyyyyyyy 
+vm1 0 yyyyyyyy 1 yyyyyyyy 

@@ -1,0 +1,109 @@
+#!/usr/bin/python
+################################################################################
+# health_check.py: Health Check utility for KVM environment
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# Copyright (C) IBM Corporation, 2012
+#
+#
+#   Author: Prem Karat<prem.karat@linux.vnet.ibm.com>
+#
+################################################################################
+
+import commands, re, os, sys
+import pdb
+
+def active_domain_list():
+    """
+    Get a list of active domain names.
+    """
+
+    virsh_check = commands.getstatusoutput("virsh list --name")
+    if not virsh_check[0]:
+        virsh_list_cmd = commands.getstatusoutput("virsh list \
+                                            --name|tr -s '\n'")
+        virsh_list =  virsh_list_cmd[1].strip('\n').split('\n')
+        if virsh_list:
+            return virsh_list
+        else:
+            return 1
+    else:
+      return 0
+
+def vcpu_affinity():
+    """
+    Output format is <domain name> <vcpu0> <CPU Affinity> ....
+    """
+    virsh_list =  active_domain_list() 
+    if virsh_list and not virsh_list == 1:
+        output = [] 
+        for domain in virsh_list:
+            nvcpu = commands.getstatusoutput("virsh vcpuinfo '%s' | \
+                                     egrep 'VCPU' | wc -l" % domain)
+
+            affinity = commands.getstatusoutput("virsh vcpuinfo '%s' | \
+                                          egrep 'Affinity' | \
+                                  cut -d ':' -f2 | sed s/' '//g | \
+                                  tr '\n' ' ' | grep '-'" %domain)
+            if not affinity[0]:
+                cpulist = []
+                cpu_affinity = ""
+                tmp_affinity = affinity[1].split()
+                for vcpu in range(int(nvcpu[1])):
+                    if '-' in tmp_affinity[vcpu]:
+                        for cpu in range(len(tmp_affinity[vcpu])):
+                            if tmp_affinity[vcpu][cpu] == 'y':
+                                cpulist.append(cpu)
+                           
+                        start = cpulist[0]
+                        prev = cpulist[0]
+                        nodelist =[]
+                        for cur in cpulist[1:]:
+                            if prev == cur -1:
+                                prev = cur
+                                if cur == cpulist[-1]:
+                                    str = "%s-%s" % (start, cur)
+                                    nodelist.append(str)
+                            elif start == prev:
+                                nodelist.append(start)
+                                prev = cur
+                                start = cur
+                            else:
+                                str = "%s-%s" %(start, prev)
+                                nodelist.append(str)
+                                if cur == cpulist[-1]:
+                                    nodelist.append(cur)
+                                prev = cur
+                                start = cur
+                        cpu_affinity = cpu_affinity + "vcpu%s=%s " \
+                                                 % (vcpu, nodelist)
+                        cpulist=[]
+                output.append("%10s %s" % (domain, cpu_affinity))
+
+        for dom in output:
+            print "%s" % dom 
+        exit(0)
+
+    elif virsh_list == 1:
+        exit(0)
+    else:
+        exit(64)
+
+
+def main():
+    vcpu_affinity()
+
+if __name__ == '__main__':
+    main()
