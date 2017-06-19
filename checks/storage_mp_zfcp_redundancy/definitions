@@ -1,0 +1,20 @@
+[check]
+author = '"Manik Bajpai <manibajp@in.ibm.com>"'
+component = "storage/multipath"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo read_multipath_info]
+program = "/sbin/multipath -l"
+user = root
+
+[sysinfo list_zfcp_disks]
+program = "/sbin/lszfcp -D"
+ignorerc=1
+
+[sysinfo lscss]
+program = "/sbin/lscss"
+
+[exception single_point_of_failure]
+severity = high

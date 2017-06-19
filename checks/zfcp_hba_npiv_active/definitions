@@ -1,0 +1,16 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "zfcp/hba"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo proc_sysinfo]
+file = "/proc/sysinfo"
+
+[sysinfo lszfcp_a]
+program = "/sbin/lszfcp -a"
+ignorerc=1
+
+[exception no_npiv]
+severity = medium

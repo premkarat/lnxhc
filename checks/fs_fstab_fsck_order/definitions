@@ -1,0 +1,24 @@
+[check]
+author = "Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>"
+component = "filesystem/fstab"
+
+[param mount]
+default = ""
+
+[param exclude]
+default = "none"
+
+[sysinfo fstab]
+file = "/etc/fstab"
+
+[sysinfo vfs]
+file = "/proc/filesystems"
+
+[exception root_not_checked]
+severity = high
+
+[exception root_low_prio_check]
+severity = medium
+
+[exception filesystem_not_checked]
+severity = medium

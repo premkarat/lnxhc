@@ -1,0 +1,110 @@
+#!/usr/bin/perl
+#
+# storage_mp_ineffective
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_SINGLE_PATH = "single_path";
+
+# Path to the file containing data for sysinfo item 'multipath_output'.
+my $sysinfo_multipath_output = $ENV{"LNXHC_SYSINFO_multipath_output"};
+
+
+#
+# Code entry
+#
+
+# Defining variables
+my $device_count  = 0;
+my (@dev_mapper, @dev_wwid, @dev_alias, $handle, $alias, $wwid);
+# Verifying multipath setup configured or not
+if (-z "$sysinfo_multipath_output") {
+	lnxhc_fail_dep("There is no multipath setup");
+}
+
+open($handle, "<", $sysinfo_multipath_output) or
+		die("could not open $sysinfo_multipath_output: $!\n");
+
+# Alias,wwid values putting into an array
+sub device_single_path($$)
+{
+	my ($alias, $wwid) = @_;
+	if (defined($alias) && defined($wwid)) {
+		push(@dev_mapper,$alias);
+		push(@dev_alias, $alias);
+		push(@dev_wwid, $wwid);
+	}else {
+		push(@dev_mapper, $wwid);
+		push(@dev_alias, "-");
+		push(@dev_wwid, $wwid);
+	}
+}
+
+# Validating multipath configuration
+foreach my $line(<$handle>) {
+	if ($line =~ (/^([\w-]+)\s+\((\w+)\)\s+/) ||
+                        ($line =~ /^(\w+)\s+/) ) {
+		# Checking Single path device
+		# Calculating $device_count out side of if condition
+		if ($device_count == 1) {
+			device_single_path($alias,$wwid);
+			($wwid, $alias) = undef;
+		}
+		$device_count = 0;
+		# Holding the device-mapper name in a temporary variable
+		if (defined($1) && defined($2)) {
+			($alias, $wwid) = ($1, $2);
+		} else {
+			($alias, $wwid) = (undef, $1);
+		}
+	}
+# Counting number of paths for device-mapper
+	$device_count++	if ($line =~ /^[\\|]+\s+/ || $line =~ /^\s+\S+\s*\d+/);
+}
+# Checking whether last device-mapper has single path
+device_single_path($alias,$wwid) if ($device_count ==1);
+close($handle);
+
+# verifying the number of single path devices count more than 0
+if (@dev_mapper){
+	my @summary_device;
+	lnxhc_exception($LNXHC_EXCEPTION_SINGLE_PATH);
+
+	# Summary list should be short
+	if (scalar(@dev_mapper) > 4) {
+		@summary_device = (@dev_mapper[0..3],"...");
+	}else {
+		@summary_device = @dev_mapper;
+	}
+	lnxhc_exception_var("single_device_summ", join(", ", @summary_device));
+	lnxhc_exception_var("single", sprintf("#%-10s   %-40s", "ALIAS", "WWID"));
+
+	for(my $i=0; $i < scalar(@dev_mapper); $i++) {
+		lnxhc_exception_var("single", sprintf("#%-10s %-40s",
+			$dev_alias[$i],$dev_wwid[$i]));
+	}
+}
+exit(0);

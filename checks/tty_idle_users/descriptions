@@ -1,0 +1,27 @@
+[title]
+Identify idle users
+
+
+[description]
+Identify users who are logged in but are not active.
+Each logged-in user occupies a terminal that could
+otherwise be used by another user.
+
+
+[param idle_time]
+Specifies the maximum idle time to be tolerated.
+Valid values are positive integers followed by d, h, m, or s for
+days, hours, minutes, or seconds.
+
+If a user exceeds this idle time, an exception message is issued.
+
+
+[param users]
+A blank-separated list of user IDs for which the idle times are checked.
+If the list is empty, all users are checked.
+
+
+[param tty]
+A blank-separated list of terminals for which idle users are identified.
+Terminals are specified by their device node without the leading /dev/.
+If the list is empty, all terminals are checked.

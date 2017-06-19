@@ -1,0 +1,8 @@
+[title]
+Identify CDL-formatted DASD where the metadata area is used for storing data
+
+[description]
+Compatible Disk Layout (CDL) formatted DASD should have a partition and the partition should not start before track 2. Otherwise data corruptions might occur. Also the metadata which is stored in tracks 0 and 1 can be corrupted. Metadata contains partition tables and volume labels that are required by other operating systems, for example, z/OS.  If metadata is corrupted, other operating systems might no longer recognize the disk.
+
+On CDL formatted devices, the first blocks are formatted with a non-standard block size. And for what ever the data written, while reading it gives back only '0xE5'.
+The first two tracks of CDL DASDs contain meta-data such as volume labels and partition tables. The volume labels are required so that the disk can be recognized by other operating systems (e.g. z/OS). If these are overwritten, the disk contents will no longer be recognized by these operating systems.

@@ -1,0 +1,307 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc_cons_definitions 5 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.SH NAME
+lnxhc_cons_definitions \- Define consumer metadata
+.
+.
+.SH DESCRIPTION
+The
+.B definitions
+file of a consumer contains metadata needed by the \*[lhc] to correctly handle
+the consumer. When you create or modify a definitions file you must ensure that
+this data is consistent with the behavior of the corresponding consumer
+program.
+.P
+Data is
+stored in lines of text which are grouped into named sections. Text encoding
+is UTF-8. Empty lines and lines starting with a hash sign ("#") are ignored.
+.
+.
+.SS "Example definitions file"
+.RS 4
+.CL [consumer]
+.CL author=\[dq]Peter Oberparleiter <peter.oberparleiter@de.ibm.com>\[dq]
+.CL format=env
+.CL frequency=both
+.CL event=any
+.CL type=report
+.CL
+.CL [param show_exception_details]
+.CL default=0
+.CL
+.CL [param show_stats]
+.CL default=0
+.CL
+.CL [param show_info]
+.CL default=0
+.RE
+.
+.
+.SH "FILE FORMAT"
+Each line can contain data in one of the following formats:
+.PP
+.RS 4
+.IP \(bu 2
+.B Section heading
+
+A section heading is a line starting with an opening square
+bracket ("["), followed by one or more whitespace-separated identifiers,
+followed by a closing square bracket ("]"). Identifiers may consists of
+lowercase-letters a-z, digits 0-9 and the underscore sign.
+
+.B Example:
+.br
+.CL [consumer]
+.PP
+.
+.IP \(bu 2
+.B Keyword-value assignment
+
+A keyword-value assignment is a line starting with an identifier, followed by
+the equal sign ("="), followed by a value string which may be enclosed in
+single ("'") or double ('"') quotes to preserve white spaces.
+
+.B Example:
+.br
+.CL state=active
+.PP
+.RE
+.
+.
+.SH SECTIONS
+Valid sections for a consumer definitions file are:
+.PP
+.RS 4
+.IP \(bu 2
+.CL [consumer]
+
+This mandatory section contains definitions which affect the consumer as a whole.
+.PP
+.
+.IP \(bu 2
+.CL [param \fIidentifier\fP]
+
+This mandatory section specifies default values for parameters. For each
+parameter that a consumer defines one such section must be present.
+.PP
+.RE
+.
+.
+.SH "CONSUMER SECTION"
+.KY author = email_address
+.RS
+Specify consumer author e-mail address in the format defined by RFC 5322.
+
+.B Example:
+.br
+.CL author = \[dq]User <user@host>\[dq]
+
+This keyword is mandatory. It may occur multiple times.
+.PP
+.RE
+.
+.KY event =exception|any
+.RS
+Specify the type of event that the consumer receives.
+
+.B exception
+.RS
+This consumer receives check result data only when a check identifies an
+exception.
+.RE
+.PP
+.B any
+.RS
+This consumer receives all check result data, regardless of whether an
+exception was identified or not.
+.RE
+.PP
+.RE
+.
+.KY extrafile = filename
+.RS
+Specify additional files to be installed as part of the consumer.
+Filename paths must be specified relative to the consumer directory.
+
+Use this keyword if you provide additional files such as helper scripts which
+are required by the consumer program to function correctly. In this case, add
+one "extrafile" line for each provided file. Note that such files must be stored
+in the consumer directory or one of its subdirectories.
+
+This keyword is optional. If it is omitted, no additional files will be
+installed. This keyword may occur multiple times.
+.PP
+.RE
+.
+.KY format =xml|env
+.RS
+Specify the format in which the consumer receives check result data from
+the \*[lhc].
+
+.B xml
+.RS
+The consumer receives check results as XML data which the \*[lhc] presents
+to the consumer program's standard input stream.
+.RE
+.PP
+.B env
+.RS
+The consumer receives check result data in environment variables.
+.RE
+.PP
+.RE
+.
+.KY frequency =foreach|once|both
+.RS
+Specify the frequency at which the consumer runs.
+
+.B foreach
+.RS
+The consumer runs whenever a check finishes. It receives result data only
+for the check that finished.
+.PP
+.RE
+.B once
+.RS
+The consumer runs only once, after all checks finished. It receives result
+data for all checks that finished.
+.PP
+.RE
+.B both
+.RS
+The consumers runs in both instances: whenever a check finishes with result
+data for that check only, and again after all check finished with data for all
+checks that finished.
+.RE
+.PP
+.RE
+.
+.KY state =active|inactive
+.RS
+Specify the default activation state of this consumer. It is recommended
+to set this state to "inactive".
+.PP
+This keyword is optional. If omitted, the consumer is inactive by default.
+This keyword may only be present once.
+.PP
+.RE
+.
+.KY type =handler|report
+.RS
+Specify the type of processing that this consumer implements.
+
+.B handler
+.RS
+This consumers implements arbitrary processing: the consumer program does not
+write output to the standard output stream. Instead it makes its output
+available to the user through alternate channels, for example by writing it to
+files, or logging mechanisms, or by transferring it using a networking protocol.
+.PP
+.RE
+.B report
+.RS
+This consumer implements a report generator: the consumer program writes all of
+its output to its standard output stream, which is then displayed to the user.
+.RE
+.PP
+.RE
+.
+.
+.SH "PARAM SECTION"
+A parameter section defines the default value for a parameter. It is introduced
+by the following line in the definitions file:
+.PP
+.RS
+.CL [param \fIidentifier\fP]
+.RE
+.PP
+where
+.I identifier
+specifies the name of the parameter. Parameter sections are mandatory.
+.PP
+The following keywords are valid in the context of a parameter section:
+
+.KY default = string
+.RS
+Specify the default value for a parameter. The default value is used when
+no other value is specified by the user.
+
+This keyword is optional. If omitted, an empty string is assumed. This keyword
+may only be present once.
+.RE
+.PP
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_writing_consumers 7 ,
+.MP lnxhc_cons_program 7

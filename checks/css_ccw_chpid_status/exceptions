@@ -1,0 +1,212 @@
+[summary unused_cfg_off]
+One or more CHPIDs are in the "standby" configuration state (&unused_cfg_summary;)
+
+[explanation unused_cfg_off]
+One or more Channel-Path IDs (CHPIDs) are in the "standby" configuration state.
+While in the "standby" configuration state, CHPIDs are not used for I/O, and
+devices that are connected through a CHPID in this configuration state might
+not be visible to Linux. CHPIDs are usually put into this configuration state
+during maintenance of the attached I/O hardware. Operational CHPIDs have the
+configuration state "configured".
+
+The following CHPIDs are in the "standby" configuration state:
+
+&unused_cfg_list;
+
+Use the "lschp" command to investigate the configuration state of your CHPIDs.
+CHPIDs with the "standby" configuration state have the value 0 in the  "Cfg."
+column of the command output.
+
+[solution unused_cfg_off]
+If a CHPID has the configuration state "standby" but the devices attached
+through the CHPID are ready for use, you can use several methods to return
+the configuration state to "configured".
+
+From the Linux command line:
+
+#chchp -c 1 0.<chpid>
+
+For Linux on z/VM, from z/VM CP:
+
+#VARY ONLINE CHPID <chpid>
+
+For Linux in LPAR mode:
+
+Use the "Configure Channel Path On/Off" task of the Hardware Management Console
+to change the configuration state of a CHPID from "standby" to "configured".
+
+[reference unused_cfg_off]
+For more information about the configuration state of a CHPID see:
+ - The man page of the "lschp" command
+ - The man page of the "chchp" command
+ - The section about "chchp" command in "Device Drivers, Features, and Commands";
+   you can find this publication at
+
+   http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+ - "z/VM: CP Commands and Utilities Reference";
+   you can find this publication at
+
+   http://www.ibm.com/vm/library
+ - The applicable "Hardware Management Console Operations Guide";
+   you can obtain this publication from IBM Resource Link at
+
+   http://www.ibm.com/servers/resourcelink
+
+
+[summary unused_vary_off]
+One or more CHPIDs are logically offline (&unused_vary_summary;)
+
+[explanation unused_vary_off]
+One or more Channel-Path IDs (CHPIDs) are varied offline within Linux. Such
+CHPIDs are logically offline to Linux, that is, even if the CHPID is
+operational on the mainframe hardware, Linux does not use it for I/O.
+Devices that are connected through a CHPID that is logically offline might
+not be visible to Linux. CHPIDs are usually varied offline during maintenance
+of the attached I/O hardware. For regular operations, CHPIDs are varied online.
+
+The following CHPIDs are varied offline:
+
+&unused_vary_list;
+
+Use the "lschp" command to investigate the logical state of your CHPIDs.
+CHPIDs that are varied offline in Linux have the value 0 in the "Vary" column
+of the command output.
+
+[solution unused_vary_off]
+If a CHPID has been varied offline within Linux but the devices attached
+through the CHPID are ready for use, you can vary the CHPID back online with
+a command like this:
+
+#chchp -v 1 0.<chpid>
+
+[reference unused_vary_off]
+For more information about the logical state of a CHPID see:
+ - The man page of the "lschp" command
+ - The man page of the "chchp" command
+ - The section about  "chchp" command in "Device Drivers, Features, and Commands";
+   you can find this publication at
+
+   http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+[summary used_cfg_off]
+One or more online I/O devices are connected through CHPIDs that are in
+the "standby" configuration state (&used_cfg_dev_summary;)
+
+[explanation used_cfg_off]
+One or more I/O devices are connected through at least one Channel-Path ID
+(CHPID) that is in the "standby" configuration state. While in this
+configuration state, CHPIDs are not used for I/O. As a result, load balancing
+does not include all installed CHPIDs to the device, resulting in
+degraded performance.
+
+Also, if further CHPIDs become unavailable, the connection to the device might
+be lost completely, resulting in I/O stalls and errors. CHPIDs are usually put
+into the "standby" configuration state during maintenance of the attached
+I/O hardware. Operational CHPIDs have the configuration state "configured".
+
+The following devices are online and are connected through at least one CHPID
+that is in the "standby" configuration state:
+
+&used_cfg_dev_list;
+
+Use the "lscss" command to identify I/O devices with unavailable CHPIDs.
+In the command output there is a row for each device. If the values in the
+columns "PIM" and "PAM" differ, one or more channel paths to the device
+are unavailable.
+
+The following CHPIDs are in the "standby" configuration state:
+
+&used_cfg_chp_list;
+
+Use the "lschp" command to investigate the configuration state of your CHPIDs.
+CHPIDs with the "standby" configuration state have the value 0 in the "Cfg."
+column of the command output.
+
+[solution used_cfg_off]
+When an affected CHPID is ready for use, you can use several methods to return
+its configuration state to "configured".
+
+From the Linux command line:
+
+#chchp -c 1 0.<chpid>
+
+For Linux on z/VM, from z/VM CP:
+
+#VARY ONLINE CHPID <chpid>
+
+For Linux in LPAR mode:
+
+Use the "Configure Channel Path On/Off" task of the Hardware Management Console
+to change the configuration state of a CHPID from "standby" to "configured".
+
+[reference used_cfg_off]
+For more information about the configuration state of a CHPID see:
+ - The man page of the "lschp" command
+ - The man page of the "lscss" command
+ - The man page of the "chchp" command
+ - The section about the "chchp" command in "Device Drivers, Features, and Commands";
+   you can find this publication at
+
+   http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+ - "z/VM: CP Commands and Utilities Reference";
+   you can find this publication at
+
+   http://www.ibm.com/vm/library
+ - The applicable "Hardware Management Console Operations Guide";
+   you can obtain this publication from IBM Resource Link at
+
+   http://www.ibm.com/servers/resourcelink
+
+[summary used_vary_off]
+One or more online I/O devices are connected through CHPIDs that are logically
+offline (&used_vary_dev_summary;)
+
+[explanation used_vary_off]
+One or more I/O devices are connected through at least one Channel-Path ID
+(CHPID) that is varied offline within Linux. Such CHPIDs are logically
+offline to Linux, that is, even if the CHPID is operational on the mainframe
+hardware, Linux does not use it for I/O. As a result, load balancing does not
+include all installed CHPIDs to the device, resulting in degraded performance.
+Also, if further CHPIDs become unavailable, the connection to the device might
+be lost completely, resulting in I/O stalls and errors. CHPIDs are usually
+varied offline during maintenance of the attached I/O hardware. For regular
+operations, CHPIDs are varied online.
+
+The following devices are online and are connected through at least one CHPID
+that is varied offline:
+
+&used_vary_dev_list;
+
+The following CHPIDs are varied offline:
+
+&used_vary_chp_list;
+
+To confirm that an online device is connected through one or more CHPIDs that
+have been varied offline, first use the "lscss" command to find out which
+CHPIDs connect the device. Then use the "lschp" command to see which of these
+CHPIDs have been varied offline. CHPIDs that are varied offline in Linux have
+the value 0 in the "Vary" column of the command output.
+
+[solution used_vary_off]
+When an affected CHPID is ready for use, you can vary it back online with a
+command like this:
+
+#chchp -v 1 0.<chpid>
+
+[reference used_vary_off]
+For more information about the configuration state of a CHPID see:
+ - The man page of the "lschp" command
+ - The man page of the "lscss" command
+ - The man page of the "chchp" command
+ - The section about "chchp" command in "Device Drivers, Features, and Commands";
+   you can find this publication at
+
+   http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+ - "z/VM: CP Commands and Utilities Reference";
+   you can find this publication at
+
+   http://www.ibm.com/vm/library
+ - The applicable "Hardware Management Console Operations Guide";
+   you can obtain this publication from IBM Resource Link at
+
+   http://www.ibm.com/servers/resourcelink

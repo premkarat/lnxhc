@@ -1,0 +1,233 @@
+#! /usr/bin/perl -W
+#
+# tty_usage - List terminal device driver and terminal usage
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+use Data::Dumper;
+use File::stat;
+use Getopt::Long;
+use Pod::Usage;
+
+
+# program configuration
+my $params = {
+	debug	      => 0,
+	help	      => 0,
+	tty_drv_excl  => qr{/dev/(?:ptmx|console|tty)|pty_(?:master|slave)},
+	tty_dev_excl  => qr{(?:pt[ys]/\d+|\?|)},
+};
+
+sub load_ps_ef(;$);
+sub load_tty_drivers($;$);
+sub get_used_ttys();
+sub get_avail_ttys();
+sub main();
+
+
+# parse, filter, and load ps output into a hash, using the PID
+# as hash key and a list reference as value.
+#
+# For example:
+#             '8307' => [
+#                          'root',		# 0: owner
+#                          '8307',		# 1: PID
+#                          '1',			# 2: PPID
+#                          '0',			# 3: Cpu
+#                          'Aug03',		# 4: STIME
+#                          'ttyS0',		# 5: TTY
+#                          '00:00:00',		# 6: TIME
+#                          '/sbin/mingetty',	# 7..: CMD
+#                          '--noclear',
+#                          '/dev/ttyS0',
+#                          'dumb'
+#                        ]
+sub load_ps_ef(;$)
+{
+	my ($re_tty_excl) = @_;
+	my $fd = undef;
+	my $href = {};
+
+	open($fd, "/bin/ps -ef|") or
+		die "Failed to read ps output from file: $!\n";
+	while (<$fd>) {
+		my @elems = split /\s+/;	  # split fields
+		next unless $elems[1] =~ /\d+/;	  # throw away head lines
+		next if $elems[5] =~ m/^${re_tty_excl}$/; # exclude ttys
+		$href->{$elems[1]} = \@elems;
+	}
+	close($fd);
+
+	return $href;
+}
+
+# parse, filter, and load list of available terminal device drivers.
+# The name of the tty device driver is the key in the resultung hash,
+# the value is a list reference which contains driver-specific data.
+#
+# For example:
+#             'sclp_line' => [
+#                               '/dev/sclp_line',	# 0: base device name
+#                               '4',			# 1: major
+#                               '64',			# 2: minor number/range
+#                               'system:/dev/tty'	# 3: classification
+#                             ],
+sub load_tty_drivers($;$)
+{
+	my ($filename, $re_excl) = @_;
+	my $fd = undef;
+	my $href = {};
+
+	open($fd, "<", $filename) or
+		die "Failed to read tty drivers from file: $!\n";
+	while (<$fd>) {
+		my ($drv, @info) = split /\s+/;
+		if (defined($re_excl)) {
+			$href->{$drv} = \@info if $drv !~ m/^${re_excl}$/;
+		} else {
+			$href->{$drv} = \@info;
+		}
+	}
+	close($fd);
+	return $href;
+}
+
+sub get_major_minor($)
+{
+	my ($filename) = @_;
+	my $output = `stat -c %t:%T "$filename"`;
+	my ($major, $minor);
+
+	if ($output =~ /^([[:xdigit:]]+):([[:xdigit:]]+)$/) {
+		($major, $minor) = (hex($1), hex($2));
+	}
+
+	return ($major, $minor);
+}
+
+sub get_used_ttys()
+{
+	# parse, filter terminals, and load ps output
+	my $ps_ef = load_ps_ef($params->{tty_dev_excl});
+	print STDERR "PS_EF: " . Dumper($ps_ef) if $params->{debug};
+
+	# collect the terminal devices from the ps output and their
+	# device numbers
+	my $used_ttys = {};
+	foreach (keys %$ps_ef) {
+		my $tty_name = "/dev/" . $ps_ef->{$_}->[5];
+		my ($major, $minor) = get_major_minor($tty_name);
+		next unless defined($major) && defined($minor);
+		$used_ttys->{$tty_name} = "$major:$minor";
+	}
+
+	return $used_ttys;
+}
+
+sub in_range($$)
+{
+	my ($num, $range) = @_;
+
+	if ($range =~ /^(\d+)-(\d+)$/) {
+		return $num >= $1 && $num <=$2;
+	} else {
+		return $num == $range;
+	}
+}
+
+sub get_avail_ttys()
+{
+	# parse, filter, and load tty drivers
+	my $tty_drvs = load_tty_drivers("/proc/tty/drivers",
+					$params->{tty_drv_excl});
+	print STDERR "TTY_DRV: " . Dumper($tty_drvs) if $params->{debug};
+
+	# build a list of supported terminal devices and their device names
+	# as shown in the tty drivers.
+	# NOTE: this code assumes that the device nodes use the name as
+	#	suggested by the device driver.  It might not work for devices
+	#	that are renamed, for example, by udev.
+	my $avail_ttys = {};
+	foreach my $drv (keys %$tty_drvs) {
+		my $drv_data = $tty_drvs->{$drv};
+		my ($dbase, $dmajor, $dminor) = @$drv_data;
+		foreach my $dev (glob($dbase . "[0-9]*")) {
+			my ($major, $minor) = get_major_minor($dev);
+			next unless defined($major) && defined($minor);
+			if ($major != $dmajor || !in_range($minor, $dminor)) {
+				print STDERR "WARN: Device $dev does not ".
+					"belong to '$drv': $major:$minor vs. ".
+					"$dmajor:$dminor!\n"
+					if $params->{debug};
+				next;
+			}
+			$avail_ttys->{"$major:$minor"} = $dev;
+		}
+	}
+
+	return $avail_ttys;
+}
+
+sub main()
+{
+	GetOptions("d|debug+"	      => \$params->{debug},
+		   "h|help+"	      => \$params->{help},
+	) or pod2usage(1);
+
+	# check whether and how to display help information
+	pod2usage(-verbose => $params->{help} - 1,
+		  -exitval => 0) if $params->{help};
+
+	my $lstty = {};
+	$lstty->{tty_used} = get_used_ttys();
+	$lstty->{tty_avail} = get_avail_ttys();
+
+	local $Data::Dumper::Purity = 1;
+	local $Data::Dumper::Sortkeys = 1;
+	local $Data::Dumper::Terse = 1;
+	print Dumper($lstty);
+}
+
+&main();
+__DATA__
+__END__
+=head1 NAME
+
+ls-tty - Display terminal device information
+
+=head1 SYNOPSIS
+
+B<ls-tty>
+
+=head1 DESCRIPTION
+
+The B<ls-tty> program displays information about terminal (tty) device
+drivers and used terminal devices.
+
+The program is not intended to be called directly.  Instead, it is used
+as a sysinfo program called from the Linux Health Checker framework.
+
+=head1 FILES
+
+=over 8
+
+=item B</proc/tty/drivers>
+
+List of available terminal device drivers.
+
+=back
+
+=head1 SEE ALSO
+
+L<lnxhc(1)>

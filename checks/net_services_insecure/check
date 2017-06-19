@@ -1,0 +1,67 @@
+#!/usr/bin/perl
+#
+# net_services_insecure
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+#	     Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/load_chkconfig/;
+
+
+# Exception IDs
+my $LNXHC_EXCEPTION_INSECURE_SERVICES = "insecure_services";
+
+# Value of parameter 'insecure_services'.
+my $param_insecure_services = $ENV{"LNXHC_PARAM_insecure_services"};
+
+# Path to the file containing data for sysinfo item 'insecure_network_services'.
+my $sysinfo_insecure_network_services = $ENV{"LNXHC_SYSINFO_insecure_network_services"};
+
+
+if ($LNXHC_DEBUG) {
+	print("DEBUG: insecure_services=".
+	"'$param_insecure_services'\n");
+}
+
+# Creating a list of insecure services from the check parameter
+my @insecure_list = keys %{parse_list_param("insecure_services", qr/\s+/)};
+
+# Parsing the in-secure tools which are active
+my $chkconfig = load_chkconfig($sysinfo_insecure_network_services);
+die "Could not open $sysinfo_insecure_network_services: $!\n" unless $chkconfig;
+
+# Checking for in-secure network services (init and xinetd services)
+my @insecure_array_list = grep { $chkconfig->[0]->{$_} ||
+				 $chkconfig->[1]->{$_} } @insecure_list;
+
+# verifying the number of insecure network services count more than 0
+if (@insecure_array_list) {
+	lnxhc_exception($LNXHC_EXCEPTION_INSECURE_SERVICES);
+	lnxhc_exception_var ("insecure_services_list","#@insecure_array_list");
+	# Summary list should be short
+	if (scalar(@insecure_array_list) > 4) {
+		lnxhc_exception_var("insecure_services_summary", "@insecure_array_list[0..3]");
+		lnxhc_exception_var ("insecure_services_summary", "...");
+	} else {
+		lnxhc_exception_var("insecure_services_summary", "@insecure_array_list");
+	}
+} else {
+	print "++There are no insecure network services in your current environment++";
+}
+exit(0);

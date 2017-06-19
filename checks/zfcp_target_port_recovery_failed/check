@@ -1,0 +1,180 @@
+#!/usr/bin/perl
+#
+# zfcp_target_port_recovery_failed
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Manik Bajpai <manibajp@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_PORT_NOT_USABLE = "port_not_usable";
+
+# Path to the file containing data for sysinfo item 'read_zfcp_port_sysfs_attribs'.
+my $sysinfo_read_zfcp_port_sysfs_attribs =
+	$ENV{"LNXHC_SYSINFO_read_zfcp_port_sysfs_attribs"};
+
+# Path to the file containing data for sysinfo item 'read_zfcp_hba_sysfs_attribs'.
+my $sysinfo_read_zfcp_hba_sysfs_attribs =
+	$ENV{"LNXHC_SYSINFO_read_zfcp_hba_sysfs_attribs"};
+
+#
+# Subroutine to parse the sysinfo output, and return the hash of type:
+# "filename" -> "file contents".
+#
+sub parse_sysfs_data($)
+{
+	my ($siname) = @_;
+	my %data_hash;
+
+	open(my $si_fh, "<", $siname) ||
+		die("Could not read file: $siname: $!\n");
+	while (my $line = <$si_fh>) {
+		my $fname;
+		my $fdata;
+
+		chomp($line);
+		($fname, $fdata) = split('\0', $line);
+		if (!exists($data_hash{$fname})) {
+			$data_hash{$fname} = $fdata;
+			next;
+		}
+		$data_hash{$fname} = $data_hash{$fname}."\n"."$fdata";
+	}
+	close($si_fh);
+	return \%data_hash;
+}
+
+#
+# Subroutine to find all the ONLINE FCP Devices
+#
+sub get_all_online_fcp_devices()
+{
+	my @all_fcp_devices;
+	my $next_fcp_device;
+	my $next_file;
+	my $parsed_data;
+	my $regex = '\/([0-9a-f]+\.[0-9a-f]+\.[0-9a-f]+)\/(.*)';
+
+	$parsed_data = parse_sysfs_data("$sysinfo_read_zfcp_hba_sysfs_attribs");
+
+	#No FCP device found raise a failed dependency exception, with and
+	#appropriate message.
+	if (!%$parsed_data) {
+		lnxhc_fail_dep("No FCP Device found.\n");
+		goto END_OF_FUNCTION;
+	}
+
+	while (my ($filename, $dataline) = each(%$parsed_data)) {
+		next if ($filename !~ m{$regex});
+		my ($next_fcp_device, $next_file) = ($1, $2);
+		next if ($next_file ne "online");
+		push(@all_fcp_devices, $next_fcp_device) if ($dataline eq "1");
+	}
+END_OF_FUNCTION:
+	return \@all_fcp_devices;
+}
+
+#
+# Subroutine to read the "failed" attribute from all the ports
+# for all FCP Devices.
+#
+sub get_all_ports()
+{
+	my %all_ports;
+	my $parsed_data;
+	my $online_fcp_devices;
+	my $regex = '\/([0-9a-f]+\.[0-9a-f]+\.[0-9a-f]+)\/(0x.*)\/(.*)';
+
+	$online_fcp_devices = get_all_online_fcp_devices();
+
+     #No FCP device found *ONLINE* raise a failed dependency exception, with and
+     #appropriate message.
+	if (!@$online_fcp_devices) {
+		lnxhc_fail_dep("No FCP Device is online.\n");
+		return;
+	}
+	$parsed_data =
+		parse_sysfs_data("$sysinfo_read_zfcp_port_sysfs_attribs");
+
+	#Check the value of failed attrib for ONLINE FCP Devices only
+	while (my ($filename, $dataline) = each(%$parsed_data)) {
+		next if ($filename !~ m{$regex});
+		my ($next_fcp_device, $next_port, $next_file) = ($1, $2, $3);
+		next
+			if (not grep { $_ eq $next_fcp_device }
+			@$online_fcp_devices);
+		next if ($next_file ne "failed");
+		$all_ports{"$next_fcp_device $next_port"} = $dataline;
+	}
+	return \%all_ports;
+}
+
+#
+# Code for the health check. - Entry point
+#
+sub main()
+{
+	my @failed_ports;
+	my $all_ports;
+	my $key;
+	my $value;
+	my $busid;
+	my $port;
+	my $regex = '(.*)\((.*)\)';
+
+	#1. Execute the sysinfo, die if error
+
+	$all_ports = get_all_ports();
+
+	#2. If the device is not found, raise failed_dep exception
+
+	if (!%$all_ports) {
+		lnxhc_fail_dep("No port found.\n");
+	}
+
+	#3. If there are any failed ports, raised the appropriate exception.
+
+	foreach my $key (sort keys %$all_ports) {
+		next if ($$all_ports{$key} ne "1");
+		($busid, $port) = split(' ', $key);
+		push(@failed_ports, "$port($busid)");
+	}
+	if (@failed_ports) {
+		my $failed_port;
+		lnxhc_exception($LNXHC_EXCEPTION_PORT_NOT_USABLE);
+		lnxhc_exception_var_list("failed_ports_summ", \@failed_ports,
+			", ", 1);
+		foreach my $failed_port (@failed_ports) {
+			if ($failed_port !~ m{$regex}) {
+				die "Internal Error\n";
+			}
+			($port, $busid) = ($1, $2);
+			lnxhc_exception_var("failed_ports_table",
+				sprintf("|#%s|#%s", ($busid, $port)));
+		}
+	}
+	exit(0);
+}
+&main();
+__DATA__
+__END_

@@ -1,0 +1,1697 @@
+#!/usr/bin/perl
+#
+# lnxhc
+#   Linux Health Checker main program
+#
+# Copyright IBM Corp. 2012
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use File::Basename qw(basename);
+use File::Spec::Functions qw(file_name_is_absolute catdir);
+use Getopt::Long;
+use Cwd qw(abs_path);
+
+
+#
+# Early setup
+#
+
+our $tool_inv = file_name_is_absolute($0) ? basename($0) : $0;
+my $early_debug = 0;
+
+sub print_stack($)
+{
+	my ($offset) = @_;
+	my $i;
+
+	print("Stack trace:\n");
+	print("============\n");
+	for ($i = $offset; caller($i + 1); $i++) {
+		my $sub = (caller($i + 1))[3];
+		my $package = (caller($i))[0];
+		my $line = (caller($i))[2];
+
+		$sub =~ s/^.*:://;
+		print(STDERR "[$package:$line] $sub\n");
+	}
+
+}
+
+# Set up die and warn handlers here to catch early error messages
+sub die_handler(@)
+{
+	my ($msg) = @_;
+
+	print(STDERR "lnxhc: $msg");
+	if ($early_debug) {
+		print_stack(1);
+	}
+	exit(1);
+}
+
+sub warn_handler(@)
+{
+	my ($msg) = @_;
+
+	if ($early_debug) {
+		print_stack(1);
+	}
+	print(STDERR $msg);
+}
+
+sub int_handler(@)
+{
+	if ($early_debug) {
+		print_stack(1);
+	}
+	exit(1);
+}
+
+BEGIN {
+	$SIG{'__DIE__'} = \&die_handler;
+	$SIG{'__WARN__'} = \&warn_handler;
+	$SIG{'INT'} = \&int_handler;
+}
+
+our $lib_dir;
+our @default_db_dirs;
+# Determine paths
+BEGIN {
+	if (defined($ENV{"LNXHC_LIBDIR"})) {
+		$lib_dir = $ENV{"LNXHC_LIBDIR"};
+		@default_db_dirs = ( $ENV{"LNXHC_LIBDIR"} );
+	} else {
+		# __REP_START_BIN_PATHS
+		# Note: The Makefile install target replaces this code with
+		# fixed paths.
+		use FindBin;
+
+		$lib_dir = abs_path(catdir($FindBin::RealBin, "..", "lib"));
+		@default_db_dirs = ( abs_path(catdir($FindBin::RealBin,
+						     "..")) );
+		# __REP_END_BIN_PATHS
+	}
+}
+use lib $lib_dir;
+
+
+#
+# Local imports
+#
+use LNXHC::Check qw(check_get_num_selected check_info check_install check_list
+		    check_select check_select_all check_select_none
+		    check_selection_is_active check_selection_is_empty
+		    check_set_defaults check_set_ex_severity check_set_ex_state
+		    check_set_param check_set_property check_set_si_rec_duration
+		    check_set_state check_show check_show_data_id
+		    check_show_property check_uninstall check_show_sudoers);
+use LNXHC::CheckDialog qw(check_dialog);
+use LNXHC::CheckRun qw(check_run check_run_replay);
+use LNXHC::Config qw(config_check_get_active_ids config_set_defaults
+		     config_specify_profile);
+use LNXHC::Cons qw(cons_get_num_selected cons_info cons_install cons_list
+		   cons_select cons_select_all cons_select_none
+		   cons_selection_is_empty cons_set_defaults
+		   cons_set_handler_state cons_set_param cons_set_property
+		   cons_set_report_state cons_set_state cons_show
+		   cons_show_property cons_uninstall cons_switch_active_report);
+use LNXHC::Consts qw($CHECK_T_DIR $CHECK_T_ID $CHECK_T_SYSTEM $CONS_T_DIR
+		     $CONS_T_ID $CONS_T_SYSTEM $SPEC_T_UNKNOWN
+		     $STATE_T_INACTIVE);
+use LNXHC::DBCheck qw(db_check_get db_check_is_empty db_check_load);
+use LNXHC::DBCons qw(db_cons_get db_cons_is_empty db_cons_load);
+use LNXHC::DBProfile qw(db_profile_disable_writeback);
+use LNXHC::DBSIDS qw(db_sids_disable_writeback db_sids_get_modified
+		     db_sids_is_empty db_sids_set_modified);
+use LNXHC::Help qw(help_print);
+use LNXHC::Misc qw($opt_debug $opt_help $opt_quiet $opt_system $opt_user_dir
+		   $opt_verbose $opt_version $stdout_used_for_data $opt_color
+		   debug get_spec_type info info1 output_filename);
+use LNXHC::Profile qw(profile_activate profile_clear profile_copy profile_delete
+		      profile_export profile_get_num_selected profile_import
+		      profile_list profile_merge profile_new
+		      profile_remove_properties profile_rename profile_select
+		      profile_select_all profile_select_none
+		      profile_selection_is_empty profile_set_defaults
+		      profile_set_desc profile_set_property profile_show
+		      profile_show_property);
+use LNXHC::SIDS qw(sids_add_data sids_clear sids_collect sids_export sids_import
+		   sids_list sids_merge sids_new sids_remove_properties
+		   sids_set_property sids_set_sysvar sids_show
+		   sids_show_property sids_show_sysvar sids_show_data);
+use LNXHC::SysVar qw(sysvar_get sysvar_get_ids sysvar_set);
+
+
+#
+# Constants
+#
+
+my $VERSION = "Linux Health Checker version 1.3-1";
+my @DEFAULT_OPTS = ( "default", "no_auto_abbrev", "no_ignore_case" );
+my @SUBCOMMANDS = ("check", "consumer", "devel", "profile", "run", "sysinfo");
+
+
+#
+# Global variables
+#
+
+my $subcommand = "";
+my $exitcode = 0;
+
+
+#
+# Sub-routines
+#
+
+sub usage(;$)
+{
+	my ($msg) = @_;
+	my $cmd;
+
+	if ($opt_debug) {
+		print_stack(1);
+	}
+	if (defined($msg)) {
+		print(STDERR "lnxhc: $msg!\n");
+	}
+	$cmd = $subcommand;
+	if ($cmd ne "") {
+		$cmd .= " ";
+	}
+	print(STDERR "Use '$tool_inv $cmd--help' to get usage information\n");
+
+	exit(1);
+}
+
+sub lnxhc_get_options(%)
+{
+	my (%opts) = @_;
+
+	local $SIG{__WARN__} = sub {
+		my ($msg) = @_;
+
+		chomp($msg);
+		$msg =~ s/Option (\S+)/Option '--$1'/;
+		$msg =~ s/option: (\S+)/option: '--$1'/;
+		print(STDERR "lnxhc: $msg!\n");
+	};
+
+	return GetOptions(%opts);
+}
+
+#
+# parse_early_options()
+#
+# Parse early options.
+#
+sub parse_early_options()
+{
+	Getopt::Long::Configure("pass_through");
+	# Help option must be parsed alone to keep ARGV intact for examination
+	# in do_help(). Debug option must be parsed at the start to be able
+	# to debug the help option. There is no help for the debug option.
+	GetOptions(
+		"help|h" => \$opt_help,
+		"debug+" => \$opt_debug,
+	);
+	Getopt::Long::Configure("no_pass_through");
+	if (defined($opt_debug) && defined($opt_help)) {
+		# Specifying both --help and --debug may mean one of two things:
+		# 1. enabled debug option for help command
+		# 2. perform help command for debug option
+		# Per default, perform help command for debug option
+		# To enable debug option for help command, specify --debug
+		# more than once.
+		if ($opt_debug == 1) {
+			push(@ARGV, "--debug");
+			$opt_debug = 0;
+		}
+	}
+	# Copy debugging flag
+	$early_debug = $opt_debug;
+}
+
+#
+# parse_global_options()
+#
+# Parse global options.
+#
+sub parse_global_options()
+{
+	Getopt::Long::Configure("pass_through");
+	GetOptions(
+		"version|v"	=> \$opt_version,
+		"verbose|V+"	=> \$opt_verbose,
+		"quiet|q"	=> \$opt_quiet,
+		"user-dir|U=s"	=> \$opt_user_dir,
+		"color=s"	=> \$opt_color,
+		);
+	Getopt::Long::Configure("no_pass_through");
+	if (defined($opt_user_dir) && -e $opt_user_dir) {
+		if (! -d $opt_user_dir) {
+			die("Cannot use '$opt_user_dir' as user directory: ".
+			    "not a directory!\n");
+		} elsif (! -w $opt_user_dir) {
+			die("Cannot use '$opt_user_dir' as user directory: ".
+			    "insufficient permissions!\n");
+		}
+	}
+	if (defined($opt_color) &&
+	    $opt_color ne "always" && $opt_color ne "never" &&
+	    $opt_color ne "auto") {
+		die("invalid argument '$opt_color' for '--color': valid are ".
+		    "auto, always, never\n");
+	}
+}
+
+#
+# _list_to_str(@list)
+#
+# Return a natural string representation of LIST.
+#
+sub _list_to_str(@)
+{
+	my (@list) = @_;
+	my $num = scalar(@list);
+
+	if ($num == 1) {
+		return $list[0];
+	} elsif ($num > 1) {
+		my $last = pop(@list);
+
+		return join(", ", @list)." or $last";
+	}
+
+	return "";
+}
+
+#
+# _get_options_ex(spec[, no_mand_msg, sel_name, sel_fn])
+#
+# Parse command line options according to SPEC. SEL_NAME is the name of an
+# object subject to selection. SEL_FN converts the remaining ARGV members into
+# a selection and returns the number of selected objects.
+#
+# spec:   def => ref
+# ref:    reference to variable containing resulting option data
+# def:    <id>:<mand>:<repeat>:<sel>:<excl>:<req>:<long>:<short>:<type>
+#         whitespaces will be ignored
+# id:     internal identifier for this option, one of [0-9a-zA-Z]
+# mand:   y for yes (at least one of the options with y in this field must
+#         be specified), n for no
+# repeat: y for yes (unlimited repeats allowed) or n for no or maximum number
+#         of repeats
+# sel:    i for invalid, o for optional, r for required, o1 for optional
+#         but at most 1. Prefix with d if no directories are allowed.
+#         Prefix with x if non-existing objects are allowed.
+#         allowed for this selection
+# excl:   list of option IDs: none of these options may be specified when
+#         specifying this option, no check for excluded options if this is empty
+#         if own ID is specified, this is ignored
+# req:    list of option IDs: at least one of these options must be specified
+#         when specifying this option, no check for required options if this
+#         is empty, if own ID is specified, this is ignored
+# short:  short option name or empty string for no short option name
+# long:   long option name
+# type:   empty for flag, s for string, i for integer
+# sel_name: name of the objects which can be selected
+# sel_fn: function used to convert remaining ARGV members into selection,
+#         takes one optional argument: no directories allowed, returns number
+#         of found selections on success, or negative value on error
+# no_mand_msg: if specified, print this message if no mandatory option was
+#              specified
+#
+sub _get_options_ex($;$$$)
+{
+	my ($spec, $no_mand_msg, $sel_name, $sel_fn) = @_;
+	my %repeat;
+	my %sel;
+	my %nodir;
+	my %nonex;
+	my %excl;
+	my %req;
+	my %short;
+	my %long;
+	my %type;
+	my %ref;
+	my $def;
+	my @ids;
+	my @specified_ids;
+	my @mand_ids;
+	my $id;
+	my %get_opt;
+	my $rc;
+	my %specified;
+
+	# Parse definitions
+	foreach $def (sort(keys(%{$spec}))) {
+		my $ref = $spec->{$def};
+		$def =~ s/\s+//g;
+		my ($id, $mand, $repeat, $sel, $excl, $req, $short, $long,
+		    $type) = split(/:/, $def);
+
+		# Normalize parameters
+		if ($repeat eq "0") {
+			$repeat = "n";
+		}
+
+		$repeat{$id}	= $repeat;
+		$nodir{$id}	= ($sel =~ s/d//) ? 1 : 0;
+		$nonex{$id}	= ($sel =~ s/x//) ? 1 : 0;
+		$sel{$id}	= $sel;
+		$excl{$id}	= $excl;
+		$req{$id}	= $req;
+		$short{$id}	= $short;
+		$long{$id}	= $long;
+		$type{$id}	= $type;
+		$ref{$id}	= $ref;
+		push(@ids, $id);
+		if ($mand eq "y") {
+			push(@mand_ids, $id);
+		}
+	}
+
+	# Build parameter hash for GetOptions()
+	foreach $id (@ids) {
+		my $long	= $long{$id};
+		my $short	= $short{$id};
+		my $type	= $type{$id};
+		my $ref		= $ref{$id};
+		my $str;
+
+		# Long option name
+		$str = $long;
+		# Short option name
+		if ($short ne "") {
+			$str .= "|".$short;
+		}
+		# Type. Note that we specify repeatable types to identify
+		# unwanted repetitions.
+		if ($type eq "") {
+			$str .= "+";
+		} elsif ($type eq "s") {
+			$str .= "=s@";
+		} elsif ($type eq "i") {
+			$str .= "=i@";
+		}
+		$get_opt{$str} = $ref;
+	}
+
+	# Parse arguments
+	$rc = lnxhc_get_options(%get_opt);
+	if (!$rc) {
+		usage();
+	}
+
+	# Ensure that no unwanted repetition is specified + convert repeatable
+	# types back + account for specified option IDs
+	foreach $id (@ids) {
+		my $ref		= $ref{$id};
+		my $repeat	= $repeat{$id};
+		my $type	= $type{$id};
+		my $long	= $long{$id};
+		my $num;
+
+		# Skip options which were not specified
+		if (!defined($$ref)) {
+			next;
+		}
+
+		# Note specified option IDs
+		push(@specified_ids, $id);
+		$specified{$id} = 1;
+
+		# Count number of times this option was specified
+		if ($type eq "") {
+			# Simple flag
+			$num = $$ref;
+		} else {
+			# String or integer
+			$num = scalar(@{$$ref});
+		}
+
+		# Check for correct number of repetitions
+		if ($repeat eq "n") {
+			if ($num > 1) {
+				usage("Cannot specify '--$long' more than ".
+				      "once");
+			}
+		} elsif ($repeat =~ /^\d+$/) {
+			if ($num > $repeat) {
+				usage("Cannot specify '--$long' more than ".
+				      "$repeat times");
+			}
+		}
+
+		# Convert back to original type
+		if ($repeat eq "n") {
+			if ($type eq "") {
+				# Simple flag
+				if ($$ref > 0) {
+					$$ref = 1;
+				} else {
+					$$ref = 0;
+				}
+			} else {
+				# String or integer
+				$$ref = $$ref->[0];
+			}
+		}
+	}
+
+	# Ensure that no mutually exclusive options are specified
+	foreach $id (@specified_ids) {
+		my $long	= $long{$id};
+		my $excl	= $excl{$id};
+		my $excl_id;
+
+		if ($excl eq "") {
+			next;
+		}
+		foreach $excl_id (split(//, $excl)) {
+			# Ignore specification of own ID in exclusion list
+			if ($excl_id eq $id) {
+				next;
+			}
+			if ($specified{$excl_id}) {
+				usage("Cannot specify '--$long' together ".
+				      "with '--".$long{$excl_id}."'");
+			}
+		}
+	}
+
+	# Ensure that at least one of required options are specified
+	foreach $id (@specified_ids) {
+		my $long	= $long{$id};
+		my $req		= $req{$id};
+		my $req_id;
+		my @req_long;
+		my $found = 0;
+
+		if ($req eq "") {
+			next;
+		}
+		foreach $req_id (split(//, $req)) {
+			# Ignore specification of own ID in required list
+			if ($req_id eq $id) {
+				next;
+			}
+			if ($specified{$req_id}) {
+				$found = 1;
+				last;
+			}
+			push(@req_long, "--".$long{$req_id});
+		}
+		if (!$found) {
+			usage("Cannot specify '--$long' without one of ".
+			      _list_to_str(@req_long));
+		}
+	}
+
+	# Ensure that at least one mandatory option is specified
+	if (@mand_ids) {
+		my $found = 0;
+		my @mand_long;
+
+		foreach $id (@mand_ids) {
+			if ($specified{$id}) {
+				$found = 1;
+				last;
+			}
+			push(@mand_long, "--".$long{$id});
+		}
+		if (!$found) {
+			if (defined($no_mand_msg)) {
+				usage($no_mand_msg);
+			} else {
+				usage("At least one of ".
+				      _list_to_str(@mand_long)." must be ".
+				      "specified");
+			}
+		}
+	}
+
+	# Ensure correct selection
+	if (defined($sel_fn)) {
+		my $num;
+		my @no_sel_long;
+		my $specified_nodir;
+		my $specified_nonex;
+
+		# Check if selection is allowed
+		foreach $id (@specified_ids) {
+			my $sel = $sel{$id};
+
+			if (!($sel eq "o" || $sel eq "o1" || $sel eq "r")) {
+				push(@no_sel_long, "--".$long{$id});
+			}
+			$specified_nodir = 1 if ($nodir{$id});
+			$specified_nonex = 1 if ($nonex{$id});
+		}
+
+		# Branch out here to prevent users getting errors on
+		# invalid selection specifications when a selection isn't
+		# even allowed.
+		if (@ARGV && @no_sel_long) {
+			usage("Cannot specify a selection together with ".
+			      _list_to_str(@no_sel_long));
+		}
+
+		$num = &$sel_fn($specified_nodir, $specified_nonex);
+
+		foreach $id (@specified_ids) {
+			my $sel		= $sel{$id};
+			my $long	= $long{$id};
+			my $nodir	= $nodir{$id};
+
+			if ($num < 0 && $nodir) {
+				usage("Cannot specify '--$long' together with ".
+				      "a $sel_name that is not installed");
+			}
+			if ($sel eq "i") {
+				# Invalid
+				if ($num > 0) {
+					usage("Cannot specify ".
+					      "'--$long' together with ".
+					      "a $sel_name selection");
+				}
+			} elsif ($sel eq "o1") {
+				# Optional, but at most 1
+				if ($num > 1) {
+					usage("Cannot specify ".
+					      "'--$long' together with ".
+					      "more than one selected ".
+					      "$sel_name");
+				}
+			} elsif ($sel eq "r") {
+				# Required
+				if ($num == 0) {
+					usage("'--$long' requires ".
+					      "at least one selected ".
+					      "$sel_name");
+				}
+			}
+		}
+	}
+
+	# Check for unparsed arguments
+	if (@ARGV) {
+		usage("Unexpected parameters specified: ".join(" ", @ARGV));
+	}
+}
+
+#
+# do_help()
+#
+# Print help text for the specified command line.
+#
+sub do_help()
+{
+	if (scalar(@ARGV) > 1) {
+		die("Too many parameters for option --help\n");
+	}
+	help_print($subcommand, $ARGV[0]);
+}
+
+#
+# do_main()
+#
+# Handle a call to lnxhc without a specified subcommand.
+#
+sub do_main()
+{
+	if ($opt_version) {
+		print("lnxhc: $VERSION\n");
+		exit(0);
+	}
+	if (@ARGV) {
+		usage("Unrecognized command line");
+	}
+	usage("No subcommand specified");
+}
+
+#
+# _apply_check_spec(intersect, profile_id, nodir, nonex)
+#
+# Apply check specification in ARGV to check selection. If INTERSECT is
+# non-zero, intersect list of check IDs of each specification. Return number
+# of checks matching specifications. If NODIR is non-zero, no directories
+# may be selected. IF NONEX is non-zero, checks which do not exist may be
+# selected.
+#
+sub _apply_check_spec($$$$)
+{
+	my ($intersect, $profile_id, $nodir, $nonex) = @_;
+	my @specs;
+	my $spec;
+
+	if (!@ARGV) {
+		return 0;
+	}
+
+	# If necessary, load checks and replace directory names with check IDs
+	foreach my $argv (@ARGV) {
+		my $check;
+		my $dirname;
+
+		next if (!-d $argv);
+
+		$dirname = abs_path($argv);
+		$check = db_check_get(basename($dirname));
+		if ($nodir) {
+			if (defined($check)) {
+				# We don't accept directories, but there is
+				# an installed check by the same name, so its
+				# ok.
+				$argv = $check->[$CHECK_T_ID];
+				next;
+			}
+			return -1;
+		}
+		if (defined($check)) {
+			if ($dirname ne $check->[$CHECK_T_DIR]) {
+				if (!defined($check->[$CHECK_T_SYSTEM])) {
+					die("Cannot load check from ".
+					    "directory '$argv': a check by ".
+					    "the same name has already been ".
+					    "loaded!\n");
+				}
+				die("Cannot load check from directory ".
+				    "'$argv': there is an installed check ".
+				    "by the same name!\n");
+			}
+		} else {
+			$check = db_check_load($argv);
+		}
+		$argv = $check->[$CHECK_T_ID];
+	}
+
+	if ($intersect) {
+		check_select_all();
+	} else {
+		check_select_none();
+	}
+
+	while (@ARGV) {
+		$spec = shift(@ARGV);
+
+		if (get_spec_type($spec) == $SPEC_T_UNKNOWN) {
+			usage("Check not found: '$spec'");
+		}
+
+		check_select($spec, $intersect, $nonex, $profile_id);
+		push(@specs, $spec);
+	}
+
+	# Determine list of check IDs to which this operation applies
+	if (check_selection_is_empty()) {
+		if ($intersect) {
+			info("No check matched ALL of these ".
+			      "specifications:\n");
+		} else {
+			info("No check matched any of these ".
+			      "specifications:\n");
+		}
+		foreach $spec (@specs) {
+			info("  $spec\n");
+		}
+	}
+
+	return check_get_num_selected();
+}
+
+#
+# do_run()
+#
+# Perform run subcommand.
+#
+sub do_run()
+{
+	my $opt_cons_param;
+	my $opt_current;
+	my $opt_defaults;
+	my $opt_match_all;
+	my $opt_no_handler;
+	my $opt_no_report;
+	my $opt_param;
+	my $opt_profile;
+	my $opt_replay;
+	my $opt_file;
+	my $opt_sysvar;
+	my $opt_no_sudo;
+	my $opt_report;
+	my $opt_add_data;
+	my %opts = (
+		# <id>:<mand>:<repeat>:<sel>:<excl>:<req>:<short>:<long>:<type>
+		# Options
+		"A:n:y:o:         J  ::P:cons-param:s"	=> \$opt_cons_param,
+		"B:n:n:o:   D     J L::c:current:"	=> \$opt_current,
+		"C:n:n:o:        IJ  ::d:defaults:"	=> \$opt_defaults,
+		"D:n:y:o:B        J L::f:file:s"	=> \$opt_file,
+		"E:n:n:o:         J  :: :match-all:"	=> \$opt_match_all,
+		"F:n:n:o:            :: :no-handler:"	=> \$opt_no_handler,
+		"G:n:n:o:M           :: :no-report:"	=> \$opt_no_report,
+		"H:n:y:o:         J  ::p:param:s"	=> \$opt_param,
+		"I:n:n:o:  C      J  :: :profile:s"	=> \$opt_profile,
+		"J:n:n:i:ABCDE  HIJKLM::r:replay:"	=> \$opt_replay,
+		"K:n:y:o:         J  :: :sysvar:s"	=> \$opt_sysvar,
+		"L:n:n:o: B D     J  :: :no-sudo:"	=> \$opt_no_sudo,
+		"M:n:n:o:      G     ::R:report:s"	=> \$opt_report,
+		"N:n:y:o:J           :: :add-data:s"	=> \$opt_add_data,
+	);
+
+	# Parse command line options
+	_get_options_ex(\%opts, "No action specified", "check",
+			sub { _apply_check_spec($opt_match_all,
+						$opt_profile, $_[0], $_[1]) });
+
+	# Ensure that config changes are not made persistent
+	db_profile_disable_writeback();
+
+	# Apply base configuration
+	if ($opt_defaults) {
+		# From defaults
+		config_set_defaults();
+	} elsif (defined($opt_profile)) {
+		# From profile
+		info("Using profile '$opt_profile'\n");
+		config_specify_profile($opt_profile);
+	}
+
+	# Determine scope of result processing
+	if ($opt_no_report) {
+		cons_set_report_state($STATE_T_INACTIVE);
+	} elsif (defined($opt_report)) {
+		cons_switch_active_report($opt_report);
+	}
+	if ($opt_no_handler) {
+		cons_set_handler_state($STATE_T_INACTIVE);
+	}
+
+	# Check for replay
+	if ($opt_replay) {
+		return check_run_replay();
+	}
+
+	# Apply check parameter overrides
+	if (defined($opt_param)) {
+		my $param;
+
+		foreach $param (@{$opt_param}) {
+			check_set_param($param, !check_selection_is_active());
+		}
+	}
+
+	# Apply consumer parameter overrides
+	if (defined($opt_cons_param)) {
+		my $param;
+
+		foreach $param (@{$opt_cons_param}) {
+			cons_set_param($param, 1);
+		}
+	}
+
+	if (check_selection_is_active()) {
+		if (check_selection_is_empty()) {
+			die("Cannot run checks: no check was selected!\n");
+		}
+	} else {
+		if (scalar(config_check_get_active_ids()) == 0) {
+			die("Cannot run checks: no check is active!\n");
+		}
+	}
+
+	# Determine system information
+	if ($opt_current) {
+		# Use what's there
+		if (db_sids_is_empty() && !defined($opt_add_data)) {
+			die("Cannot run checks: no current system information ".
+			    "available\n");
+		}
+		info("Using current sysinfo data set as input\n");
+	} elsif (defined($opt_file)) {
+		# Read sysinfo from file(s)
+		sids_clear(1);
+		foreach my $filename (@$opt_file) {
+			info("Reading sysinfo data from '$filename'\n");
+			sids_merge($filename, undef, undef, 1);
+		}
+	} else {
+		# Collect system information
+		sids_clear(1);
+		sids_collect(undef, undef, $opt_no_sudo);
+	}
+
+	# Apply extra system information
+	if (defined($opt_add_data)) {
+		foreach my $spec (@$opt_add_data) {
+			sids_add_data($spec);
+		}
+	}
+
+	# Apply extra system variables
+	if (defined($opt_sysvar)) {
+		my $spec;
+
+		foreach $spec (@$opt_sysvar) {
+			sids_set_sysvar($spec);
+		}
+	}
+
+	# Run checks
+	return check_run();
+}
+
+#
+# do_devel()
+#
+# Perform devel subcommand.
+#
+sub do_devel()
+{
+	my $opt_show_sysvar;
+	my $opt_create_check;
+	my %opts = (
+		# <id>:<mand>:<repeat>:<sel>:<excl>:<req>:<short>:<long>:<type>
+		# Actions
+		"a:y:n:i:ab:::show-sysvar:"	=> \$opt_show_sysvar,
+		"b:y:n:i:ab:::create-check:s"	=> \$opt_create_check,
+	);
+
+	# Parse command line options
+	_get_options_ex(\%opts, "No action specified");
+
+	# Perform requested action
+	if ($opt_show_sysvar) {
+		my @sysvar_ids = sysvar_get_ids();
+		my $sysvar_id;
+
+		foreach $sysvar_id (sort(@sysvar_ids)) {
+			my $value = sysvar_get($sysvar_id);
+
+			print("$sysvar_id=$value\n");
+		}
+	} elsif ($opt_create_check) {
+		check_dialog($opt_create_check);
+	}
+
+	info("Done.\n");
+}
+
+#
+# do_sysinfo()
+#
+# Perform sysinfo subcommand.
+#
+sub do_sysinfo()
+{
+	my $opt_add_data;
+	my $opt_clear;
+	my $opt_collect;
+	my $opt_export;
+	my $opt_host_id;
+	my $opt_instance_id;
+	my $opt_import;
+	my $opt_list;
+	my $opt_merge;
+	my $opt_new;
+	my $opt_profile;
+	my $opt_remove;
+	my $opt_set;
+	my $opt_show;
+	my $opt_show_property;
+	my $opt_show_sysvar;
+	my $opt_file;
+	my $opt_sysvar;
+	my $opt_no_sudo;
+	my $opt_show_data;
+	my $show_done = 1;
+	my %opts = (
+		# <id>:<mand>:<repeat>:<sel>:<excl>:<req>:<short>:<long>:<type>
+		# Actions
+		"a:y:y:i:abcdefghijklm ::a:add-data:s"	=> \$opt_add_data,
+		"b:y:n:i:abcdefghijklmn:: :clear:"	=> \$opt_clear,
+		"c:y:n:i:abcdefghijklm ::c:collect:"	=> \$opt_collect,
+		"d:y:n:i:abcdefghijklmn::e:export:s"	=> \$opt_export,
+		"e:y:n:i:abcdefghijklmn::i:import:s"	=> \$opt_import,
+		"f:y:n:i:abcdefghijklmn::l:list:"	=> \$opt_list,
+		"g:y:y:i:abcdefghijklmn::m:merge:s"	=> \$opt_merge,
+		"h:y:n:i:abcdefghijklm ::n:new:"	=> \$opt_new,
+		"i:y:y:i:abcdefghijklmn::r:remove:s"	=> \$opt_remove,
+		"j:y:y:i:abcdefghijklmn:: :set:s"	=> \$opt_set,
+		"k:y:n:i:abcdefghijklmn::s:show:"	=> \$opt_show,
+		"l:y:y:i:abcdefghijklmn:: :show-property:s"
+							=> \$opt_show_property,
+		"m:y:n:i:abcdefghijklmn:: :show-sysvar:"
+							=> \$opt_show_sysvar,
+		"n:y:y:i: b defg ijklmn:: :sysvar:s"	=> \$opt_sysvar,
+		"o:y:n:i:abcdefghijklmn:: :show-data:s"	=> \$opt_show_data,
+		# Options
+		"A:n:n:i: b d f  ijkl  ::H:host-id:s"	=> \$opt_host_id,
+		"B:n:n:i: b d f  ijkl  ::I:instance-id:s"
+							=> \$opt_instance_id,
+		"C:n:n:i:              :: :profile:s"	=> \$opt_profile,
+		"D:n:n:i:              ::f:file:s"	=> \$opt_file,
+		"E:n:n:i:              :c: :no-sudo:"	=> \$opt_no_sudo,
+	);
+
+	# Parse command line options
+	_get_options_ex(\%opts, "No action specified");
+
+	# Apply profile if specified
+	if (defined($opt_profile)) {
+		config_specify_profile($opt_profile);
+		print("Using profile '$opt_profile'\n");
+	}
+
+	# Load current data from file if specified
+	if (defined($opt_file)) {
+		if ($opt_file eq "-") {
+			$stdout_used_for_data = 1;
+		}
+		db_sids_disable_writeback();
+		if ($opt_collect || $opt_clear || $opt_import) {
+			# Previous data will be overwritten
+			sids_clear(1);
+		} elsif (-e $opt_file) {
+			info("Using data from '$opt_file' as ".
+			     "current sysinfo\n");
+			sids_import($opt_file, undef, undef, 1);
+		} elsif ($opt_list || $opt_show || $opt_show_property ||
+			 $opt_show_sysvar || $opt_remove || $opt_export) {
+			die("File '$opt_file' does not exist!\n");
+		} else {
+			# Start with empty system information
+			info("File '$opt_file' does not exist - using empty ".
+			     "data as current sysinfo\n");
+			sids_clear(1);
+		}
+		db_sids_set_modified(0);
+	}
+
+	# Apply sysvars first if --sysvar is used as an option
+	if ($opt_collect || $opt_add_data || $opt_new) {
+		my $spec;
+
+		foreach $spec (@$opt_sysvar) {
+			sysvar_set($spec);
+		}
+	}
+
+	# Perform requested action
+	if ($opt_collect) {
+		sids_clear(1);
+		sids_collect($opt_instance_id, $opt_host_id, $opt_no_sudo);
+	} elsif ($opt_clear) {
+		sids_clear();
+	} elsif ($opt_new) {
+		sids_new($opt_instance_id, $opt_host_id);
+	} elsif (defined($opt_export)) {
+		if ($opt_export eq "-") {
+			$stdout_used_for_data = 1;
+		}
+
+		sids_export($opt_export);
+	} elsif (defined($opt_import)) {
+		sids_import($opt_import, $opt_instance_id, $opt_host_id);
+	} elsif (defined($opt_merge)) {
+		my $filename;
+
+		foreach $filename (@$opt_merge) {
+			sids_merge($filename, $opt_instance_id, $opt_host_id);
+		}
+	} elsif (defined($opt_show)) {
+		sids_show();
+		$show_done = 0;
+	} elsif (defined($opt_show_property)) {
+		sids_show_property($opt_show_property);
+		$show_done = 0;
+	} elsif (defined($opt_add_data)) {
+		my $spec;
+
+		foreach $spec (@$opt_add_data) {
+			sids_add_data($spec, $opt_instance_id, $opt_host_id);
+		}
+	} elsif (defined($opt_set)) {
+		my $spec;
+
+		foreach $spec (@$opt_set) {
+			my $key;
+			my $value;
+
+			if (!($spec =~ /^([^=]+)=(.*)$/)) {
+				usage("Cannot set property: unknown format ".
+				      "'$spec'");
+			}
+			($key, $value) = ($1, $2);
+			sids_set_property($key, $value);
+		}
+	} elsif (defined($opt_sysvar)) {
+		my $spec;
+
+		foreach $spec (@$opt_sysvar) {
+			sids_set_sysvar($spec, $opt_instance_id, $opt_host_id);
+		}
+	} elsif (defined($opt_remove)) {
+		sids_remove_properties($opt_remove);
+	} elsif ($opt_list) {
+		sids_list();
+		$show_done = 0;
+	} elsif ($opt_show_sysvar) {
+		sids_show_sysvar($opt_instance_id, $opt_host_id);
+		$show_done = 0;
+	} elsif ($opt_show_data) {
+		$stdout_used_for_data = 1;
+		sids_show_data($opt_show_data, $opt_instance_id, $opt_host_id);
+		$show_done = 0;
+	}
+
+	# Write current data to file if specified
+	if (defined($opt_file)) {
+		if (db_sids_get_modified()) {
+			info("Writing sysinfo data to ".
+			     output_filename($opt_file)."\n");
+			sids_export($opt_file, 1);
+		} else {
+			info1("No changes done\n");
+		}
+	}
+
+	info("Done.\n") if ($show_done);
+}
+
+#
+# do_check()
+#
+# Perform check subcommand.
+#
+sub do_check()
+{
+	my $opt_list;
+	my $opt_show;
+	my $opt_show_property;
+	my $opt_state;
+	my $opt_param;
+	my $opt_set;
+	my $opt_defaults;
+	my $opt_install;
+	my $opt_uninstall;
+	my $opt_profile;
+	my $opt_match_all;
+	my $opt_info;
+	my $opt_ex_severity;
+	my $opt_ex_state;
+	my $opt_rec_duration;
+	my $opt_show_data_id;
+	my $opt_show_sudoers;
+	my $show_done = 1;
+	my %opts = (
+		# <id>:<mand>:<repeat>:<sel>:<excl>:<req>:<short>:<long>:<type>
+		# Actions
+		"a:y:n:r:abcdefghijklmno::d:defaults:"	=> \$opt_defaults,
+		"b:y:y:o:abcdefghijklmno:: :ex-severity:s"
+							=> \$opt_ex_severity,
+		"c:y:y:o:abcdefghijklmno:: :ex-state:s"	=> \$opt_ex_state,
+		"d:y:n:r:abcdefghijklmno::i:info:"	=> \$opt_info,
+		"e:y:y:i:abcdefghijklmno:: :install:s"	=> \$opt_install,
+		"f:y:n:o:abcdefghijklmno::l:list:"	=> \$opt_list,
+		"g:y:y:o:abcdefghijklmno::p:param:s"	=> \$opt_param,
+		"h:y:y:o:abcdefghijklmno:: :rec-duration:s"
+							=> \$opt_rec_duration,
+		"i:y:y:o:abcdefghijklmno:: :set:s"	=> \$opt_set,
+		"j:y:n:r:abcdefghijklmno::s:show:"	=> \$opt_show,
+		"k:y:y:o:abcdefghijklmno:: :show-property:s"
+							=> \$opt_show_property,
+		"l:y:y:o:abcdefghijklmno::S:state:s"	=> \$opt_state,
+		"m:y:n:dr:abcdefghijklmno:: :uninstall:"
+							=> \$opt_uninstall,
+		"n:y:y:o:abcdefghijklmno:: :show-data-id:s"
+							=> \$opt_show_data_id,
+		"o:y:n:o:abcdefghijklmno:: :show-sudoers:s"
+							=> \$opt_show_sudoers,
+		# Options
+		"A:n:n:o:e:::match-all:"		=> \$opt_match_all,
+		"B:n:n:o: :::profile:s"			=> \$opt_profile,
+		"C:n:n:o: :::system:"			=> \$opt_system,
+	);
+
+	# Parse command line options
+	_get_options_ex(\%opts, "No action specified", "check",
+			sub { _apply_check_spec($opt_match_all,
+						$opt_profile, $_[0], $_[1]) });
+
+	# Apply profile if specified
+	if (defined($opt_profile)) {
+		config_specify_profile($opt_profile);
+		info("Using profile '$opt_profile'\n");
+	}
+
+	# Warn about empty data base
+	if (!defined($opt_install) && db_check_is_empty()) {
+		warn("Note: there are no installed checks!\n");
+	}
+
+	# Perform requested action
+	if ($opt_list) {
+		check_list();
+		$show_done = 0;
+	} elsif ($opt_show) {
+		check_show();
+		$show_done = 0;
+	} elsif (defined($opt_show_property)) {
+		check_show_property($opt_show_property);
+		$show_done = 0;
+	} elsif (defined($opt_set)) {
+		my $spec;
+
+		foreach $spec (@$opt_set) {
+			my $key;
+			my $value;
+
+			if (!($spec =~ /^([^=]+)=(.*)$/)) {
+				usage("Cannot set property: unknown format ".
+				      "'$spec'");
+			}
+			($key, $value) = ($1, $2);
+			check_set_property($key, $value);
+		}
+	} elsif (defined($opt_param)) {
+		my $spec;
+
+		# Apply parameter overrides
+		foreach $spec (@{$opt_param}) {
+			check_set_param($spec);
+		}
+	} elsif (defined($opt_state)) {
+		my $spec;
+
+		foreach $spec (@{$opt_state}) {
+			check_set_state($spec);
+		}
+	} elsif ($opt_defaults) {
+		check_set_defaults();
+	} elsif (defined($opt_install)) {
+		my $dir;
+
+		foreach $dir (@$opt_install) {
+			check_install($dir);
+		}
+	} elsif ($opt_uninstall) {
+		check_uninstall();
+	} elsif ($opt_info) {
+		check_info();
+		$show_done = 0;
+	} elsif (defined($opt_ex_severity)) {
+		my $spec;
+
+		foreach $spec (@{$opt_ex_severity}) {
+			check_set_ex_severity($spec);
+		}
+	} elsif (defined($opt_ex_state)) {
+		my $spec;
+
+		foreach $spec (@{$opt_ex_state}) {
+			check_set_ex_state($spec);
+		}
+	} elsif (defined($opt_rec_duration)) {
+		my $spec;
+
+		foreach $spec (@{$opt_rec_duration}) {
+			check_set_si_rec_duration($spec);
+		}
+	} elsif (defined($opt_show_data_id)) {
+		foreach my $spec (@{$opt_show_data_id}) {
+			check_show_data_id($spec);
+		}
+		$show_done = 0;
+	} elsif (defined($opt_show_sudoers)) {
+		$stdout_used_for_data = 1;
+		check_show_sudoers($opt_show_sudoers);
+	}
+
+	info("Done.\n") if ($show_done);
+
+	exit 0;
+}
+
+#
+# _apply_profile_spec(intersect, nodir, nonex)
+#
+# Apply profile specification in ARGV to profile selection. If intersect is
+# non-zero, intersect list of profile IDs of each specification. Return number
+# of profiles matching specifications. If NODIR is non-zero, no directories
+# may be selected. IF NONEX is non-zero, profiles which do not exist may be
+# selected.
+#
+sub _apply_profile_spec($$$)
+{
+	my ($intersect, $nodir, $nonex) = @_;
+	my @specs;
+	my $spec;
+
+	if (!@ARGV) {
+		return 0;
+	}
+
+	if ($intersect) {
+		profile_select_all();
+	} else {
+		profile_select_none();
+	}
+
+	while (@ARGV) {
+		$spec = shift(@ARGV);
+
+		if (get_spec_type($spec) == $SPEC_T_UNKNOWN) {
+			usage("Unknown profile selection format: '$spec'");
+		}
+
+		profile_select($spec, $intersect, $nonex);
+		push(@specs, $spec);
+	}
+
+	# Check if any check was selected
+	if (profile_selection_is_empty()) {
+		if ($intersect) {
+			info("No profile matched ALL of these ".
+			      "specifications:\n");
+		} else {
+			info("No profile matched any of these ".
+			      "specifications:\n");
+		}
+		foreach $spec (@specs) {
+			info("  $spec\n");
+		}
+	}
+
+	return profile_get_num_selected();
+}
+
+#
+# do_profile()
+#
+# Perform profile subcommand.
+#
+sub do_profile()
+{
+	my $opt_list;
+	my $opt_show;
+	my $opt_show_property;
+	my $opt_activate;
+	my $opt_description;
+	my $opt_set;
+	my $opt_remove;
+	my $opt_defaults;
+	my $opt_clear;
+	my $opt_copy;
+	my $opt_merge_profile;
+	my $opt_new;
+	my $opt_export;
+	my $opt_import;
+	my $opt_merge;
+	my $opt_rename;
+	my $opt_delete;
+	my $opt_match_all;
+	my $show_done = 1;
+	my %opts = (
+		# <id>:<mand>:<repeat>:<sel>:<excl>:<req>:<short>:<long>:<type>
+		# Actions
+		"a:y:n:i :abcdefghijklmnopq::a:activate:s" => \$opt_activate,
+		"b:y:n:o :abcdefghijklmnopq:: :clear:"	=> \$opt_clear,
+		"c:y:n:o1:abcdefghijklmnopq:: :copy:s"	=> \$opt_copy,
+		"d:y:n:o :abcdefghijklmnopq::d:defaults:" => \$opt_defaults,
+		"e:y:n:r :abcdefghijklmnopq:: :delete:"	=> \$opt_delete,
+		"f:y:n:o1:abcdefghijklmnopq:: :description:s"
+							=> \$opt_description,
+		"g:y:n:o1:abcdefghijklmnopq::e:export:s" => \$opt_export,
+		"h:y:n:xo1:abcdefghijklmnopq::i:import:s" => \$opt_import,
+		"i:y:n:o :abcdefghijklmnopq::l:list:"	=> \$opt_list,
+		"j:y:y:o1:abcdefghijklmnopq::m:merge:s" => \$opt_merge,
+		"k:y:n:o1:abcdefghijklmnopq::M:merge-profile:s"
+							=> \$opt_merge_profile,
+		"l:y:n:i :abcdefghijklmnopq::n:new:s"	=> \$opt_new,
+		"m:y:y:o :abcdefghijklmnopq::r:remove:s" => \$opt_remove,
+		"n:y:n:o1:abcdefghijklmnopq:: :rename:s" => \$opt_rename,
+		"o:y:y:o :abcdefghijklmnopq:: :set:s"	=> \$opt_set,
+		"p:y:n:o :abcdefghijklmnopq::s:show:"	=> \$opt_show,
+		"q:y:y:o :abcdefghijklmnopq:: :show-property:s"
+							=> \$opt_show_property,
+		# Options
+		"A:n:n:o:al:::match-all:"		=> \$opt_match_all,
+		"B:n:n:o::::system:"			=> \$opt_system,
+	);
+
+	# Parse command line options
+	_get_options_ex(\%opts, "No action specified", "profile",
+			sub { _apply_profile_spec($opt_match_all, $_[0],
+						  $_[1]) });
+
+	# Perform requested action
+	if ($opt_list) {
+		profile_list();
+		$show_done = 0;
+	} elsif ($opt_show) {
+		profile_show();
+		$show_done = 0;
+	} elsif (defined($opt_show_property)) {
+		profile_show_property($opt_show_property);
+		$show_done = 0;
+	} elsif (defined($opt_activate)) {
+		profile_activate($opt_activate);
+	} elsif (defined($opt_new)) {
+		profile_new($opt_new);
+	} elsif ($opt_defaults) {
+		profile_set_defaults();
+	} elsif (defined($opt_description)) {
+		profile_set_desc($opt_description);
+	} elsif ($opt_clear) {
+		profile_clear();
+	} elsif (defined($opt_copy)) {
+		profile_copy($opt_copy);
+	} elsif (defined($opt_rename)) {
+		profile_rename($opt_rename);
+	} elsif ($opt_delete) {
+		profile_delete();
+	} elsif (defined($opt_merge_profile)) {
+		profile_merge($opt_merge_profile);
+	} elsif (defined($opt_set)) {
+		my $spec;
+
+		foreach $spec (@$opt_set) {
+			my $key;
+			my $value;
+
+			if (!($spec =~ /^([^=]+)=(.*)$/)) {
+				usage("Cannot set property: unknown format ".
+				      "'$spec'");
+			}
+			($key, $value) = ($1, $2);
+			profile_set_property($key, $value);
+		}
+	} elsif (defined($opt_remove)) {
+		profile_remove_properties($opt_remove);
+	} elsif (defined($opt_export)) {
+		if ($opt_export eq "-") {
+			$stdout_used_for_data = 1;
+		}
+		profile_export($opt_export);
+	} elsif (defined($opt_import)) {
+		profile_import($opt_import);
+	} elsif (defined($opt_merge)) {
+		my $profile;
+
+		foreach $profile (@$opt_merge) {
+			profile_import($profile, 1);
+		}
+	}
+
+	info("Done.\n") if ($show_done);
+}
+
+sub get_subcommand()
+{
+	my $input;
+	my @list;
+
+	if (!@ARGV || $ARGV[0] =~ /^-/) {
+		# No subcommand specified
+		return "";
+	}
+	$input = lc(shift(@ARGV));
+	if ($input =~ /[^a-z]/) {
+		goto unknown;
+	}
+	@list = grep(/^$input/, @SUBCOMMANDS);
+	if (!@list) {
+		goto unknown;
+	} elsif (scalar(@list) > 1) {
+		goto ambiguous;
+	}
+	return $list[0];
+
+unknown:
+	usage("Unknown subcommand '$input'");
+ambiguous:
+	die("Ambiguous subcommand specified '$input': ".join(" ", @list)."\n");
+}
+
+#
+# _apply_cons_spec(intersect, profile_id, nodir, nonex)
+#
+# Apply consumer specification in ARGV to consumer selection. If AND is
+# non-zero, intersect list of consumer IDs of each specification. Return number
+# of consumers matching specifications. If NODIR is non-zero, no directories
+# may be selected. IF NONEX is non-zero, consumers which do not exist may be
+# selected.
+#
+sub _apply_cons_spec($$$$)
+{
+	my ($intersect, $profile_id, $nodir, $nonex) = @_;
+	my @specs;
+	my $spec;
+
+	if (!@ARGV) {
+		return 0;
+	}
+
+	# If necessary, load consumers and replace directory names with
+	# consumer IDs
+	foreach my $argv (@ARGV) {
+		my $cons;
+		my $dirname;
+
+		next if (!-d $argv);
+
+		$dirname = abs_path($argv);
+		$cons = db_cons_get(basename($dirname));
+		if ($nodir) {
+			if (defined($cons)) {
+				# We don't accept directories, but there is
+				# an installed consumer by the same name, so its
+				# ok.
+				$argv = $cons->[$CONS_T_ID];
+				next;
+			}
+			return -1;
+		}
+		if (defined($cons)) {
+			if ($dirname ne $cons->[$CONS_T_DIR]) {
+				if (!defined($cons->[$CONS_T_SYSTEM])) {
+					die("Cannot load consumer from ".
+					    "directory '$argv': a consumer by ".
+					    "the same name has already been ".
+					    "loaded!\n");
+				}
+				die("Cannot load consumer from directory ".
+				    "'$argv': there is an installed consumer ".
+				    "by the same name!\n");
+			}
+		} else {
+			$cons = db_cons_load($argv);
+		}
+		$argv = $cons->[$CONS_T_ID];
+	}
+
+	if ($intersect) {
+		cons_select_all();
+	} else {
+		cons_select_none();
+	}
+
+	while (@ARGV) {
+		$spec = shift(@ARGV);
+
+		if (get_spec_type($spec) == $SPEC_T_UNKNOWN) {
+			usage("Consumer not found: '$spec'");
+		}
+
+		cons_select($spec, $intersect, $nonex, $profile_id);
+		push(@specs, $spec);
+	}
+
+	# Determine list of cons IDs to which this operation applies
+	if (cons_selection_is_empty()) {
+		if ($intersect) {
+			info("No consumer matched ALL of these ".
+			      "specifications:\n");
+		} else {
+			info("No consumer matched any of these ".
+			      "specifications:\n");
+		}
+		foreach $spec (@specs) {
+			info("  $spec\n");
+		}
+	}
+
+	return cons_get_num_selected();
+}
+
+#
+# do_consumer()
+#
+# Perform consumer subcommand.
+#
+sub do_consumer()
+{
+	my $opt_list;
+	my $opt_info;
+	my $opt_show;
+	my $opt_show_property;
+	my $opt_param;
+	my $opt_state;
+	my $opt_set;
+	my $opt_defaults;
+	my $opt_profile;
+	my $opt_install;
+	my $opt_uninstall;
+	my $opt_match_all;
+	my $opt_report;
+	my $show_done = 1;
+	my %opts = (
+		# <id>:<mand>:<repeat>:<sel>:<excl>:<req>:<short>:<long>:<type>
+		# Actions
+		"a:y:n:r:abcdefghij::d:defaults:"	=> \$opt_defaults,
+		"b:y:n:r:abcdefghij::i:info:"		=> \$opt_info,
+		"c:y:y:i:abcdefghij:: :install:s"	=> \$opt_install,
+		"d:y:n:o:abcdefghij::l:list:"		=> \$opt_list,
+		"e:y:y:o:abcdefghij::p:param:s"		=> \$opt_param,
+		"f:y:y:o:abcdefghij:: :set:s"		=> \$opt_set,
+		"g:y:n:r:abcdefghij::s:show:"		=> \$opt_show,
+		"h:y:y:o:abcdefghij:: :show-property:s"	=> \$opt_show_property,
+		"i:y:y:o:abcdefghij::S:state:s"		=> \$opt_state,
+		"j:y:n:dr:abcdefghij:: :uninstall:"	=> \$opt_uninstall,
+		"k:y:n:i:abcdefghij::R:report:s"	=> \$opt_report,
+		# Options
+		"A:n:n:o:c:::match-all:"		=> \$opt_match_all,
+		"B:n:n:o: :::profile:s"			=> \$opt_profile,
+		"C:n:n:o: :::system:"			=> \$opt_system,
+	);
+
+	# Parse command line options
+	_get_options_ex(\%opts, "No action specified", "consumer",
+			sub { _apply_cons_spec($opt_match_all,
+					       $opt_profile, $_[0], $_[1]) });
+
+	# Apply profile if specified
+	if (defined($opt_profile)) {
+		config_specify_profile($opt_profile);
+		print("Using profile '$opt_profile'\n");
+	}
+
+	# Warn about empty data base
+	if (!defined($opt_install) && db_cons_is_empty()) {
+		warn("Note: there are no installed consumers!\n");
+	}
+
+	# Perform requested action
+	if ($opt_list) {
+		cons_list();
+		$show_done = 0;
+	} elsif ($opt_show) {
+		cons_show();
+		$show_done = 0;
+	} elsif (defined($opt_show_property)) {
+		cons_show_property($opt_show_property);
+		$show_done = 0;
+	} elsif (defined($opt_set)) {
+		my $spec;
+
+		foreach $spec (@$opt_set) {
+			my $key;
+			my $value;
+
+			if (!($spec =~ /^([^=]+)=(.*)$/)) {
+				usage("Cannot set property: unknown format ".
+				      "'$spec'");
+			}
+			($key, $value) = ($1, $2);
+			cons_set_property($key, $value);
+		}
+	} elsif (defined($opt_param)) {
+		my $spec;
+
+		# Apply parameter overrides
+		foreach $spec (@{$opt_param}) {
+			cons_set_param($spec);
+		}
+	} elsif (defined($opt_state)) {
+		my $spec;
+
+		foreach $spec (@{$opt_state}) {
+			cons_set_state($spec);
+		}
+	} elsif ($opt_defaults) {
+		cons_set_defaults();
+	} elsif (defined($opt_install)) {
+		my $dir;
+
+		foreach $dir (@$opt_install) {
+			cons_install($dir);
+		}
+	} elsif ($opt_uninstall) {
+		cons_uninstall();
+	} elsif ($opt_info) {
+		cons_info();
+		$show_done = 0;
+	} elsif (defined($opt_report)) {
+		cons_switch_active_report($opt_report);
+	}
+
+	info("Done.\n") if ($show_done);
+}
+
+
+#
+# Code entry
+#
+
+# Determine subcommand
+$subcommand = get_subcommand();
+
+Getopt::Long::Configure(@DEFAULT_OPTS);
+
+# Handle early options such as --help and --debug
+parse_early_options();
+if ($opt_help) {
+	do_help();
+	exit(0);
+}
+
+# Handle remaining global options
+parse_global_options();
+if ($opt_version) {
+	if (scalar(@ARGV) > 0) {
+		die("Too many parameters for option --version\n");
+	}
+	print("lnxhc: $VERSION\n");
+	exit(0);
+}
+
+# Perform subcommands
+if ($subcommand eq "") {
+	do_main();
+} elsif ($subcommand eq "run") {
+	$exitcode = do_run();
+} elsif ($subcommand eq "devel") {
+	do_devel();
+} elsif ($subcommand eq "sysinfo") {
+	do_sysinfo();
+} elsif ($subcommand eq "check") {
+	do_check();
+} elsif ($subcommand eq "profile") {
+	do_profile();
+} elsif ($subcommand eq "consumer") {
+	do_consumer();
+}
+
+exit($exitcode);

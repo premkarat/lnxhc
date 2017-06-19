@@ -1,0 +1,125 @@
+#!/usr/bin/perl
+#
+# storage_dasd_pav_aliases
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+#
+# Global variables
+#
+my (@header, @data_array, $handle, %data_hash, %hpav_hash, %pav_hash);
+
+# Exception IDs
+my $LNXHC_EXCEPTION_ORPHANED_ALIAS = "orphaned_alias";
+
+# Path to the file containing data for sysinfo item 'lsdasd_u'.
+my $sysinfo_lsdasd_u = $ENV{"LNXHC_SYSINFO_lsdasd_u"};
+
+
+# Opening the sysinfo item file
+open ($handle, "<", $sysinfo_lsdasd_u) or
+	die("Couldn't open file: $sysinfo_lsdasd_u: $!\n");
+
+while (<$handle>) {
+	chomp;
+	# Collecting the data
+	push(@data_array, $_) if ($. > 2);
+}
+close($handle);
+
+lnxhc_fail_dep("No DASD devices found") unless @data_array;
+lnxhc_fail_dep("No PAV/Hyper PAV alias devices found") unless (grep /alias/, @data_array);
+
+foreach (@data_array) {
+	my ($busid, $device, $uid) = split /\s+/;
+	# First create the data structure and later
+	# analyse
+	$data_hash{$uid}{$busid} = $device;
+}
+
+#
+# UID have to treated for PAV and Hyper PAV separately
+#
+# For Hyper PAV the first 3 parts should be matching
+# Example: for UID IBM.75000000010671.8800.xx
+# The string 'IBM.75000000010671.8800'
+# should match with other UIDs
+#
+# For PAV the UID should be the exact the match
+# Example: for UID IBM.750000000BWRW1.9500.01
+# There should be equivalent of
+# IBM.750000000BWRW1.9500.01
+#
+
+foreach my $uid (keys(%data_hash)) {
+	if ($uid =~ m/^(.*\..*\..*)\.xx(:?.*)$/) {
+		foreach my $busid (keys %{ $data_hash{$uid} }) {
+			$hpav_hash{$1}{$busid} = $data_hash{$uid}{$busid};
+		}
+	} else {
+		foreach my $busid (keys %{ $data_hash{$uid} }) {
+			$pav_hash{$uid}{$busid} = $data_hash{$uid}{$busid};
+		}
+	}
+}
+# Hyper PAV base device doesn't contain .xx so have to filter them from PAV hash
+foreach my $hpavuid (keys (%hpav_hash)) {
+	foreach my $pavuid (keys (%pav_hash)) {
+		if ($pavuid =~ /^$hpavuid/) {
+			foreach my $busid (keys %{ $pav_hash{$pavuid} }) {
+				$hpav_hash{$hpavuid}{$busid} = $pav_hash{$pavuid}{$busid};
+			}
+		# Delete the same from pav hash
+		delete($pav_hash{$pavuid});
+		}
+	}
+}
+
+# Now process the data for - is there a problem?
+my @exp_data = ();
+if (%hpav_hash) {
+foreach my $uid (keys(%hpav_hash)) {
+	my %data;
+	foreach my $busid (keys(%{ $hpav_hash{$uid} })) {
+		$data{$busid} = $hpav_hash{$uid}{$busid};
+	}
+	unless (grep /dasd/, values %data) {
+		push @exp_data, keys(%data);
+	}
+}
+}
+if (%pav_hash) {
+foreach my $uid (keys(%pav_hash)) {
+	my %data;
+	foreach my $busid (keys(%{ $pav_hash{$uid} })) {
+		$data{$busid} = $pav_hash{$uid}{$busid};
+	}
+	unless (grep /dasd/, values %data) {
+		push @exp_data, keys(%data);
+	}
+}
+}
+
+if(@exp_data) {
+	lnxhc_exception($LNXHC_EXCEPTION_ORPHANED_ALIAS);
+	lnxhc_exception_var_list("busid_sum", \@exp_data , ", ");
+	lnxhc_exception_var_list("busid", \@exp_data , ", ", scalar(@exp_data));
+}
+exit(0);

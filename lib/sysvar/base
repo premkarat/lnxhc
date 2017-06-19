@@ -1,0 +1,154 @@
+#!/bin/bash
+#
+# get_sysvar
+#   Linux Health Checker support program for obtaining system variables
+#
+# Copyright IBM Corp. 2012
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+# Filenames
+REDHAT_RELEASE=/etc/redhat-release
+SUSE_RELEASE=/etc/SuSE-release
+PROC_SYSINFO=/proc/sysinfo
+
+# Get SYS_RHEL_VERSION
+function get_rhel_version()
+{
+	if [ ! -e $REDHAT_RELEASE ] ; then
+		return
+	fi
+
+	SYS_RHEL_VERSION=$(sed \
+	-e 's/.*red hat enterprise linux .*release \([0-9]\+\.[0-9]\+\).*/\1/i;t' \
+	-e 's/.*red hat enterprise linux .*release \([0-9]\+\).*update \([0-9]\+\).*/\1.\2/i;t' \
+	-e 's/.*red hat enterprise linux .*release \([0-9]\+\).*/\1.0/i;t' \
+	-e 'd'\
+	< $REDHAT_RELEASE)
+}
+
+# Get SYS_SLES_VERSION
+function get_sles_version()
+{
+	local VERSION
+	local PATCHLEVEL=0
+
+	if [ ! -e $SUSE_RELEASE ] ; then
+		return
+	fi
+
+	IFS="= " ; while read KEYWORD VALUE ; do
+		case $KEYWORD in
+			VERSION)
+				VERSION=$VALUE
+			;;
+			PATCHLEVEL)
+				PATCHLEVEL=$VALUE
+			;;
+		esac
+	done < $SUSE_RELEASE
+
+	SYS_SLES_VERSION="$VERSION.$PATCHLEVEL"
+}
+
+function get_lsb_release()
+{
+	local lsb_release=$(which lsb_release)
+
+	test -x $lsb_release || return
+
+	case "$(lsb_release -s -i)" in
+	*Ubuntu*)
+		SYS_DISTRO=Ubuntu
+		SYS_UBUNTU_VERSION=$(lsb_release -s -r)
+	;;
+	*Debian*)
+		SYS_DISTRO=Debian
+		SYS_DEBIAN_VERSION=$(lsb_release -s -r)
+	;;
+	*Fedora*)
+		SYS_DISTRO=Fedora
+		SYS_FEDORA_VERSION=$(lsb_release -s -r)
+	;;
+	esac
+}
+
+# Get sys_hypervisor
+function get_hypervisor()
+{
+	local LAST_HYPERVISOR
+
+	if [ ! -e $PROC_SYSINFO ] ; then
+		return
+	fi
+
+	IFS=":" ; while read KEYWORD VALUE; do
+		case $KEYWORD in
+			LPAR\ Name)
+				LAST_HYPERVISOR=ZLPAR
+			;;
+			VM[0-9][0-9]\ Control\ Program)
+				LAST_HYPERVISOR=$VALUE
+			;;
+		esac
+	done < $PROC_SYSINFO
+
+	if [ "$LAST_HYPERVISOR" == "ZLPAR" ] ; then
+		SYS_HYPERVISOR="ZLPAR"
+	else
+		IFS=" "
+		set $LAST_HYPERVISOR
+		if [ $1 == "z/VM" ] ; then
+			SYS_HYPERVISOR=ZVM
+			SYS_ZVM_VERSION=$2
+		fi
+	fi
+}
+
+
+# Reset system variable values
+SYS_OS=
+SYS_LINUX_VERSION=
+SYS_PLATFORM=
+SYS_DISTRO=
+SYS_RHEL_VERSION=
+SYS_SLES_VERSION=
+SYS_UBUNTU_VERSION=
+SYS_DEBIAN_VERSION=
+SYS_HYPERVISOR=
+SYS_ZVM_VERSION=
+
+# Get system variable values
+SYS_OS=$(uname -o)
+SYS_LINUX_VERSION=$(uname -r)
+SYS_PLATFORM=$(uname -i)
+get_sles_version
+get_rhel_version
+if [ ! -z "$SYS_RHEL_VERSION" ] ; then
+	SYS_DISTRO=RHEL
+else
+	if [ ! -z "$SYS_SLES_VERSION" ] ; then
+		SYS_DISTRO=SLES
+	fi
+fi
+get_lsb_release
+get_hypervisor
+
+# Print system variable values
+echo "sys_os=$SYS_OS"
+echo "sys_linux_version=$SYS_LINUX_VERSION"
+echo "sys_platform=$SYS_PLATFORM"
+echo "sys_distro=$SYS_DISTRO"
+echo "sys_rhel_version=$SYS_RHEL_VERSION"
+echo "sys_sles_version=$SYS_SLES_VERSION"
+echo "sys_ubuntu_version=$SYS_UBUNTU_VERSION"
+echo "sys_debian_version=$SYS_DEBIAN_VERSION"
+echo "sys_fedora_version=$SYS_FEDORA_VERSION"
+echo "sys_hypervisor=$SYS_HYPERVISOR"
+echo "sys_zvm_version=$SYS_ZVM_VERSION"

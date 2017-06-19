@@ -1,0 +1,48 @@
+#!/usr/bin/perl
+#
+# &check_id;
+#   Health check program for the Linux Health Checker
+#
+# TODO: specify copyright
+#
+# Author(s): &check_author;
+#
+# TODO: specify license. Note: the parts of this file that were generated
+#       by lnxhc are not copyrighted and can be distributed under any license.
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+&perl_ex_def_list;&perl_param_def_list;&perl_si_def_list;
+
+# TODO:
+# 1. Check parameters for correct values (param_*).
+# 2. Access sysinfo data (filenames available in sysinfo_*).
+# 3. Perform analysis.
+# 4. If an exception is found, write its ID and values for exception
+#    template variables to file ex_file.
+#
+# See 'man lnxhc_check_program' for more information.
+#
+
+#
+# Sample exception reporting. TODO: call this only if an exception
+# was identified.
+#
+&perl_ex_report_list;
+#
+# Sample exception variable reporting. TODO: call this only if an
+# exception was identified.
+#
+lnxhc_exception_var("var", "value");
+
+exit(0);

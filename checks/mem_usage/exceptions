@@ -1,0 +1,59 @@
+[summary warn_limit]
+Memory usage (&warn_limit;%) crosses warning threshold &param_warn_limit;%
+
+[explanation warn_limit]
+The percentage of memory usage has exceeded the specified warning threshold of
+&param_warn_limit;%. Further increase in the memory usage might invoke
+Out of memory (OOM) and also make the system unresponsive.
+
+Memory consumption details:
+
+#&mem_used; MB memory used
+
+#&swap_used; MB swap used
+
+Memory usage can be checked with the "free" command.
+
+Total memory available is Mem:total + Swap:total.
+
+Total memory used is -/+ buffers:used + Swap:used.
+
+[solution warn_limit]
+1. Check if any processes are unnecessarily hogging memory and terminate them.
+
+2. Increase the swap space size.
+
+3. Increase RAM size.
+
+[reference warn_limit]
+Refer to man pages of "free" , "sync" commands and "proc" file system.
+
+[summary critical_limit]
+Memory usage (&critical_limit;%) crosses critical threshold &param_critical_limit;%
+
+[explanation critical_limit]
+The percentage of memory usage has exceeded the specified critical threshold of
+&param_critical_limit;%. Further increase in the memory usage might invoke
+Out of memory (OOM) and also make the system unresponsive.
+
+Memory consumption details:
+
+#&mem_used; MB memory used
+
+#&swap_used; MB swap used
+
+Memory usage can be checked with the "free" command.
+
+Total memory available is Mem:total + Swap:total.
+
+Total memory used is -/+ buffers:used + Swap:used.
+
+[solution critical_limit]
+1. Check if any processes are unnecessarily hogging memory and terminate them.
+
+2. Increase the swap space size.
+
+3. Increase RAM size.
+
+[reference critical_limit]
+Refer to man pages of "free" , "sync" commands and "proc" file system.

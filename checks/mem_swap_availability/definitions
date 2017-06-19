@@ -1,0 +1,9 @@
+[check]
+author = "Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>"
+component = "memory/swap"
+
+[sysinfo swaps]
+file = "/proc/swaps"
+
+[exception no_swap_space]
+severity = high

@@ -1,0 +1,46 @@
+[summary warn_limit]
+The warning threshold of &param_warn_limit;% disk space usage
+is exceeded on some file systems (&warn_exceeded_list_summary;)
+
+[explanation warn_limit]
+The percentage of used disk space on one or more file systems has exceeded the
+specified warning threshold of &param_warn_limit;%. Further increase in the amount
+of used space might compromise the availability of an application
+or of the complete system.
+
+The following file systems exceed the threshold:
+
+&warn_exceeded_list;
+
+To view the current disk space usage, run the "df" command with no parameters.
+
+[solution warn_limit]
+Monitor the disk space usage. Also plan on freeing some
+disk space. For example, consider deleting obsolete files or moving directories with growing disk space requirements to separate file systems.
+
+[reference warn_limit]
+See the man page of the "df" command.
+
+[summary critical_limit]
+The critical threshold of &param_critical_limit;% disk space usage is
+exceeded on some file systems (&critical_exceeded_list_summary;)
+
+[explanation critical_limit]
+The percentage of used disk space on one or more file systems has exceeded the
+specified critical threshold of &param_critical_limit;%. Further increase in the
+amount of used space is likely to compromise the availability of
+an application or of the complete system.
+
+The following file systems exceed the threshold:
+
+&critical_exceeded_list;
+
+To view the current disk space usage, run the "df" command with no parameters.
+
+[solution critical_limit]
+Free disk space on the affected file systems. For example,
+delete obsolete files and move directories with growing space
+requirements to separate file systems.
+
+[reference critical_limit]
+See the man page of the "df" command.

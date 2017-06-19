@@ -1,0 +1,19 @@
+[title]
+Ensure the system is running with optimal load
+
+[description]
+This check examines the CPU and IO load of the system. If a system is running
+with very high loads, then system could turn unresponsive and applications can
+take more time to react/complete.
+
+[param avgload]
+System usage (in percent) at which to raise a exception.
+Valid values are integers in the range 1 to 100.
+
+[param time]
+Time for which load average needs to be checked.
+Valid values are 1, 5, 15. You can specify more than one timestamp separated by
+comma (,).
+
+Example:
+#1,15

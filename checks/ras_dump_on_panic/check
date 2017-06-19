@@ -1,0 +1,178 @@
+#!/usr/bin/perl
+#
+# ras_dump_on_panic
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+use Data::Dumper;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/load_chkconfig/;
+
+
+sub parse_lsshut($)
+{
+	my $output = shift;
+	my $href = {};
+	my $fd = undef;
+	my $trigger = qr/(?i:Halt|Panic|Power off|Reboot)/;
+
+	open($fd, "<", $output) or die "Failed to read lsshut sysinfo: $!\n";
+	while (my $line = <$fd>) {
+		chomp $line;
+		# The output of lsshut looks like:
+		# Trigger          Action
+		# ========================
+		# Halt             stop
+		# Panic            stop
+		# Power off        stop
+		# Reboot           reipl
+		if ($line =~ /^(${trigger})\s+(.+)$/) {
+			$href->{$1} = $2;
+		}
+	}
+	close($fd);
+	return $href;
+}
+
+sub load_kernel_config($)
+{
+	my $filename = shift;
+	my $fh;
+	my $href = {};
+
+	return undef unless open($fh, "<", $filename);
+	while (<$fh>) {
+		next if /^(?:#|$)/;	# skip comments and empty lines
+		my ($cfg, $value) = split /=/;
+		$href->{$cfg} = $value;
+	}
+	close($fh);
+
+	return $href;
+}
+
+sub has_valid_standalone_dump_action($)
+{
+	my $result;
+	my $panic_action = shift();
+
+	# check stand-alone (non-kdump) dump settings
+	$_ = $panic_action;
+	SWITCH: {
+		/^(dump(?:_reipl)?)$/  and do {
+			$result = 1;
+			last SWITCH;
+		};
+		/^vmcmd\s+\((.+)\)$/ and do {
+			my $cmds = $1;
+			if ($cmds =~ /,?"VMDUMP\b[^"]*",?/) {
+				$result = 1;
+			} else {
+				# vmcmd does not contains VMDUMP command,
+				# raise exception
+				$result = 0;
+			}
+			last SWITCH;
+		};
+		# not a known dump on panic action
+		$result = 0;
+	}
+
+	return $result;
+}
+
+sub check_standalone_dump($$)
+{
+	my ($exdata, $ex_suffix) = @_;
+
+	# check if Linux instance has a valid panic action configured
+	if ($exdata->{dumpaction}) {
+		# panic action configured, check dumpconf service
+		unless ($exdata->{dumpconf}) {
+			lnxhc_exception("no${ex_suffix}_dumpconf");
+		}
+	} else {
+		lnxhc_exception("no${ex_suffix}_standalone");
+	}
+
+}
+
+sub main()
+{
+	my $exdata = {};
+
+	# parse and load data from the lsshut sysinfo
+	my $lsshut = parse_lsshut($ENV{"LNXHC_SYSINFO_lsshut"});
+	print STDERR Dumper($lsshut) if $LNXHC_DEBUG;
+
+	# parse and load data from the chkconfig sysinfo
+	my $chkconfig = load_chkconfig($ENV{"LNXHC_SYSINFO_chkconfig_list"});
+	die "Failed to read chkconfig sysinfo: $!\n" unless $chkconfig;
+
+	# parse and load kernel configuration
+	my $kernel = load_kernel_config($ENV{"LNXHC_SYSINFO_kernel_config"});
+	die "Failed to read kernel_config sysinfo: $!\n" unless $kernel;
+
+	# setup exception data
+	$exdata->{dumpconf} = 0;
+	$exdata->{dumpaction} = 0;
+	$exdata->{kdump} = 0;
+
+	# check panic action
+	$_ = $lsshut->{'Panic'};
+
+	# check for kdump first:
+	#   - remove kdump setting to identify a dump on panic fallback
+	#   - if kdump is not used, fallback action determines the exception result
+	if (s/^kdump,//g) {
+		$exdata->{kdump} = 1;
+	}
+
+	# check standalone dump actions
+	$exdata->{dumpaction} = has_valid_standalone_dump_action($_);
+
+	# check status of the dumpconf service
+	my $services = $chkconfig->[0];
+	if (exists $services->{dumpconf}) {
+		$exdata->{dumpconf} = $services->{dumpconf};
+	}
+
+	print STDERR Dumper($exdata) if $LNXHC_DEBUG;
+
+	# exception logic:
+	# 1. Distinguish between kdump and standalone dump configuration
+	# 2. For kdump support:
+	#	- check panic action as standalone dump fallback
+	#	- check dumpconf service
+	# 3. For standalone dump support (no kdump support):
+	#	- check panic action
+	#	- check dumpconf service
+	if (exists $kernel->{'CONFIG_CRASH_DUMP'}) {
+		if ($exdata->{kdump}) {
+			# check standalone dump as fallback
+			check_standalone_dump($exdata, "_kdump");
+		} else {
+			lnxhc_exception("no_kdump");
+		}
+	} else {
+		# No kdump support - check standalone dump configuration only
+		check_standalone_dump($exdata, "");
+	}
+}
+
+&main();
+__DATA__
+__END__

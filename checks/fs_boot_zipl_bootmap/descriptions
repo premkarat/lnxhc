@@ -1,0 +1,24 @@
+[title]
+Verify that the bootmap file is up-to-date
+
+[description]
+With a backlevel bootmap file, you might no longer be able to boot your Linux
+instance.
+
+This check compares the file metadata to verify that none of the boot data
+that is referenced by the bootmap file has been modified after the bootmap
+file was created. The boot data typically includes, a kernel image, initial
+RAM disk (initrd), and a kernel parameter file.
+
+A backlevel bootmap file can be the result of upgrading the kernel with a new
+kernel image without running "zipl" to update the bootmap file accordingly.
+
+This check applies only if the following assumptions are all true:
+- The boot device is a disk device.
+- The bootmap file has been created from specifications in the "zipl"
+  configuration file, /etc/zipl.conf.
+- /etc/zipl.conf describes a single boot configuration that can but need not
+  provide a boot menu.
+
+Distributions tools typically use "zipl" according to these assumptions when
+creating a boot disk.

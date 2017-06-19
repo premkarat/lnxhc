@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# List users who are logged on and their idle times
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+
+
+# get current time in seconds since epoch
+curr_time=$(date +%s)
+
+# parse output of who, calculate time difference, and report results
+who | while read v_user v_tty rest; do
+	last_access_time=$(stat -c "%X" /dev/$v_tty)
+	time_diff=$((curr_time - last_access_time))
+	printf "%s|%s|%u|%u|%u\n" "$v_user" "$v_tty" "$time_diff" \
+		"$last_access_time" "$curr_time"
+done
+exit 0

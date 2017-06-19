@@ -1,0 +1,18 @@
+[title]
+Identify I/O devices that are in use although they are on the exclusion list
+
+[description]
+The I/O device exclusion list prevents Linux from sensing and analyzing
+I/O devices that are available to Linux but not required.
+
+An initial exclusion list can be included in the boot configuration using
+the "cio_ignore" kernel parameter. On a running Linux instance, the list
+can be changed temporarily through the /proc/cio_ignore procfs interface or
+with the "cio_ignore" command. Rebooting restores the exclusion list
+of the boot configuration.
+
+I/O devices that are in use (online) might be required and should then not be
+on the exclusion list. If these devices become unavailable and reappear after
+some time, they are ignored and remain unavailable to Linux. If they are added
+to the cio_ignore parameter in the boot configuration, they will also be
+unavailable after rebooting Linux.

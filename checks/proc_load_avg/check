@@ -1,0 +1,124 @@
+#!/usr/bin/perl
+#
+# proc_load_avg
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+# Exception IDs
+my $LNXHC_EXCEPTION_OVER_LOAD = "over_load";
+my $LNXHC_EXCEPTION_HIGH_LOAD = "high_load";
+
+# Value of parameter 'avgload'.
+my $param_avgload = $ENV{"LNXHC_PARAM_avgload"};
+
+my $param_time = $ENV{"LNXHC_PARAM_time"};
+
+# Path to the file containing data for sysinfo item 'loadavg'.
+my $sysinfo_loadavg = $ENV{"LNXHC_SYSINFO_loadavg"};
+
+my $sysinfo_cpuinfo = $ENV{"LNXHC_SYSINFO_cpuinfo"};
+
+check_int_param("avgload", 1, 100);
+
+my ($total_load_cap, $load_threshold);
+my ($high, $over) = (0, 0);
+
+sub calc_threshold
+{
+	my ($handle, $cpus);
+
+	open($handle, "<", $sysinfo_cpuinfo) or
+	die("collect_cpus: could not open $sysinfo_cpuinfo");
+
+	if ($ENV{LNXHC_SYS_sys_platform} =~ /s390x/) {
+		while (<$handle>) {
+			if (/^# processors\s+\:\s(\d+)/) {
+				$cpus = $1;
+				last;
+			}
+		}
+	} else {
+		$cpus  = grep(/(?:^processor)/, <$handle>);
+	}
+
+	$total_load_cap = $cpus;
+	$load_threshold = $param_avgload * $total_load_cap * 0.01;
+
+	close($handle);
+}
+
+sub calc_load
+{
+	my ($res, $t) = @_;
+	my $df;
+
+	$df = sprintf("%.2f", ($res / $total_load_cap) * 100);
+	$df =~ s/\./\\./;
+
+	if ($res > $total_load_cap) {
+		$over = 1;
+		lnxhc_exception_var("over_load", "$df% loaded in last $t min");
+	} else {
+		$high = 1;
+		lnxhc_exception_var("high_load", "$df% loaded in last $t min");
+	}
+}
+
+sub main()
+{
+	open(FILE1, "<", $sysinfo_loadavg) or
+		die("loadavg: could not open $sysinfo_loadavg");
+
+	my @time = split(",", $param_time);
+
+	my $ld = <FILE1>;
+
+	chomp($ld);
+
+	calc_threshold();
+
+	my @load = split(" ", $ld);
+
+	foreach my $t(@time) {
+		if ($t == 1 && ($load[0] > $load_threshold)) {
+			calc_load($load[0], $t);
+		}
+
+		if ($t == 5 && ($load[1] > $load_threshold)) {
+			calc_load($load[1], $t);
+		}
+
+		if ($t == 15 && ($load[2] > $load_threshold)) {
+			calc_load($load[2], $t);
+		}
+	}
+
+	if ($over) {
+		lnxhc_exception($LNXHC_EXCEPTION_OVER_LOAD);
+	}
+
+	if ($high) {
+		lnxhc_exception($LNXHC_EXCEPTION_HIGH_LOAD);
+	}
+
+	close(FILE1);
+}
+&main();
+__DATA__
+__END__

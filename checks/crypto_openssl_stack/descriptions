@@ -1,0 +1,24 @@
+[title]
+Verify the availability of System z cryptographic hardware support through an OpenSSL stack
+
+[description]
+The applications using cryptographic operations by linking to OpenSSL libraries can exploit System z cryptographic hardware only if the OpenSSL stack is configured correctly.
+
+The following cryptographic hardware can be exploited if available:
+
+- CPACF instructions in the CPU
+- Cryptographic Accelerator adapters
+- Cryptographic Coprocessor adapters
+
+Prerequisites for a well configured OpenSSL stack that uses System z cryptographic hardware are:
+
+- The enablement of CPACF, a device driver to exploit cryptographic adapters (if adapters are available)
+- The libica library
+- The openssl-ibmca engine for OpenSSL being installed and configured
+
+Configuring the OpenSSL stack to exploit System z cryptographic hardware accelerates applications using cryptographic functions and  offloads CPU cycles to cryptographic adapters. The availability of cryptographic adapters is optional because libica provides a software fallback for the functions provided by the adapters.
+
+This health check verifies that:
+- The Cryptographic Coprocessor or Accelerator is available
+- Required RPMs, such as 'openSSL', 'openssl-ibmca', and 'libica' are available
+- OpenSSL is configured with the 'ibmca' engine

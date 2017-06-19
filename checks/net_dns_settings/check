@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+#
+# net_dns_settings
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+# Exception IDs
+my $LNXHC_EXCEPTION_NO_NAMESERVER = "no_nameserver";
+my $LNXHC_EXCEPTION_INCORRECT_NAMESERVER = "incorrect_nameserver";
+
+my $sysinfo_host = $ENV{"LNXHC_SYSINFO_host"};
+
+sub main()
+{
+	my ($handle, $ip);
+
+	open($handle, "<", $sysinfo_host) or
+		die("Could not read $sysinfo_host");
+
+	$ip = <$handle>;
+	chomp($ip);
+
+	if ($ip !~ /(?:Success)/) {
+		if ($ip =~ /(?:No nameserver)/) {
+			lnxhc_exception($LNXHC_EXCEPTION_NO_NAMESERVER);
+		} else {
+			lnxhc_exception($LNXHC_EXCEPTION_INCORRECT_NAMESERVER);
+			foreach (split (",", $ip)) {
+				lnxhc_exception_var("invalid_nameservers",
+					"#".$_);
+			}
+		}
+	}
+
+	close($handle);
+}
+&main();
+__DATA__
+_END__

@@ -1,0 +1,16 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "firmware/callhome"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+sys_hypervisor=ZLPAR
+
+[sysinfo sysctl]
+program = "/sbin/sysctl -a"
+
+[exception not_available]
+severity = low
+
+[exception inactive]
+severity = low

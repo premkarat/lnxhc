@@ -1,0 +1,770 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc_check_program 7 "lnxhc 1.3-1" 2013-12-18 "Linux Health Checker"
+.
+.SH NAME
+lnxhc_check_program \- Implementing a health check program
+.
+.
+.SH DESCRIPTION
+The
+.B check
+file of a health check contains the program that analyzes the system information
+provided by the \*[lhc] and identifies and reports problems.
+.PP
+Below is an overview of the typical program flow that a health check program
+should implement.
+.PP
+.RS 4
+.IP " 1." 4
+Ensure that health check parameters are available and contain correct values.
+.IP " 2." 4
+Access sysinfo data.
+.IP " 3." 4
+Perform analysis.
+.IP " 4." 4
+If an exception was found, report the exception and provide values for
+exception template entities.
+.PP
+.RE
+.
+.
+.SS "Programming languages"
+Check programs can be implemented using any programming language that provides
+access to files and environment variables. When choosing a programming language,
+make sure that the required runtime environment is available on a typical
+target system.
+.PP
+The \*[lhc] provides functions for implementing checks in Perl and Python.
+Using these functions may be helpful, but is not mandatory. See the
+corresponding files in /usr/lib/lnxhc for more information.
+.PP
+.
+.
+.SS "File permissions"
+The check file must have the execute file permission set for all users
+who should be allowed to run lnxhc.
+.
+.
+.SS "Invocation"
+Use
+.CL lnxhc run
+to run the check programs of all active health checks. The \*[lhc] sets the
+current working directory for the check program to the installation directory
+of that check.
+.
+.
+.SH "ENVIRONMENT VARIABLES"
+The \*[lhc] uses environment variables to pass runtime data
+and system information to the check program. The format of the environment
+variables used for system information depends on the multihost and multitime
+settings of the check.
+.PP
+.RS 4
+.IP \(bu 2
+For multitime=0 and multihost=0, see the "System information for single-time,
+single-host checks" sections
+.IP \(bu 2
+For multitime=0 and multihost=1, see the "System information for single-time,
+multi-host checks" sections
+.IP \(bu 2
+For multitime=1 and multihost=0, see the "System information for multi-time,
+single-host checks" sections
+.IP \(bu 2
+For multitime=1 and multihost=1, see the "System information for multi-time,
+multi-host checks" sections
+.RE
+.
+.
+.SS "Runtime data"
+.BR LC_ALL =\[dq]C\[dq]
+.RS
+Program locale.
+.PP
+The \*[lhc] runs check programs with a fixed locale ("C") to prevent
+problems with localized output of helper programs that the check
+program runs.
+.PP
+.RE
+.
+.PP
+.B COLUMNS
+.RS
+Width of the output terminal.
+.PP
+.RE
+.
+.B LNXHC_LIBDIR
+.RS
+Location of the \*[lhc] library directory.
+.PP
+.RE
+.
+.B LNXHC_INVOCATION
+.RS
+Command name by which the user called the \*[lhc].
+.PP
+.B Example:
+.br
+.CL LNXHC_INVOCATION=./bin/lnxhc
+.PP
+.RE
+.
+.B LNXHC_CHECK_ID
+.RS
+Health check name.
+.PP
+.RE
+.
+.B LNXHC_CHECK_DIR
+.RS
+Health check installation directory.
+.PP
+.RE
+.
+.B LNXHC_DEBUG
+.RS
+Debugging flag.
+.PP
+A value of 1 indicates that the check program should add debugging
+information to its informational output. Users can set the debugging flag by
+specifying command line option \-\-debug when running the lnxhc tool.
+.PP
+.RE
+.
+.B LNXHC_VERBOSE
+.RS
+Verbosity level.
+.PP
+Specifies the level of verbosity that the check program should provide
+in its informational output. A value of 0 indicates normal output, a value
+greater zero indicates increased level of verbosity. Users can increase the
+verbosity level by specifying command line option \-\-verbose an arbitrary
+number of times when running the lnxhc tool.
+.PP
+.RE
+.
+.BI LNXHC_PARAM_  param_id
+.RS
+Health check parameter value.
+.PP
+Specifies the value of health check parameter
+.IR param_id .
+This environment variable is only available if the health check defines
+parameters.
+.PP
+.RE
+.
+.B LNXHC_EXCEPTION
+.RS
+Filename for exception reporting.
+.PP
+Specifies the full path to the file which the check program should use to
+report identified exceptions. See the "EXCEPTIONS FILE" section for more
+details.
+.PP
+.RE
+.
+.
+.SS "System information for single time, single host checks"
+The environment variables below are available only for checks that analyze
+system information that was collected from a single host at a
+specific point in time. They define the following settings:
+.PP
+.RS
+.B multitime=0
+.br
+.B multihost=0
+.PP
+.RE
+.B LNXHC_INST
+.RS
+Sysinfo instance ID.
+.PP
+The symbolic ID of the instance at which system information was
+collected.
+.PP
+.RE
+.
+.B LNXHC_HOST
+.RS
+Sysinfo host name.
+.PP
+The name of the host on which system information was collected.
+.PP
+.RE
+.
+.BI LNXHC_SYS_ sysvar_id
+.RS
+System variable value.
+.PP
+The value of host system specification
+.IR sysvar_id .
+For a description of system variables, see the
+.MP lnxhc_check_definitions 5
+man page.
+.PP
+.RE
+.
+.BI LNXHC_SYSINFO_START_ sysinfo_id
+.RS
+Sysinfo collection start time.
+.PP
+The begin of data collection, in seconds since the UNIX epoch, for the
+.I sysinfo_id
+sysinfo time. The value is a decimal number.
+.PP
+.RE
+.
+.BI LNXHC_SYSINFO_END_ sysinfo_id
+.RS
+Sysinfo collection end time.
+.PP
+The end of data collection, in seconds since the UNIX epoch, for the
+.I sysinfo_id
+sysinfo item. The value is a decimal number.
+.PP
+.RE
+.
+.BI LNXHC_SYSINFO_EXIT_CODE_ sysinfo_id
+.RS
+Sysinfo program exit code.
+.PP
+The exit code returned by the sysinfo program for the
+.I sysinfo_id
+sysinfo item.
+This data is available only for sysinfo items of type program that also specify
+ignorerc=1.
+.PP
+.RE
+.
+.BI LNXHC_SYSINFO_ sysinfo_id
+.RS
+Filename for reading sysinfo data.
+.PP
+The file that contains the data collected for the
+.I sysinfo_id
+sysinfo item.
+.PP
+.RE
+.
+.
+.SS "System information for single time, multi host checks"
+The environment variables below are available for checks that analyze system
+information that was collected from several hosts at a specific point in time.
+They define the following settings:
+.PP
+.RS
+.B multitime=0
+.br
+.B multihost=1
+.PP
+.RE
+The \*[lhc] assigns a unique host sequence number to each host for which
+system information was collected. This number ranges from zero to the number
+of hosts minus one.
+.PP
+.B LNXHC_INST
+.RS
+Sysinfo instance ID.
+.PP
+The symbolic ID of the instance at which system information was
+collected.
+.PP
+.RE
+.
+.B LNXHC_NUM_HOSTS
+.RS
+Number of hosts.
+.PP
+Specifies the number of unique hosts on which system information was collected.
+.PP
+.RE
+.
+.BI LNXHC_HOST_ host_num _ID
+.RS
+Sysinfo host name.
+.PP
+The name of the host associated with host number
+.IR host_num .
+.PP
+.RE
+.
+.BI LNXHC_HOST_ host_num _SYS_ sysvar_id
+.RS
+System variable value.
+.PP
+The value of host system specification
+.I sysvar_id
+for the host with host number
+.IR host_num .
+For a description of system variables, see the
+.MP lnxhc_check_definitions 5
+man page.
+.PP
+.RE
+.
+.BI LNXHC_HOST_ host_num _SYSINFO_START_ sysinfo_id
+.RS
+Sysinfo collection start time.
+.PP
+The begin of data collection, in seconds since the UNIX epoch, for the
+.I sysinfo_id
+sysinfo item on the host with host number
+.IR host_num .
+The value is a decimal number.
+.PP
+.RE
+.
+.BI LNXHC_HOST_ host_num _SYSINFO_END_ sysinfo_id
+.RS
+Sysinfo collection end time.
+.PP
+The end of data collection, in seconds since the UNIX epoch, for the
+.I sysinfo_id
+sysinfo item on the host with host number
+.IR host_num .
+The value is a decimal number.
+.PP
+.RE
+.
+.BI LNXHC_HOST_ host_num _SYSINFO_EXIT_CODE_ sysinfo_id
+.RS
+Sysinfo program exit code.
+.PP
+The exit code returned by the sysinfo program for the
+.I sysinfo_id
+sysinfo item on the host with host number
+.IR host_num .
+This data is available only for sysinfo items of type program that also specify
+ignorerc=1.
+.PP
+.RE
+.
+.BI LNXHC_HOST_ host_num _SYSINFO_ sysinfo_id
+.RS
+Filename for reading sysinfo data.
+.PP
+The file that contains the data collected for the
+.I sysinfo_id
+sysinfo item on the host with host number
+.IR host_num .
+.PP
+.RE
+.
+.
+.SS "System information for multi time, single host checks"
+The environment variables below are available for checks that analyze system
+information that was collected from a single host at different points in time.
+They define the following settings:
+.PP
+.RS
+.B multitime=1
+.br
+.B multihost=0
+.RE
+.PP
+The \*[lhc] assigns a unique instance sequence number to each instance at
+which system information was collected. This number ranges from zero to the
+number of instances minus one.
+.PP
+.RE
+.B LNXHC_HOST
+.RS
+Sysinfo host name.
+
+The name of the host on which system information was collected.
+.PP
+.RE
+.
+.B LNXHC_NUM_INSTS
+.RS
+Number of instances.
+
+The number of unique instances at which system information was collected.
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _ID
+.RS
+Sysinfo instance ID.
+
+The ID of the instance associated with instance number
+.IR inst_num .
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _SYS_ sysvar_id
+.RS
+System variable value.
+
+The value of host system specification
+.I sysvar_id
+for the instance associated with
+.IR inst_num .
+For a description of system variables, see the
+.MP lnxhc_check_definitions 5
+man page.
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _SYSINFO_START_ sysinfo_id
+.RS
+Sysinfo collection start time.
+
+The begin of data collection, in seconds since the UNIX epoch, for the
+.I sysinfo_id
+sysinfo item, at the instance associated with the
+.I inst_num
+instance number. The value is a decimal number.
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _SYSINFO_END_ sysinfo_id
+.RS
+Sysinfo collection end time.
+.PP
+The end of data collection, in seconds since the UNIX epoch, for the
+.I sysinfo_id
+sysinfo item, at the instance associated with the
+.I inst_num
+instance number. The value is a decimal number.
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _SYSINFO_EXIT_CODE_ sysinfo_id
+.RS
+Sysinfo program exit code.
+.PP
+The exit code returned by the sysinfo program for the
+.I sysinfo_id
+sysinfo item at the instance associated with the
+.I inst_num
+instance number.
+This data is available only for sysinfo items of type program that also specify
+ignorerc=1.
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _SYSINFO_ sysinfo_id
+.RS
+Filename for reading sysinfo data.
+.PP
+The file that contains the data collected for the
+.I sysinfo_id
+sysinfo item at the instance associated with the
+.I inst_num
+instance number.
+.PP
+.RE
+.
+.
+.SS "System information for multi time, multi host checks"
+The environment variables below are available only for checks that analyze
+system information that was collected from several hosts at different points
+in time. They define the following settings:
+.PP
+.RS
+.B multitime=1
+.br
+.B multihost=1
+.PP
+.RE
+The \*[lhc] assigns unique instance and host sequence numbers to each instance
+and host for which system information was collected. These numbers range from
+zero to the number of instances minus one, respectively the number of hosts
+minus one.
+.NT System information might not be available for all combinations of instances and hosts. Environment variable LNXHC_INST_\fIinst_num\fP_HOST_\fIhost_num\fP_VALID indicates if data for such a combination is available.
+.PP
+.B LNXHC_NUM_INSTS
+.RS
+Number of instances.
+
+The number of unique instances at which system information was collected.
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _ID
+.RS
+Sysinfo instance ID.
+
+The ID of the instance associated with the
+.I inst_num
+instance number.
+.PP
+.RE
+.
+.B LNXHC_NUM_HOSTS
+.RS
+Number of hosts.
+.PP
+The number of unique hosts on which system information was collected.
+.PP
+.PP
+.RE
+.
+.BI LNXHC_HOST_ host_num _ID
+.RS
+Sysinfo host name.
+.PP
+The name of the host associated with host number
+.IR host_num .
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _HOST_ host_num _VALID
+.RS
+Instance-host combination flag.
+.PP
+If this variable is 1, sysinfo data is available for the combination of the
+instance with instance number
+.I inst_num
+and the host with host number
+.IR host_num .
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _HOST_ host_num _SYS_ sysvar_id
+.RS
+System variable value.
+
+The value of host system specification
+.I sysvar_id
+for the combination of instance and host associated with
+.IR inst_num " and " host_num .
+For a description of system variables, see the
+.MP lnxhc_check_definitions 5
+man page.
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _HOST_ host_num _SYSINFO_START_ sysinfo_id
+.RS
+Sysinfo collection start time.
+
+The begin of data collection, in seconds since the UNIX epoch, for the
+.I sysinfo_id
+sysinfo item, for the combination of instance and host associated with
+.I inst_num
+and
+.IR host_num .
+The value is a decimal number.
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _HOST_ host_num _SYSINFO_END_ sysinfo_id
+.RS
+Sysinfo collection end time.
+.PP
+The end of data collection, in seconds since the UNIX epoch, for the
+.I sysinfo_id
+sysinfo item, for the combination of instance and host associated with
+.IR inst_num " and " host_num .
+The value is a decimal number.
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _HOST_ host_num _SYSINFO_EXIT_CODE_ sysinfo_id
+.RS
+Sysinfo program exit code.
+.PP
+The exit code returned by the sysinfo program for the
+.I sysinfo_id
+sysinfo item for the combination of instance and host associated with
+.IR inst_num " and " host_num .
+.PP
+This data is available only for sysinfo items of type program that also specify
+ignorerc=1.
+.PP
+.RE
+.
+.BI LNXHC_INST_ inst_num _HOST_ host_num _SYSINFO_ sysinfo_id
+.RS
+Filename for reading sysinfo data.
+.PP
+The file that contains the data collected for the
+.I sysinfo_id
+sysinfo item for the combination of instance and host associated with
+.IR inst_num " and " host_num .
+.PP
+.RE
+.
+.
+.SH "STANDARD INPUT STREAM"
+No data is presented on the standard input stream of the health check
+program.
+.PP
+.
+.
+.SH "OUTPUT STREAMS"
+All output written by the health check program to the standard out and standard
+error streams is recorded and presented as informational output to the user.
+There is no restriction on the format or language of such output.
+.PP
+There are several verbosity levels, set in the environment variable
+LNXHC_VERBOSE. Initial output (LNXHC_VERBOSE=0) should be brief, yet contain
+all relevant information and be easily recognizable as related to a
+particular check. Provide more details for higher verbosity levels
+(LNXHC_VERBOSE greater than zero).
+.PP
+.
+.
+.SH "EXCEPTIONS FILE"
+When a health check program identifies a problem in the provided system
+information, it should open the file specified by environment variable
+.B LNXHC_EXCEPTION
+and write the ID of the corresponding exception,
+followed by a new line character.
+.PP
+.B Example:
+.br
+.CL echo \[dq]critical_limit\[dq] >> $LNXHC_EXCEPTION
+.PP
+If an exception template contains health check-specific placeholders
+(entities), the program must also provide the values for them. Write the
+ID of the variable, followed by an equal sign ("="), followed by the
+value string, followed by a new line characters. The value can be enclosed
+in single or double quotation marks.
+.PP
+.B Example:
+.br
+.CL echo \[dq]usage=70\[dq] >> $LNXHC_EXCEPTION
+.PP
+.NT If a value for an entity is reported repeatedly, the \*[lhc] concatenates these values using a new line character as separator. The value string itself must not contain new line characters.
+.PP
+Exceptions are processed by the \*[lhc] framework after the health check program
+finished. The order in which exceptions and entities are written to the
+LNXHC_EXCEPTION file is not important. Always append data only to the end of
+this file. Otherwise data reported previously by the check program will be overwritten.
+.PP
+.
+.
+.SH "EXIT CODES"
+The \*[lhc] interprets check program exit codes to determine the outcome
+of running a health check. An exit code of 0 indicates that the check
+program ran successfully.
+.PP
+Reasons for returning a non-zero exit code include:
+.RS 4
+.IP \(bu 2
+Health check does not apply..
+
+The system information indicates that the health check does not apply to the
+system to be checked.
+.
+.IP \(bu 2
+Parameters contain incorrect values.
+.
+.IP \(bu 2
+The check program encountered a runtime error.
+
+A runtime error has prevented the health check program from performing its
+analysis.
+.RE
+.
+.PP
+If the program exits with a non-zero exit code, it should write a message to the
+standard error stream, explaining the reason for the program exit.
+.PP
+.
+.
+.SS "Table of exit codes"
+.br
+.RS 4
+.TP
+.B 0
+The program ran successfully.
+.
+.TP
+.B 1\-63
+A check program runtime error occurred.
+.
+.TP
+.B 64
+The health check program found a failed dependency.
+.
+.TP
+.B 65
+One or more parameters of the health check program
+specify an invalid value.
+.
+.TP
+.B 66\-80
+Reserved.
+.
+.TP
+.B 81\-255
+A check program runtime error occurred.
+.RE
+.
+.
+.SH SEE ALSO
+.BR lnxhc (1),
+.BR lnxhc_writing_checks (7)

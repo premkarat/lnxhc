@@ -1,0 +1,633 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc-check 1 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.
+.SH NAME
+lnxhc-check \- Display, configure and manage health checks
+.
+.
+.SH SYNOPSIS
+Display actions:
+.PP
+.nh
+.na
+.B lnxhc check
+.OS list l
+.OS info i
+.OS show s
+.RS 12
+.
+.OS show\-property "" property_key
+.br
+.
+.OS show\-data\-id "" check_name . sysinfo_id
+.br
+.OS show\-sudoers "" username
+.RE
+.ad
+.hy
+.PP
+Configuration actions:
+.PP
+.nh
+.na
+.B lnxhc check
+.OS state S check_name =active|inactive
+.RS 12
+.
+.OS param p check_name . parameter_id = value
+.br
+.
+.OS ex\-severity "" check_name . exception_id  =low|medium|high
+.br
+.
+.OS ex\-state "" check_name . exception_id =active|inactive
+.br
+.
+.OS rec\-duration "" check_name . sysinfo_id = duration
+.br
+.
+.OS set "" property_key = value
+.OS defaults d
+.RE
+.ad
+.hy
+.PP
+Management actions:
+.PP
+.nh
+.na
+.B lnxhc check
+.OS install "" directory_name
+.OS "uninstall
+.RE
+.ad
+.hy
+.PP
+Options:
+.PP
+.nh
+.na
+.B lnxhc check
+.OS profile "" profile_name
+.OS system
+.RS 12
+.OS match\-all
+.RI [ SELECTION ]
+.RE
+.ad
+.hy
+.
+.NT You must specify exactly one action. See ACTIONS.
+.
+.
+.SH DESCRIPTION
+The
+.B check
+subcommand provides functions related to the management of health
+check plug-ins and associated data. Health check data falls into one of the
+following two categories:
+.RS 4
+.IP \(bu 2
+Static data, such as name or description
+.IP \(bu 2
+Configuration data, such as activation state or parameter values
+.RE
+.PP
+You can use the
+.B display actions
+to view both static and configuration data,
+and the
+.B configuration actions
+to modify configuration data.
+.PP
+The \*[lhc] maintains a database of installed health checks. You can use the
+.B management actions
+to add or remove checks from this database.
+.PP
+The functions of this subcommand apply to the health checks in the database.
+You can also instruct the \*[lhc] to work with health checks
+which are not installed (see next section).
+.
+.
+.SH SELECTION
+You can use the
+.I SELECTION
+argument of the "check" subcommand to select the list of health checks to which
+an action applies. In the absence of a selection, the action applies to all
+installed checks. This argument can take one or more of the following formats:
+.
+.TP
+.I check_name
+Select the check which is specified by
+.IR check_name .
+.
+.TP
+.I pattern
+Select all checks with a name that matches
+.IR pattern .
+Pattern may contain "*" for any number of arbitrary characters
+and "?" for a single arbitrary character.
+.
+.TP
+.IR property_key = value
+Select all checks where the value of the property specified by
+.I property_key
+matches
+.IR value .
+.RS
+.NT You must specify \fIproperty_key\fP without the leading check_name.
+.RE
+.
+.TP
+.IR property_key != value
+Select all checks where the value of the property specified by
+.I property_key
+does not match
+.IR value .
+.RS
+.NT You must specify \fIproperty_key\fP without the leading check_name.
+.RE
+.
+.TP
+.I directory_name
+Select the check which is found in directory
+.IR directory_name .
+.RE
+.PP
+You can specify more than one of these selection criteria. In this case
+the \*[lhc] selects all checks which meet
+.B any
+of the criteria.
+You can specify option
+.B \-\-match\-all
+to change this behavior to only select checks which meet
+.B all
+of the criteria.
+.
+.
+.SH ACTIONS
+An
+.B action
+is a command line argument which specifies the operation that the \*[lhc]
+should perform. You can only specify one action at a time, although some
+actions can be specified repeatedly.
+.PP
+.OD defaults d SELECTION
+Reset all configuration values to default values.
+
+This action resets the configuration values of all selected health checks
+to their default values which are provided by the health check authors.
+
+You must provide a selection for this action.
+.PP
+.
+.OD ex\-severity "" check_name . exception_id =low|medium|high
+.OD ex\-severity "" exception_id "=low|medium|high " SELECTION
+Change the severity level of an exception.
+
+This action changes the severity level of an exception.
+When the health check program identifies this exception, the \*[lhc]
+will report the exception using the new severity level.
+
+In the first format, you identify the exception by concatenating the
+.I check_name
+and
+.I exception_id
+using a dot as separator. In the second format, you specify the
+.I exception_id
+directly and select one or more checks by using a
+.IR SELECTION .
+
+You must provide a selection for the second format of this action.
+.PP
+.
+.OD ex\-state "" check_name . exception_id =active|inactive
+.OD ex\-state "" exception_id "=active|inactive " SELECTION
+Change the activation state of an exception.
+
+This action changes the activation state of an exception.
+The \*[lhc] will not report exceptions which are inactive.
+
+In the first format, you identify the exception by concatenating the
+.I check_name
+and
+.I exception_id
+using a dot as separator. In the second format, you specify the
+.I exception_id
+directly and select one or more checks by using a
+.IR SELECTION .
+
+You must provide a selection for the second format of this action.
+.PP
+.
+.OD info i SELECTION
+Show basic check information.
+
+This action displays basic information about a health check.
+This includes the health check title and description, and the list of defined
+exceptions and parameters.
+
+You must provide a selection for this action.
+.PP
+.
+.OD install "" directory_name
+Add check from directory
+.I directory_name
+to the database.
+
+This action installs a new health check into the database. The \*[lhc]
+copies the files associated with this health check to
+the user data directory and makes the health check available to the
+installing user.
+
+To install a check for system-wide use, specify the
+.B \-\-system
+option together with this action. In this case, the \*[lhc]
+copies the files associated with this health check to the system-wide health
+check directory (see
+.MP lnxhcrc 5 ).
+.RS
+.NT You require sufficient write access for the system-wide database installation directory.
+.RE
+.PP
+.
+.OD list l "" [ SELECTION ]
+List checks.
+
+This action shows a list of health checks including their name, the component
+that is being checked as well as the current check activation state.
+
+You can specify a selection for this action. If you do not provide a selection,
+the list includes all installed checks.
+.PP
+.
+.OD "" p check_name . parameter_id = value
+.OD "" p parameter_id = value " " " SELECTION"
+.OD param "" check_name . parameter_id = value
+.OD param "" parameter_id = value " " " SELECTION"
+Change the value of a check parameter.
+
+This action changes the value of a health check parameter.
+
+In the first format, you identify the parameter by concatenating the
+.I check_name
+and
+.I parameter_id
+using a dot as separator. In the second format, you specify the
+.I parameter_id
+directly and select one or more checks by using a
+.IR SELECTION .
+
+If you change the parameter value it is not checked for correctness. An
+incorrect value might cause the corresponding health check to end with a runtime
+error.
+
+You must provide a selection for the second format of this action.
+.PP
+.
+.OD rec\-duration "" check_name . sysinfo_id = duration
+.OD rec\-duration "" sysinfo_id = duration "" " SELECTION"
+Change the record duration of a system information item.
+
+This action changes the duration for which a record-type system information
+item records data.
+
+In the first format, you identify the system information item by concatenating
+the
+.I check_name
+and
+.I sysinfo_id
+using a dot as separator. In the second format, you specify the
+.I sysinfo_id
+directly and select one or more checks by using a
+.IR SELECTION .
+
+The
+.I duration
+argument is a text string which represents the new duration. It can be a
+combination of one or more of the following parts:
+
+.RS 8
+.TP 4
+.IR A d
+.br
+.I A
+number of days
+.PP
+.
+.TP 4
+.IR B h
+.br
+.I B
+number of hours
+.PP
+.
+.TP 4
+.IR C m
+.br
+.I C
+number of minutes
+.PP
+.
+.TP 4
+.IR D [s]
+.br
+.I D
+number of seconds. This is the default if no unit is specified.
+.RE
+.RS 4
+
+For example you can use "1d 12h" to specify a duration of 1 day and 12 hours.
+
+You must provide a selection for the second format of this action.
+.RE
+.PP
+.
+.OD set "" property_key = value
+.OD set "" property_key = "value SELECTION"
+Change the value of a check property.
+
+This action changes the value of a health check property.
+You identify the property by specifying its
+.I property_key
+(see the
+.MP lnxhc_properties 7
+man page).
+
+In the first format, you specify the full
+.IR property_key ,
+including the check name.
+The key may contain "*" for any number of arbitrary characters and "?" for a
+single arbitrary character.
+In the second format, you specify the
+.IR property_key
+without the check name (resulting in a leading dot) and select one or more
+checks by using a
+.IR SELECTION .
+
+.B Example:
+.br
+.CL # lnxhc check \-\-set .state=inactive fs_disk_usage
+
+You must provide a selection for the second format of this action.
+.RS
+.NT There are properties which you cannot modify.
+.RE
+.PP
+.
+.OD show s SELECTION
+Show detailed check information.
+
+This action displays detailed information about a health check. In addition to
+the information shown by the
+.B \-\-info ""
+action this includes the complete metadata defined by a health check, such
+as the full text templates for all exceptions and a textual
+representation of all system information items.
+
+You must provide a selection for this action.
+.PP
+.
+.OD show\-property "" property_key
+.OD show\-property "" "property_key SELECTION"
+Show the value of a check property.
+
+This action displays the value of a health check property. You identify the
+property by specifying its
+.I property_key
+(see the
+.MP lnxhc_properties 7
+man page).
+
+In the first format, you specify the full
+.IR property_key ,
+including the check name.
+The key may contain "*" for any number of arbitrary characters and "?" for a
+single arbitrary character.
+In the second format, you specify the
+.IR property_key
+without the check name (resulting in a leading dot) and select one or more
+checks by using a
+.IR SELECTION .
+
+.B Example:
+.br
+.CL # lnxhc check \-\-show-property .state '*'
+
+You must provide a selection for the second format of this action.
+.PP
+.
+.OD show\-data\-id "" check_name . sysinfo_id
+.OD show\-data\-id "" "sysinfo_id SELECTION"
+Show the data ID of a system information item.
+
+This action displays the data ID of a system information item. The \*[lhc]
+generates a data ID for each system information item
+to uniquely identify the corresponding data. You can use the data ID of a
+system information item as argument for the
+.B \-\-add\-data
+action of the "sysinfo" subcommand. See
+.MP lnxhc-sysinfo 1 .
+
+In the first format, you identify the system information item by concatenating
+the
+.I check_name
+and
+.I sysinfo_id
+using a dot as separator.
+The item ID may contain "*" for any number of arbitrary characters and "?" for
+a single arbitrary character. In the second format, you specify the
+.I sysinfo_id
+directly and select one or more checks by using a
+.IR SELECTION .
+
+You must provide a selection for the second format of this action.
+.PP
+.
+.OD show\-sudoers "" "username " "[" SELECTION ]
+Show a sudoers file excerpt enabling data collection for a non-root user.
+
+This action displays a list of instructions in the format as used in the
+.MP sudoers 5
+configuration file. The instructions allow the user named
+.I username
+to collect system information data for the selected health checks without
+having to enter a password. You can activate these instructions by adding
+the corresponding lines to the /etc/sudoers configuration file.
+.PP
+.
+.OD "" S check_name =active|inactive
+.OD "" S "" active|inactive " SELECTION"
+.OD state "" check_name =active|inactive
+.OD state "" "" active|inactive " SELECTION"
+Change the activation state of a check.
+
+This action changes the activation state of a health check.
+The \*[lhc] only collects data and runs check programs for health checks
+which are active.
+
+In the first format, you identify the health check by specifying its
+.IR check_name .
+In the second format, you select one or more checks by using a
+.IR SELECTION .
+
+You must provide a selection for the second format of this action.
+.PP
+.
+.OD uninstall "" SELECTION
+Remove a check from the database.
+
+This action removes an installed health check from the \*[lhc]
+database. As a result, the files and directories associated with this health
+check are deleted and the check is no longer available.
+
+To remove a system-wide check, specify the
+.B \-\-system
+option together with this action.
+
+You must provide a selection for this action.
+
+.RS
+.NT You require sufficient write access for the system-wide database installation directory.
+.RE
+.
+.
+.SH OPTIONS
+.OD match\-all
+Select only checks which match all selection criteria.
+
+This option instructs the \*[lhc] to select only those checks
+which match
+.B all
+specified selection criteria. Without this option, the selection
+includes all checks which match
+.B any
+of the specified criteria.
+
+.B Example:
+.br
+.CL # lnxhc check \-\-list component=kernel state=inactive \-\-match-all
+.PP
+.
+.OD profile "" profile_name
+Use configuration values from a specific profile.
+
+This option instructs the \*[lhc] to use the profile with the
+specified
+.I profile_name
+as source or target for actions that query or modify configuration data.
+Without this option, actions apply to configuration data of the active profile.
+.PP
+.
+.OD system
+Use the system-wide database for management actions.
+
+This option instructs the \*[lhc] to perform check management
+actions
+.B \-\-install
+and
+.B \-\-uninstall
+on the system-wide database. Without this option, management actions
+apply to the per-user database only.
+.
+.
+.SH EXAMPLES
+.B List all checks with a name that starts with \[dq]fs_\[dq]:
+.RS 4
+.CL # lnxhc check \-\-list 'fs_*'
+.RE
+.PP
+.B List all health checks that check filesystems:
+.RS 4
+.CL # lnxhc check \-\-list component=filesystem
+.RE
+.PP
+.B Show basic information for check \[dq]fs_disk_usage\[dq]:
+.RS 4
+.CL # lnxhc check \-\-info fs_disk_usage
+.RE
+.PP
+.B Show detailed information for check in directory \[dq]my_check\[dq]:
+.RS 4
+.CL # lnxhc check \-\-show ./my_check
+.RE
+.PP
+.B Activate check \[dq]fs_disk_usage\[dq]:
+.RS 4
+.CL # lnxhc check \-\-state active fs_disk_usage
+.RE
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_properties 7 ,
+.MP lnxhc_writing_checks 7

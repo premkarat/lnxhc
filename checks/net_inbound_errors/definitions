@@ -1,0 +1,17 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "network"
+
+[param rxerror_ratio]
+default = "1"
+# The above value in percentage
+
+[param rxdrop_ratio]
+default = "1"
+# The above value in percentage
+
+[sysinfo ifconfig]
+program = "/sbin/ifconfig"
+
+[exception limits_exceeded]
+severity = medium

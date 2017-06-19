@@ -1,0 +1,146 @@
+[summary rpms_not_installed]
+Required RPMs are not installed (&rpm_summ;)
+
+[explanation rpms_not_installed]
+Required RPMs are not installed.
+When required RPMs are not installed, the Linux system cannot exploit the cryptographic hardware. Some applications or libraries will emulate cryptographic operations in software instead, but this emulation will decrease the system performance exceedingly.
+
+The following RPMs are required but not installed:
+&rpm;
+
+To  verify whether the required RPMs are installed, issue:
+  #rpm -qa | grep "<RPMname>"
+
+where <RPMname> is the name of a required RPM
+
+Examples:
+
+In case of a single RPM that contains the string 'avahi', issue:
+  #rpm -qa | grep "avahi"
+In case of a list of RPMs that contain a string 'avahi' and 'postfix', issue:
+  #rpm -qa | grep "avahi\|postfix"
+
+
+[solution rpms_not_installed]
+Install the required RPMs by using the following command or by using the specific options available from your distribution.
+
+  #rpm -ivh <RPMname> [<RPMname> ...]
+where <RPMname> is the name of the required RPM
+
+You can download CCA RPMs from
+http://www.ibm.com/security/cryptocards/pciecc/ordersoftware.shtml
+
+[reference rpms_not_installed]
+See the man page of the 'rpm' command.
+
+
+[summary crypto_coprocessors_not_available]
+Required Cryptographic Coprocessor is not available
+
+[explanation crypto_coprocessors_not_available]
+The required Cryptographic Coprocessor is not available. Secure key cryptographic functions and true random number generation are not supported.
+
+To  verify whether the required Cryptographic Coprocessor is available, issue:
+  #lszcrypt
+and look for the following line in the output:
+
+#card<nn>: CEX?C
+where the question mark (?) denotes the series of the Cryptographic Coprocessor, for example 2 or 3.
+
+[solution crypto_coprocessors_not_available]
+If the Cryptogtaphic Coprocessor is not attached to the Linux system, follow the procedure described in the 'Technical Guide' related to your System z.
+For example, for a System z server z196, refer to the 'IBM zEnterprise 196 Technical Guide'.
+
+If the Cryptographic Coprocessor is attached but not online, you can use the 'chzcrypt' tool to set Coprocessors online.
+See the 'Generic cryptographic device driver' chapter in 'Device Drivers, Features, and Commands' .
+
+[reference crypto_coprocessors_not_available]
+You can obtain Technical Guides from
+http://www.redbooks.ibm.com
+
+You can obtain the 'Device Drivers, Features, and Commands' publication from
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+
+[summary cca_token_not_configured]
+The CCA token is not configured, cryptographic hardware cannot be exploited for secure key cryptography
+
+[explanation cca_token_not_configured]
+The CCA token is not configured. The cryptographic hardware cannot be exploited for secure key cryptographic operations.
+
+To  verify the state of the CCA token, issue:
+  # pkcsconf -t
+
+#If the CCA token is configured correctly, the following details will be displayed for the token that has the Model attribute set to 'IBM CCA':
+#Flags: 0x44D (RNG|LOGIN_REQUIRED|USER_PIN_INITIALIZED|CLOCK_ON_TOKEN|TOKEN_INITIALIZED)
+#where
+#        'USER_PIN_INITIALIZED' means that the user password has been changed, which is mandatory.
+#        'TOKEN_INITIALIZED' means that the token has been initialized and is ready for usage.
+#        If the flag 'TOKEN_INITIALIZED' is not displayed, you need to initialize the CCA token.
+#        If the flag 'SO_PIN_TO_BE_CHANGED' is displayed, the Security Officer's (SO) password still has the default value and needs to be changed.
+#        If the flag 'USER_PIN_TO_BE_CHANGED' is displayed, you need to change the user password.
+
+
+[solution cca_token_not_configured]
+To configure the CCA token:
+
+1. Find out in which slot the CCA token is available:
+  # pkcsconf -s
+  #Example output:
+  #Slot #1 Info
+  #      Description: Linux <xxxxxxx> Linux (CCA)
+  #Use this slot number in the following commands.
+
+2. Initialize the CCA token:
+  # pkcsconf -c <slot_number> -I
+
+3. Change the SO password:
+  # pkcsconf -c <slot_number> -P
+  #Note: The default SO password is '87654321'.
+
+4. Initialize the user password:
+  # pkcsconf -c <slot_number> -u
+
+5. Change the user password:
+  # pkcsconf -c <slot_number> -p
+
+
+[reference cca_token_not_configured]
+For more information about secure key cryptography, see
+http://www.ibm.com/support/techdocs/atsmastr.nsf/WebIndex/WP100647
+
+For more information about cryptographic hardware, see
+http://www.ibm.com/security/cryptocards/
+
+For more information about openCryptoki, see
+http://www.ibm.com/developerworks/linux/library/s-pkcs/
+
+
+[summary opencryptoki_not_initialized]
+openCryptoki is not initialized
+
+[explanation opencryptoki_not_initialized]
+openCryptoki is not initialized, that is, the 'pkcs11_startup' script has not been called, the 'pkcsslotd' daemon has not been started, or both. Without the initialization of openCryptoki, the utilization of cryptographic hardware for PKCS#11 clear key cryptographic operations is not supported. The Linux system will emulate cryptographic operations by software. This emulation will decrease the system performance exceedingly.
+
+Script 'pkcs11_startup' detects available tokens from installed shared object libraries and writes corresponding records to the 'pk_config_data' file. 'pkcs11_startup' should be run each time a new token has been installed or uninstalled.
+Daemon 'pkcsslotd' manages PKCS#11 objects, such as the ICA token, for openCryptoki.
+'pkcsslotd' uses the information from the 'pk_config_data' file for token initialization.
+
+1. To verify if the 'pkcs11_startup' script has been called,
+  #check if the file '/var/lib/opencryptoki/pk_config_data' exists.
+  #If the file does not exist, run the script.
+
+2. To verify if the 'pkcsslotd' daemon is running, issue:
+  # ps -elf | grep pkcsslotd | grep -v grep
+  #This command produces output only if the daemon is running.
+  #If no output is displayed, start the daemon.
+
+[solution opencryptoki_not_initialized]
+To run the 'pkcs11_startup' script, issue
+  # pkcs11_startup
+
+To start the 'pkcsslotd' daemon, issue
+  # /etc/init.d/pkcsslotd start
+
+[reference opencryptoki_not_initialized]
+For more information, see the 'pkcsslotd', 'pkcs11_startup', and 'pk_config_data' man pages.

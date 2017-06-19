@@ -1,0 +1,200 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc_check_descriptions 5 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.
+.SH NAME
+lnxhc_check_descriptions \- Describe the purpose and parameters of a health check
+.
+.
+.SH DESCRIPTION
+The
+.B descriptions
+file of a health check contains descriptions of the
+health check and its parameters. Users can display this information using
+the \-\-info or \-\-show actions of the lnxhc check command.
+.PP
+.
+.
+.SS "Example definitions file"
+.RS 4
+.CL [title]
+.CL Check file systems for adequate free space
+.CL
+.CL [description]
+.CL Some applications and administrative tasks require an adequate
+.CL amount of free space on each mounted file system. If there is
+.CL not enough free space, these applications might no longer be
+.CL available or the complete system might be compromised. Regular
+.CL monitoring of disk space usage averts this risk.
+.CL
+.CL [param warn_limit]
+.CL File system usage (in percent) at which to raise a low-severity
+.CL exception.
+.CL
+.CL Valid values are integers in the range 1 to 100.
+.CL
+.CL [param critical_limit]
+.CL File system usage (in percent) at which to raise a high-severity
+.CL exception.
+.CL
+.CL Valid values are integers in the range 1 to 100.
+.CL
+.CL [param mount_points]
+.CL A list of mount points, separated by colons (:). The file systems
+.CL mounted at the specified mount points are to be checked for free
+.CL space. If the list is empty, all mounted file systems are checked.
+.CL Example: /mnt:/home/mymnt/usr/data/myapp
+.PP
+.RE
+.
+.
+.SH "FILE FORMAT"
+Data is stored in lines of text that are grouped into named sections. Text
+encoding is UTF-8. Each line can contain data in one of the following formats:
+.PP
+.
+.
+.SS "Section heading"
+A section heading line consists of one or more identifiers, separated by blanks
+and enclosed in square brackets ("[ ]"). Identifiers consist of
+lowercase-letters a-z, digits 0-9, and the underscore sign.
+.PP
+.B Example:
+.br
+.CL [description]
+.PP
+.
+.
+.SS Text
+A text line is a string of arbitrary characters.
+.PP
+.
+.
+.SH SECTIONS
+The sections in the list below are valid in a descriptions file. Each section
+is mandatory.
+.PP
+.B [title]
+.RS
+This section contains a short  description of what the health
+check does. At minimum it should contain information about the component and
+the aspect of that component that is being checked.
+.PP
+.B Example:
+.br
+.CL [title]
+.CL Check for CHPIDs that are not available
+.PP
+.NT No formatting can be applied to the text in a title section.
+.RE
+.
+.B [description]
+.RS
+This section contains a detailed description of what the health check does.
+.PP
+.RE
+.
+.BI [param " identifier" ]
+.RS
+This section contains a short description of the parameter specified by
+.IR identifier .
+Code one section for every health check parameter.
+.PP
+.B Example:
+.br
+.CL [param warn_limit]
+.CL File system usage (in percent) at which to raise a low-severity exception
+.PP
+.RE
+.RE
+.
+.
+.SH FORMATTING
+Text in a descriptions file can be enhanced with basic formatting elements,
+such as paragraphs, preformatted text, lists, and simple tables. See the
+.MP lnxhc_text_format 7
+man page for more information on available formatting elements.
+.
+.
+.SH LOCALIZATION
+The default language for a descriptions file is American English (en_US).
+Add translated versions of the descriptions file to a subdirectory of the
+health check directory. This sub-directory must be named after the code of the
+language to which the translation applies. See the
+.MP locale 1
+man page for details.
+.PP
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_text_format 7 ,
+.MP lnxhc_writing_checks 7

@@ -1,0 +1,19 @@
+[title]
+Identify unused terminals (TTY)
+
+[description]
+Verify that terminal (TTY) devices are used, for example,
+by login programs.
+
+Terminal devices are intended to provide a user interface to a
+Linux instance.  Without an associated program, a terminal device
+does not serve this purpose.
+
+
+[param exclude_tty]
+A list of blank-separated terminal devices to be exempt from this
+check, for example, because they are deliberately unused.
+
+Terminals are specified by their device node without the leading /dev/.
+Use an asterisk (*) to match any string of characters.
+For example, "ttyS3 hvc*" excludes /dev/ttyS3, /dev/hvc0, /dev/hvc1, ...

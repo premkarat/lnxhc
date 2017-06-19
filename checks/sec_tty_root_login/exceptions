@@ -1,0 +1,51 @@
+[summary insecure_enabled]
+There are insecure terminals on which root logins are permitted
+
+[explanation insecure_enabled]
+Listing a terminal in /etc/securetty permits root logins
+on this terminal.
+Permitting root logins on insecure terminals constitutes
+a security exposure.
+
+The following terminals are listed in /etc/securetty but
+have been specified as insecure:
+
+&list_insecure;
+
+
+[solution insecure_enabled]
+Remove the terminal from /etc/securetty.  Alternatively,
+if you consider the terminal secure, remove the terminal
+from the insecure_ttys check parameter.
+
+
+[reference insecure_enabled]
+See the man pages of the "login" program, the "pam_securetty"
+module, and the "securetty" configuration file.
+
+
+
+[summary secure_disabled]
+There are secure terminals on which root logins are not permitted
+
+[explanation secure_disabled]
+Root logins are permitted only on terminals that are listed in
+the /etc/securetty file.
+Restricting root logins can prevent system access in emergencies.
+
+
+The following terminals have been specified as secure but
+are not listed in /etc/securetty:
+
+&list_secure;
+
+
+[solution secure_disabled]
+Append the terminal to the /etc/securetty file.  Alternatively,
+if you consider the terminal insecure, remove the terminal from
+the secure_ttys check parameter.
+
+
+[reference secure_disabled]
+See the man pages of the "login" program, the "pam_securetty"
+module, and the "securetty" configuration file.

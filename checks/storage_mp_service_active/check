@@ -1,0 +1,126 @@
+#!/usr/bin/perl
+#
+# storage_mp_service_active
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+use LNXHC::Check::Util qw/load_chkconfig/;
+
+#
+# Global variables
+#
+# Exception IDs
+my $LNXHC_EXCEPTION_SERVICE_DISABLED    = "service_disabled";
+my $LNXHC_EXCEPTION_SERVICE_NOT_RUNNING = "service_not_running";
+
+# Path to the file containing data for sysinfo item 'transport_data'.
+my $sysinfo_transport_data = $ENV{"LNXHC_SYSINFO_transport_data"};
+
+# Path to the file containing data for sysinfo item 'chkconfig_list'.
+my $sysinfo_chkconfig_list = $ENV{"LNXHC_SYSINFO_chkconfig_list"};
+
+# Path to the file containing data for sysinfo item 'systemctl_list'.
+my $sysinfo_systemctl_list = $ENV{"LNXHC_SYSINFO_systemctl_list"};
+
+# Path to the file containing data for sysinfo item 'service_multipathd'.
+my $sysinfo_service_multipathd = $ENV{"LNXHC_SYSINFO_service_multipathd"};
+
+# Path to the file containing data for sysinfo item 'systemctl_multipathd'.
+my $sysinfo_systemctl_multipathd = $ENV{"LNXHC_SYSINFO_systemctl_multipathd"};
+
+# Return code for sysinfo item 'sysinfo_systemctl_list'
+my $rc_systemctl_list = $ENV{"LNXHC_SYSINFO_EXIT_CODE_systemctl_list"};
+
+# Return code for sysinfo item 'sysinfo_service_multipathd'
+my $rc_service_multipathd = $ENV{"LNXHC_SYSINFO_EXIT_CODE_service_multipathd"};
+
+# Return code for sysinfo item 'sysinfo_chkconfig_list'
+my $rc_chkconfig_list = $ENV{"LNXHC_SYSINFO_EXIT_CODE_chkconfig_list"};
+
+my $handle;
+my ($iscsi_dev, $zfcp_dev) = (0, 0);
+open($handle, "<", $sysinfo_transport_data)
+	or die("Couldn't open file: $sysinfo_transport_data: $!\n");
+while (my $line = <$handle>) {
+	chomp $line;
+	if ($line =~ /^FCP/) {
+		$zfcp_dev = 1;
+	}
+	if ($line =~ /^iSCSI/) {
+		$iscsi_dev = 1;
+	}
+}
+close($handle);
+
+# When no devices found, exit with fail_dep
+if ($zfcp_dev == 0 && $iscsi_dev ==0) {
+	lnxhc_fail_dep("No SAN based SCSI devices (FCP, iSCSI) available");
+}
+
+if ($rc_systemctl_list == 0) {
+	open($handle, "<", $sysinfo_systemctl_list)
+		or die("Couldn't open file: $sysinfo_systemctl_list: $!\n");
+	while (my $line = <$handle>) {
+		chomp $line;
+		my $mp_state;
+		if ($line =~ /^multipathd\.service\s+(.+)$/) {
+			$mp_state = $1;
+			$mp_state =~ s/^\s+|\s+$|\"//g;    # trim
+			if ($mp_state eq "disabled") {
+				lnxhc_exception(
+					$LNXHC_EXCEPTION_SERVICE_DISABLED);
+			}
+		}
+	}
+	close($handle);
+	open($handle, "<", $sysinfo_systemctl_multipathd)
+		or
+		die("Couldn't open file: $sysinfo_systemctl_multipathd: $!\n");
+	while (my $line = <$handle>) {
+		chomp $line;
+		my $service_status;
+		if ($line =~ /^ActiveState=(.+)$/) {
+			$service_status = $1;
+			$service_status =~ s/^\s+|\s+$|\"//g;    # trim
+			if ($service_status eq "inactive") {
+				lnxhc_exception(
+					$LNXHC_EXCEPTION_SERVICE_NOT_RUNNING
+				);
+			}
+		}
+	}
+	close($handle);
+} elsif ($rc_chkconfig_list == 0) {
+	my $chkconfig = load_chkconfig($sysinfo_chkconfig_list);
+	die "Could not open $sysinfo_chkconfig_list: $!\n" unless $chkconfig;
+	my $multipathd_status = $chkconfig->[0]->{"multipathd"};
+	if (!$multipathd_status) {
+		lnxhc_exception($LNXHC_EXCEPTION_SERVICE_DISABLED);
+	}
+
+	# When the service is not running service command returns '3'
+	if ($rc_service_multipathd != 0) {
+		lnxhc_exception($LNXHC_EXCEPTION_SERVICE_NOT_RUNNING);
+	}
+} else {
+	lnxhc_fail_dep("Status for 'multipathd' can not be determined");
+}
+
+exit(0);

@@ -1,0 +1,28 @@
+[summary orphaned_alias]
+The base devices of one or more active DASD alias devices are not online: &busid_sum;
+
+[explanation orphaned_alias]
+The base devices of one or more active DASD alias devices are not online.
+
+Through the Parallel Access Volume (PAV) feature, storage systems can represent the same physical disk space as a base device and one or more alias devices. With IBM HyperPAV, aliases are not exclusively used for the base device for which they are defined. An alias can be used for any base device within the same logical subsystem on the storage system.
+
+Inactive base devices corresponding to active alias devices affect the overall system performance.
+
+The following bus IDs do not have corresponding active base devices:
+
+&busid;
+
+[solution orphaned_alias]
+Go through the listed alias devices and decide whether you still need a device or not.
+If you need an alias device, set the corresponding base device online. Else, set the alias device offline.
+You can use the chccwdev command for these tasks.
+
+Run the 'lsdasd -u' command to verify your new configuration.
+
+[reference orphaned_alias]
+For more information about PAV and HyperPAV, see "How to Improve Performance with PAV".
+
+For more information about setting devices online or offline, see "Device Drivers, Features, and Commands".
+
+You can obtain these publications from
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html

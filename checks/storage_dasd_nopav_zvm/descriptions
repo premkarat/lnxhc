@@ -1,0 +1,9 @@
+[title]
+Check Linux on z/VM for the "nopav" DASD parameter
+
+[description]
+This check examines the Linux on z/VM configuration for occurrences of
+the "nopav" DASD kernel or module parameter. The "nopav" parameter disables
+parallel access volume (PAV and HyperPAV) for Linux in LPAR mode but has no
+effect for Linux on z/VM. For Linux on z/VM you cannot disable PAV through
+Linux settings; configuration steps on z/VM are required instead.

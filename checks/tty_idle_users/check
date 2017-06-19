@@ -1,0 +1,120 @@
+#!/usr/bin/perl
+#
+# tty_idle_users
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+my %time_units = (
+	s      =>     1,	    # seconds to seconds
+	m      =>    60,	    # minutes to seconds
+	h      =>  3600,	    # hours to seconds
+	d      => 86400,	    # days to seconds
+);
+
+
+sub create_regex($)
+{
+	my $param = shift();
+	my $re = qr/.+/;
+
+	if ($param) {
+		$param =~ s/\s+/|/g;
+		$re = qr/^(?:$param)$/;
+	}
+
+	return $re;
+}
+
+sub format_time_delta($)
+{
+	my $secs = shift;	# in seconds
+
+	my $days = int($secs / $time_units{d});
+	$secs %= $time_units{d};
+	my $hours = int($secs / $time_units{h});
+	$secs %= $time_units{h};
+	my $mins = int($secs / $time_units{m});
+	$secs %= $time_units{m};
+
+	if ($days) {
+		$days .= $days > 1 ? "days " : "day ";
+	} else {
+		$days = "";
+	}
+
+	return sprintf("%s%02u:%02u:%02u", $days, $hours, $mins, $secs);
+}
+
+
+sub main()
+{
+	# creating regex's for users and terminals
+	my $re_user = create_regex($ENV{"LNXHC_PARAM_users"});
+	my $re_tty = create_regex($ENV{"LNXHC_PARAM_tty"});
+
+	# calculating idle time
+	my $idle = $ENV{"LNXHC_PARAM_idle_time"};
+	if ($idle =~ m/^(\d+)([[:alpha:]])$/) {
+		unless (exists $time_units{$2}) {
+			lnxhc_param_error "Value for idle_time is not valid";
+		}
+		$idle = $1 * $time_units{$2};
+	} else {
+		lnxhc_param_error "Value for idle_time is not valid";
+	}
+
+	my @exdata = ();
+	my $fh;
+
+	# opening sysinfo containing the lsidleusers output
+	open($fh, "<", $ENV{"LNXHC_SYSINFO_lsidleusers"}) or
+		die "Failed to read sysinfo (lsidleusers): $!\n";
+
+	# examing sysinfo and checking idle times
+	while (<$fh>) {
+		my @fields = split /\|/;
+		if (($fields[0] =~ /$re_user/ && $fields[1] =~ /$re_tty/) &&
+		    $fields[2] > $idle) {
+			push @exdata, \@fields;
+		}
+	}
+	close($fh);
+
+	# raise exception if there are idle users
+	if (@exdata) {
+		lnxhc_exception("idle_users");
+		my $fmt = "#%-15s %-13s %-20s";
+		lnxhc_exception_var("long_list",
+			sprintf($fmt,"USER", "TTY", "IDLE TIME"));
+
+		my %brief = ();	    # short list of user IDs
+		foreach (sort {$a->[0] cmp $b->[0]} @exdata) {
+			lnxhc_exception_var("long_list",
+				sprintf($fmt, $_->[0], $_->[1],
+					format_time_delta($_->[2])));
+			$brief{$_->[0]} = 1;
+		}
+
+		lnxhc_exception_var_list("short_list", [keys %brief], ', ', 2);
+	}
+}
+
+&main();
+__DATA__
+__END__

@@ -1,0 +1,24 @@
+[summary no_panic_on_oops]
+The panic-on-oops setting is disabled
+
+[explanation no_panic_on_oops]
+Without the panic-on-oops setting, a Linux instance might keep
+running after experiencing a kernel oops.  After the oops, the
+instance might work incorrectly and possibly damage data.
+
+[solution no_panic_on_oops]
+Activate panic-on-oops through the following setting in the
+/etc/sysctl.conf file:
+
+#kernel.panic_on_oops = 1
+
+This setting becomes active the next time the Linux instance is booted.
+
+To temporarily activate panic-on-oops on a running Linux instance,
+issue the following command:
+
+#sysctl -w kernel.panic_on_oops=1
+
+[reference no_panic_on_oops]
+See the man pages of the "sysctl" command and of the "sysctl.conf"
+configuration file.

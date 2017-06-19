@@ -1,0 +1,64 @@
+[summary over_load]
+System is overloaded
+
+[explanation over_load]
+When a system is overloaded, the system and existing programs slow down and
+become much more unresponsive and difficult or even impossible to use.
+
+Statistics:
+&over_load;
+
+[solution over_load]
+Examine the processes/applications hogging cpu and terminate them if not
+required.
+
+Run "top" command, it displays top processes with high cpu usage.
+
+To kill the process that hogs cpu issue the following command:
+
+#kill -9 <pidofprocess>
+
+To monitor processes performing IO, issue the following command:
+
+#iotop
+
+Disk IO statistics can be verified by iostat command (part of the sysstat
+package):
+
+#iostat
+
+[reference over_load]
+Refer to the man pages of "top", "iotop" and "iostat".
+
+[summary high_load]
+System is highly loaded
+
+[explanation high_load]
+When a system is highly loaded, there is a possible risk of system and existing
+programs getting slow down and become much more unresponsive and difficult or
+even impossible to use.
+
+Statistics:
+&high_load;
+
+[solution high_load]
+Current cpu utilization of processes can be verified by top command. Examine the
+processes/applications hogging cpu and terminate them if not required.
+
+Run "top" command, it displays top processes with high cpu usage.
+
+To kill the process that hogs cpu issue the following command:
+
+#kill -9 <pidofprocess>
+
+To monitor processes performing IO, issue the following command:
+
+#iotop
+
+Disk IO statistics can be verified by iostat command (part of the sysstat
+package):
+
+#iostat
+
+[reference high_load]
+Refer to man pages of "top", "iotop" and "iostat".

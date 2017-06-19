@@ -1,0 +1,550 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc-profile 1 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.
+.SH NAME
+lnxhc-profile \- Display, modify and manage configuration profiles
+.
+.
+.SH SYNOPSIS
+Display actions:
+.PP
+.nh
+.na
+.B lnxhc profile
+.OS list l
+.OS show s
+.OS show\-property "" property_key
+.ad
+.hy
+.PP
+Modification actions:
+.PP
+.nh
+.na
+.B lnxhc profile
+.OS activate a profile_name
+.RS 14
+.
+.OS description "" description_text
+.br
+.
+.OS set "" property_key = value
+.OS remove r property_key
+.br
+.
+.OS clear
+.OS defaults d
+.OS merge m "" filename
+.br
+.
+.OS merge\-profile M profile_name
+.RE
+.ad
+.hy
+.PP
+Management actions:
+.PP
+.nh
+.na
+.B lnxhc profile
+.OS export e filename | -
+.OS import i filename | -
+.RS 14
+.
+.OS new n profile_name
+.OS copy "" profile_name
+.br
+.
+.OS rename "" profile_name
+.OS delete
+.br
+.RE
+.ad
+.hy
+.PP
+Options:
+.PP
+.nh
+.na
+.B lnxhc profile
+.OS system
+.RI [ SELECTION ]
+.ad
+.hy
+.
+.NT You must specify exactly one action. See ACTIONS.
+.
+.
+.SH DESCRIPTION
+The
+.B profile
+subcommand provides functions related to the management of
+configuration profiles. A configuration profile is a named dataset which
+contains all values for settings that health checks and consumers define,
+such as activation states and parameters. You can use profiles to quickly
+switch between configurations for different system setups.
+.PP
+A valid profile name can be between 3 and 40 characters long. It can consist
+of lowercase letters a-z, digits 0-9, and the underscore sign ("_").
+.PP
+One profile is always the
+.BR "active profile" .
+The \*[lhc] uses this
+profile as target if you perform an action that works on configuration data
+without specifying a target profile_name.
+.PP
+A configuration profile does not need to provide values for all settings.
+The \*[lhc] uses a default value for a setting for which there
+is no value in a configuration profile.
+.PP
+You can use the
+.B modification actions
+to change which profile is the active profile or to modify other profile data.
+The
+.B display actions
+provide functions to view the available profiles and associated configuration
+data.
+.PP
+The \*[lhc] maintains a database of installed configuration profiles for each
+user and a system-wide configuration profile database. You can use the
+.B management actions
+to add or remove profiles from your per-user database or the system-wide
+database.
+.
+.
+.SH SELECTION
+You can use the
+.I SELECTION
+argument of the "profile" subcommand to select the list of configuration profiles to which
+an action applies.
+In the absence of a selection, the action applies either to all profiles in the
+database or to the active profile, depending on the action.
+
+The selection argument can take one or more of the following formats:
+.TP
+.I profile_name
+Select the profile which is specified by
+.IR profile_name .
+.
+.TP
+.I pattern
+Select all profiles with a name that matches
+.IR pattern .
+Pattern may contain "*" for any number of arbitrary characters
+and "?" for a single arbitrary character.
+.
+.TP
+.IR property_key = value
+Select all profiles where the value of the property specified by
+.I property_key
+matches
+.IR value .
+.RS
+.NT You must specify \fIproperty_key\fP without the leading profile_name.
+.RE
+.
+.TP
+.IR property_key != value
+Select all profiles where the value of the property specified by
+.I property_key
+does not match
+.IR value .
+.RS
+.NT You must specify \fIproperty_key\fP without the leading profile_name.
+.RE
+.RE
+.PP
+You can specify more than one of these selection criteria. In this case
+the \*[lhc] selects all profiles which meet
+.B any
+of the criteria.
+You can specify option
+.B \-\-match\-all
+to change this behavior to only select profiles which meet
+.B all
+of the criteria.
+.
+.
+.SH ACTIONS
+.OD activate a profile_name
+Change the active profile.
+
+This action selects profile
+.I profile_name
+as the new active profile.
+The \*[lhc] uses this
+profile as target if you perform an action that works on configuration data
+without specifying a target profile_name.
+.PP
+.
+.OD clear "" "" " [" SELECTION ]
+Clear the configuration data of a profile.
+
+This action removes all configuration data of the target profile.
+
+You can specify a selection to choose one or more target profiles.
+If you do not provide a selection, the \*[lhc] clears the active
+profile.
+.PP
+.
+.OD copy "" "profile_name " [ SELECTION ]
+Copy a profile.
+
+This action creates a new profile with the specified
+.I profile_name
+which is a copy of the source profile.
+
+You can specify a selection to choose a single source profile. If you do not
+provide a selection, the \*[lhc] copies the active profile.
+.PP
+.
+.OD defaults d "" [ SELECTION ]
+Replace configuration data with default values.
+
+This action replaces the configuration data of the target profile with
+default values for all settings.
+
+You can specify a selection to choose one or more target profiles.
+If you do not provide a selection, the \*[lhc] replaces the
+configuration data of the active profile.
+.PP
+.
+.OD delete "" SELECTION
+Remove a profile from the database.
+
+This action removes a configuration profile from the \*[lhc]
+database. You cannot remove a profile while it is the active profile.
+
+To remove a system-wide profile, specify the
+.B \-\-system
+option together with this action.
+
+You must provide a selection to choose one or more target profiles.
+
+.RS
+.NT You require sufficient write access for the system-wide database installation directory.
+.RE
+.PP
+.
+.OD description "" "description_text " [ SELECTION ]
+Change a profile description.
+
+This action changes the description of the target profile to
+.IR description_text .
+The \*[lhc]
+does not process the profile description in any way. You can use it
+for example to note the contents of a profile or the system setup to which
+it applies.
+
+You can specify a selection to choose a single target profile.
+If you do not provide a selection, the \*[lhc] changes the
+description of the active profile.
+.PP
+.
+.OD export e "filename " [ SELECTION ]
+Write profile data to a file.
+
+This action writes all data associated with the source profile to file
+.IR filename .
+You can use such a file for example to copy configuration data to another
+instance of the \*[lhc] or to store it for later use.
+If
+.I filename
+is "-", the output is written to the standard output stream instead.
+
+You can specify a selection to choose a single source profile.
+If you do not provide a selection, the \*[lhc] writes the
+data of the active profile.
+.PP
+.
+.OD import i "filename " [ SELECTION ]
+Read profile data from a file written by \-\-export.
+
+This action replaces all data of the target profile with the data found in
+the specified file. If
+.I filename
+is "-", the data is read from the standard input stream instead.
+
+You can specify a selection to choose a single target profile.
+If you do not provide a selection, the \*[lhc] replaces the
+configuration data of the active profile.
+.PP
+.
+.OD list l "" [ SELECTION ]
+List profiles.
+
+This action shows a list of configuration profiles including their names and
+descriptions. The list output also shows if a profile is the active profile.
+
+You can specify a selection to choose one or more profiles for the list. If you
+do not provide a selection, the list includes all installed profiles.
+.PP
+.
+.OD merge m "filename " [ SELECTION ]
+Add configuration data from a file written by \-\-export.
+
+This action combines the configuration data found in the specified file with
+the data of the target profile. If a value for a setting is found in both
+datasets, the value from the file is used.
+If
+.I filename
+is "-", the data is read from the standard input stream instead.
+
+You can specify a selection to choose a target profile.
+If you do not provide a selection, the \*[lhc] adds the
+configuration data to the active profile.
+.PP
+.
+.OD merge\-profile M "profile_name " [ SELECTION ]
+Add configuration data from a profile.
+
+This action combines the configuration data of the specified source profile
+.I profile_name
+with that of the target profile. If a value for a setting is found in both
+datasets, the value from the source profile is used.
+
+You can specify a selection to choose a single target profile.
+If you do not provide a selection, the \*[lhc] adds the
+configuration data to the active profile.
+.PP
+.
+.OD new n profile_name
+Create a new profile.
+
+This action adds a new, empty profile named
+.I profile_name
+to the \*[lhc] database. There is no description or configuration data
+associated with the new profile.
+.PP
+.
+.OD "" r property_key
+.OD "" r "property_key " [ SELECTION ]
+.OD remove "" property_key
+.OD remove "" "property_key " [ SELECTION ]
+Remove a configuration property from a profile.
+
+This action removes a configuration profile property.
+You identify the property by specifying its
+.I property_key
+(see the
+.MP lnxhc_properties 7
+man page).
+You can specify a partial key (such as default.check) to remove all properties
+which start with this key.
+
+In the first format, you specify the full
+.IR property_key ,
+including the profile name.
+The key may contain "*" for any number of arbitrary characters and "?" for a
+single arbitrary character.
+In the second format, you specify the
+.IR property_key
+without the profile name (resulting in a leading dot) and select one or more
+profiles by using a
+.IR SELECTION .
+
+.B Example:
+.br
+.CL # lnxhc profile \-\-remove .check.fs_disk_usage.state default
+
+You must provide a selection for the second format of this action.
+
+.RS
+.NT You can only remove profile properties relating to configuration data.
+.RE
+.PP
+.
+.OD rename "" profile_name
+.OD rename "" "profile_name " [ SELECTION ]
+Change the name of a profile.
+
+This action changes the name of the target profile to
+.IR profile_name .
+
+You can specify a selection to choose a single target profile.
+If you do not provide a selection, the \*[lhc] changes the
+name of the active profile.
+.PP
+.
+.OD set "" property_key = value
+.OD set "" property_key = "value SELECTION"
+Change the value of a profile property.
+
+This action changes the value of a configuration profile property.
+You identify the property by specifying its
+.I property_key
+(see the
+.MP lnxhc_properties 7
+man page).
+
+In the first format, you specify the full
+.IR property_key ,
+including the profile name.
+The key may contain "*" for any number of arbitrary characters and "?" for a
+single arbitrary character.
+In the second format, you specify the
+.IR property_key
+without the profile name (resulting in a leading dot) and select one or more
+profiles by using a
+.IR SELECTION .
+
+.B Example:
+.br
+.CL # lnxhc profile \-\-set .desc=\[dq]Default profile\[dq] default
+
+You must provide a selection for the second format of this action.
+
+.OD show s "" [ SELECTION ]
+Show contents of a profile.
+
+This action displays the contents of a configuration profile.
+
+You can specify a selection to choose a one or more profiles to show.
+If you do not provide a selection, the \*[lhc] shows the contents of the
+active profile.
+
+.OD show\-property "" property_key
+.OD show\-property "" "property_key SELECTION"
+Show the value of a profile property.
+
+This action displays the value of a configuration profile property. You
+identify the property by specifying its
+.I property_key
+(see the
+.MP lnxhc_properties 7
+man page).
+You can specify a partial key (such as default.check) to display the values of
+all properties which start with this key.
+
+In the first format, you specify the full
+.IR property_key ,
+including the profile name.
+The key may contain "*" for any number of arbitrary characters and "?" for a
+single arbitrary character.
+In the second format, you specify the
+.IR property_key
+without the profile name (resulting in a leading dot) and select one or more
+profiles by using a
+.IR SELECTION .
+
+.B Example:
+.br
+.CL # lnxhc profile \-\-show-property .desc '*'
+
+You must provide a selection for the second format of this action.
+.
+.
+.SH OPTIONS
+.OD match\-all
+Select only profiles which match all selection criteria.
+
+This option instructs the \*[lhc] to select only those profiles
+which match
+.B all
+specified selection criteria. Without this option, the selection
+includes all profiles which match
+.B any
+of the specified criteria.
+.PP
+.
+.OD system
+Use the system-wide database for management actions.
+
+This option instructs the \*[lhc] to perform profile management
+actions
+on the system-wide database. Without this option, the management actions
+apply to the per-user database only.
+.
+.
+.SH EXAMPLES
+.B Show contents of profile \[dq]default\[dq]:
+.br
+.RS 4
+.CL # lnxhc profile \-\-show default
+.RE
+.PP
+.B Activate profile \[dq]backup\[dq]:
+.br
+.RS 4
+.CL # lnxhc profile \-\-activate backup
+.RE
+.PP
+.B List all profiles in which check \[dq]fs_disk_usage\[dq] is active:
+.br
+.RS 4
+.CL # lnxhc profile \-\-list check.fs_disk_usage.state=active
+.RE
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_properties 7

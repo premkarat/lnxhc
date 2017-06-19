@@ -1,0 +1,15 @@
+[title]
+Check for read-only filesystems
+
+[description]
+This check examines if filesystems have been mounted as read-only. If it has
+been mounted as read-only it would inhibit any kind of filesystem operations
+like editing, deleting files/folders etc.
+
+[param mount_points]
+A list of mount points, separated by colons (:). The filesystems mounted at
+the specified mount points are to be checked for read-only. If the list is
+empty, all mounted filesystems are checked.
+
+Example:
+#/home:/proc

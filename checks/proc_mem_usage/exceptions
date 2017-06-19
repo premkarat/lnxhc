@@ -1,0 +1,27 @@
+[summary process_hogs_memory]
+One or more processes is hogging memory
+
+[explanation process_hogs_memory]
+If processes end up hogging memory other processes would be deprived of memory
+which in turn might cause applications to slow down and system might become
+unresponsive.
+
+List of processes hogging memory:
+
+&hogging_mem;
+
+[solution process_hogs_memory]
+1. If processes / applications reported are behaving as expected then you can
+   avoid future reporting of such processes by adding them to the list:
+
+   &param_processes;
+
+2. Check if the application is configured properly.
+
+   If step 1 and step 2 does not have any issue restart the application or you
+   can terminate if its no longer required by the following command:
+
+   #kill -9 <pidofprocess>
+
+[reference process_hogs_memory]
+Refer to the man pages of "top" and "kill" command.

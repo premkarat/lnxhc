@@ -1,0 +1,45 @@
+[summary single_chpid]
+There are multiple FCP devices using the same CHPID: &shared_hbas_info;
+
+[explanation single_chpid]
+The following FCP devices share the same CHPID.
+
+|CHPID|Device bus-IDs
+&shared_hbas_table;
+
+This can cause a variety of issues:
+
+* FCP devices using the same CHPID defeat the purpose of multipathing
+  and refuse the access of all devices attached through the FCP device using
+  this CHPID.
+
+* Devices waste FCP channel resources and can cause hardware limitations.
+  The maximum number of open ports or open LUNs will be reached faster.
+
+To manually identify which FCP devices share the same CHPID, execute the
+following command:
+
+## lscss -t 1732/03,1732/04
+
+The following sample output shows all the configured FCP devices
+regardless of whether they are currently online or not.
+
+#Device   Subchan.  DevType CU Type Use  PIM PAM POM  CHPIDs
+#----------------------------------------------------------------------
+#0.0.3c00 0.0.0015  1732/03 1731/03 yes  80  80  ff   36000000 00000000
+#0.0.3c01 0.0.0016  1732/03 1731/03 yes  80  80  ff   36000000 00000000
+#0.0.3d00 0.0.0017  1732/03 1731/03 yes  80  80  ff   37000000 00000000
+#0.0.3d01 0.0.0018  1732/03 1731/03 yes  80  80  ff   37000000 00000000
+#0.0.3d02 0.0.0019  1732/03 1731/03      80  80  ff   37000000 00000000
+
+This example shows that the FCP devices 0.0.3c00 and 0.0.3c01 share the same
+CHPID ="36", and the FCP devices 0.0.3d00, 0.0.3d01, and 0.0.3d02 share the
+same CHPID ="37".
+
+[solution single_chpid]
+The I/O configuration of Linux system must be changed so that each FCP device is
+represented by only one CCW device. This is done outside of Linux (LPAR or z/VM
+I/O configuration tools).
+
+[reference single_chpid]
+Please refer to the "lscss" man-page for more details on the lscss command.

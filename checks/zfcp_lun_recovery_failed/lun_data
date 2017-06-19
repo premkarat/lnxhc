@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# lun_data
+#   Helper program to collect LUN status.
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+# Enable nullglob
+shopt -s nullglob
+# Collecting all remote ports
+for adapter in /sys/bus/ccw/drivers/zfcp/[0-9].[0-9].[0-9A-Fa-f]* ;
+do
+	for wwpn in $adapter/0x[0-9A-Fa-f]*;
+	do
+		for lun in $wwpn/0x[0-9A-Fa-f]*;
+		do
+			read failed < $lun/failed
+			echo "${adapter##*/},${wwpn##*/},${lun##*/},$failed"
+		done
+	done
+done
+exit 0

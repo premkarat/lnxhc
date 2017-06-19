@@ -1,0 +1,88 @@
+#!/usr/bin/perl
+#
+# proc_mem_usage
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+
+use strict;
+use warnings;
+use Data::Dumper;
+use File::Basename;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+# Exception IDs
+my $LNXHC_EXCEPTION_PROCESS_HOGS_MEMORY = "process_hogs_memory";
+
+# Value of parameter 'processes'
+my $param_processes = $ENV{"LNXHC_PARAM_processes"};
+
+# Value of parameter 'mem_usage'
+my $param_mem_usage = $ENV{"LNXHC_PARAM_mem_usage"};
+
+# Path to the file containing data for sysinfo item 'ps'.
+my $sysinfo_ps_status = $ENV{"LNXHC_SYSINFO_ps_status"};
+
+check_int_param("mem_usage", 1, 100);
+
+sub main()
+{
+	my $handle;
+	my %mem = ();
+	my %procs = ();
+
+	foreach (split(/,/, $param_processes)) {
+		next if (/^\s*$/);
+		$procs{$_} = 1;
+	}
+
+	open ($handle, "<", $sysinfo_ps_status) or
+		die("Could not read $sysinfo_ps_status");
+
+	while (<$handle>) {
+		next if ($. == 1);
+
+		my @value = split(/\s+/);
+
+		my ($pid, $pname, $usage) = ($value[1], basename($value[10]),
+					     $value[3]);
+
+		next if (%procs && $procs{$pname});
+
+		if ($usage > $param_mem_usage) {
+			$mem{$pid}{$pname} = $usage;
+		}
+
+	}
+
+	if (%mem) {
+		lnxhc_exception($LNXHC_EXCEPTION_PROCESS_HOGS_MEMORY);
+
+		my $fmt = "#%-13s %-24s %-20s";
+		lnxhc_exception_var("hogging_mem",
+		sprintf($fmt, "PID", "PROCESS", "%MEM"));
+
+		foreach my $pid (keys %mem) {
+			foreach my $pname (keys %{$mem{$pid}}) {
+				lnxhc_exception_var("hogging_mem",
+				sprintf($fmt, $pid, $pname, $mem{$pid}{$pname}));
+			}
+		}
+	}
+
+	close($handle)
+}
+&main();
+__DATA__
+__END__

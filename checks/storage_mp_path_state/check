@@ -1,0 +1,195 @@
+#!/usr/bin/perl
+#
+# storage_mp_path_state
+#   Health check program for the Linux Health Checker
+# Copyright IBM Corp. 2012
+#
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_FAILED_PATH = "too_many_failed_paths";
+my $LNXHC_EXCEPTION_AVAILABLE_PATH = "too_few_available_paths";
+
+
+# Value of parameter 'failed_path_limit'.
+my $param_failed_path_limit = $ENV{"LNXHC_PARAM_failed_path_limit"};
+
+# Value of parameter 'remaining_path_limit'.
+my $param_remaining_path_limit = $ENV{"LNXHC_PARAM_remaining_path_limit"};
+
+# Path to the file containing data for sysinfo item 'multipath_output'.
+my $sysinfo_multipath_output = $ENV{"LNXHC_SYSINFO_multipath_output"};
+
+if ($LNXHC_DEBUG) {
+	print("DEBUG: failed_path_limit=".
+		"'$param_failed_path_limit'\n");
+	print("DEBUG: remaining_path_limit=".
+		"'$param_remaining_path_limit'\n");
+}
+
+# Defining variables
+my ($failed_path_count, $available_path_count) = (0,0);
+my $counted_available_path = 0;
+my (@dev_failed_mapper, @dev_failed_wwid, @dev_failed_alias, $handle, $alias,
+$wwid, @dev_available_mapper, @dev_available_wwid, @dev_available_alias);
+
+# Verifying multipath setup configured or not
+lnxhc_fail_dep("storage_mp_ineffective:there is no multipath setup")
+	if (-z "$sysinfo_multipath_output");
+
+# Checking failed_path_limit value is not a string
+if ($param_failed_path_limit !~ /^\s*\d+\s*$/) {
+	lnxhc_param_error "Incorrect value '$param_failed_path_limit' for " .
+			  "parameter 'failed_path_limit': " .
+			  "value is not a number";
+}
+
+# Checking remaining_path_limit value is not a string
+if ($param_remaining_path_limit !~ /^\s*\d+\s*$/) {
+	lnxhc_param_error "Incorrect value '$param_remaining_path_limit' " .
+			  "for parameter 'remaining_path_limit': " .
+			  "value is not a number";
+}
+
+# Alias,wwid values of failed paths putting into an array
+sub device_failed_path($$)
+{
+	my ($alias, $wwid) = @_;
+	if (defined($alias) && defined($wwid)) {
+		push(@dev_failed_mapper,$alias);
+		push(@dev_failed_alias, $alias);
+		push(@dev_failed_wwid, $wwid);
+	} else {
+		push(@dev_failed_mapper, $wwid);
+		push(@dev_failed_alias, "-");
+		push(@dev_failed_wwid, $wwid);
+	}
+}
+# Alias,wwid values of available paths putting into an array
+sub device_available_path($$)
+{
+	my ($alias, $wwid) = @_;
+	if (defined($alias) && defined($wwid)) {
+		push(@dev_available_mapper, $alias);
+		push(@dev_available_alias, $alias);
+		push(@dev_available_wwid, $wwid);
+	} else {
+		push(@dev_available_mapper, $wwid);
+		push(@dev_available_alias, "-");
+		push(@dev_available_wwid, $wwid);
+	}
+}
+sub main()
+{
+	# Validating multipath configuration
+	open($handle, "<", $sysinfo_multipath_output) or
+		die("could not open $sysinfo_multipath_output: $!\n");
+
+	# Parsing for alias,wwid values
+	foreach my $line(<$handle>) {
+		if ($line =~ (/^([\w-]+)\s+\((\w+)\)\s+/) ||
+			($line =~ /^(\w+)\s+/) ) {
+
+			# Checking failed path devices
+			device_failed_path($alias,$wwid)
+				if (defined($failed_path_count) &&
+				$failed_path_count > $param_failed_path_limit);
+			# Checking available path devices
+			device_available_path($alias,$wwid)
+				if($counted_available_path == 1 &&
+				$param_remaining_path_limit > $available_path_count);
+			($wwid, $alias) = (undef, undef);
+			($failed_path_count,$available_path_count) = (0,0);
+
+			# Holding the device-mapper name in a temporary variable
+			if (defined($1) && defined($2)) {
+				($alias, $wwid) = ($1, $2);
+			} else {
+				($alias, $wwid) = (undef, $1);
+			}
+		}
+		# Counting number of paths for device-mapper
+		if ($line =~ /^[\\|]+\s+/ || $line =~ /^\s+\S+\s*\d+/){
+			$counted_available_path = 1;
+			# Counting number of failed paths
+			if($line =~ m/(?:faulty|shaky|failed)/) {
+				$failed_path_count++;
+			} else {
+				$available_path_count++;
+			}
+		}
+	}
+	# Checking whether last device-mapper has single path
+	device_failed_path($alias,$wwid) if (defined($failed_path_count)
+		&& $failed_path_count > $param_failed_path_limit);
+	device_available_path($alias,$wwid) if($counted_available_path == 1
+		&& $available_path_count < $param_remaining_path_limit);
+	close($handle);
+
+	# Verifying atleast one device-mapper consists more than 2 failed paths.
+	if (@dev_failed_mapper){
+		my @summary_device;
+		lnxhc_exception($LNXHC_EXCEPTION_FAILED_PATH);
+		# Summary list should be short
+		if (scalar(@dev_failed_mapper) > 4) {
+			@summary_device = (@dev_failed_mapper[0..3],"...");
+		} else {
+		@summary_device = @dev_failed_mapper;
+		}
+		lnxhc_exception_var("failed_path_summ",
+			join(", ", @summary_device));
+		lnxhc_exception_var("failed_path_details",
+			sprintf("#%-10s  %-40s", "ALIAS", "WWID"));
+
+		for(my $i=0; $i < scalar(@dev_failed_mapper); $i++) {
+			lnxhc_exception_var("failed_path_details",
+			sprintf("#%-10s %-40s",$dev_failed_alias[$i],
+			$dev_failed_wwid[$i]));
+		}
+	}
+	# Verifying ateast one device mapper consists of total
+	# available paths less than 2.
+	if (@dev_available_mapper) {
+		my @summary_device;
+		lnxhc_exception($LNXHC_EXCEPTION_AVAILABLE_PATH);
+
+		# Summary list should be short
+		if (scalar(@dev_available_mapper) > 4) {
+			@summary_device = (@dev_available_mapper[0..3],"...");
+		}else {
+			@summary_device = @dev_available_mapper;
+		}
+		lnxhc_exception_var("available_path_summ",
+			join(", ", @summary_device));
+		lnxhc_exception_var("available_path_details",
+			sprintf("#%-10s  %-40s", "ALIAS", "WWID"));
+
+		for(my $i=0; $i < scalar(@dev_available_mapper); $i++) {
+			lnxhc_exception_var("available_path_details",
+			sprintf("#%-10s %-40s",$dev_available_alias[$i],
+			$dev_available_wwid[$i]));
+		}
+	}
+	exit(0);
+}
+&main();

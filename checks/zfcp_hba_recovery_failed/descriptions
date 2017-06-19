@@ -1,0 +1,8 @@
+[title]
+Check if FCP device recovery failed
+
+[description]
+A failed FCP device recovery indicates a problem in the same. As a
+result, none of the resources attached through this FCP device are
+available. This health check detects the failure, when the recovery
+of the failed FCP device was initiated, and failed.

@@ -1,0 +1,12 @@
+CC	:= gcc
+CFLAGS	:=
+
+all: check
+
+check: check.c
+	$(CC) $(CFLAGS) $< -o $@
+
+clean:
+	rm -f check
+
+.PHONY: clean

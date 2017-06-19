@@ -1,0 +1,64 @@
+#!/usr/bin/perl
+#
+# cpu_capacity
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+use Data::Dumper;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/load_proc_sysinfo/;
+
+# Path to the file containing data for sysinfo item 'sysctl'.
+my $proc_sysinfo = $ENV{"LNXHC_SYSINFO_proc_sysinfo"};
+
+my $params = {
+	adj => $ENV{"LNXHC_PARAM_acceptable_cap_adj"},
+	rs  => $ENV{"LNXHC_PARAM_expected_cap_rs"},
+};
+
+
+sub main()
+{
+	my $sysinfo = load_proc_sysinfo($proc_sysinfo);
+	die "Failed to read sysinfo: $proc_sysinfo: $!\n" unless $sysinfo;
+
+	# dump /proc/sysinfo for debugging purposes
+	$Data::Dumper::Sortkeys = 1;
+	print STDERR Dumper($sysinfo) if $LNXHC_DEBUG;
+
+	# check if hardware (STSI) contains capacity data
+	unless ($sysinfo->{'Capacity Adj. Ind.'} ||
+		exists($sysinfo->{'Capacity Ch. Reason'})) {
+		lnxhc_fail_dep("Capacity adjustment indication is not available");
+	}
+
+	# check capacity indicator and raise exception if values differ from
+	# check parameters
+	if ($sysinfo->{'Capacity Adj. Ind.'} < $params->{adj} ||
+	    $sysinfo->{'Capacity Ch. Reason'} != $params->{rs}) {
+		lnxhc_exception("capacity_reduced");
+		lnxhc_exception_var("cap_adj_ind",
+				    $sysinfo->{'Capacity Adj. Ind.'});
+		lnxhc_exception_var("cap_ch_rs",
+				    $sysinfo->{'Capacity Ch. Reason'});
+	}
+
+	exit(0);
+}
+
+&main();
+__DATA__
+__END__

@@ -1,0 +1,60 @@
+[summary ineffective_nopav]
+The "nopav" DASD parameter in &module_info_file_path; has no effect
+
+[explanation ineffective_nopav]
+The &module_info_file_path; configuration file includes the "nopav"
+parameter for the DASD device driver. This parameter suppresses parallel
+access volume (PAV and HyperPAV) enablement for Linux instances that run in
+LPAR mode. The "nopav" parameter has no effect for Linux on z/VM.
+
+The "nopav" parameter can mislead administrators
+into expecting that PAV is disabled.
+
+[solution ineffective_nopav]
+Use the z/VM CP "QUERY PAV" command to find out which devices are set up
+for PAV and HyperPAV. Use the z/VM CP "SET CU" command to disable PAV and
+HyperPAV.
+
+Use the configuration tools provided by your distribution to remove the "nopav"
+parameter from your Linux on z/VM configuration or complete the following steps
+to remove the parameter directly from the configuration files:
+
+1. Open &module_info_file_path; with a text editor.
+
+2. Find the following line:
+   #&module_information;
+
+3. Remove "nopav" from this line.
+
+4. Search &module_info_file_path; for other occurrences of "nopav" and,
+   if applicable, remove these occurrences from all boot configurations
+   for Linux on z/VM.
+
+5. Save and close &module_info_file_path;.
+
+If the "nopav" parameter was found in /proc/cmdline, you have to create a new
+boot configuration and reboot Linux to remove this parameter. If you are
+using "zipl" to create your boot configurations, you might have to first
+remove "nopav" from the zipl configuration file, then run "zipl" to create a
+new boot configuration, and then reboot Linux with the new boot configuration.
+
+[reference ineffective_nopav]
+- For more information about the "nopav" parameter, see the kernel or module
+  parameter section for the DASD device driver in
+  "Device Drivers, Features, and Commands".
+  This publication also has a general section about kernel and module parameters
+  and a section about the "zipl" command.
+  You can obtain this publication from
+
+  http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+- For more information about PAV and HyperPAV, see
+  "How to Improve Performance with PAV". You can obtain this publication from
+
+  http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+- For more information about the z/VM CP "QUERY PAV" and "SET CU" commands,
+  see "z/VM CP Commands and Utilities Reference". You can obtain this
+  publication from
+
+  http://www.ibm.com/vm/library

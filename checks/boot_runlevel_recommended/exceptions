@@ -1,0 +1,62 @@
+[summary current_runlevel_differs]
+The current runlevel (&current_runlevel;) does not match
+the recommended runlevel (&param_recommended_runlevel;)
+
+[explanation current_runlevel_differs]
+The recommended runlevel  for the Linux instance is
+&param_recommended_runlevel;, but currently runlevel &current_runlevel; is used.
+
+Linux runlevels define which processes can run. Linux runlevels are usually
+expressed as integers in the range 0 to 6. Runlevels 0 and 6 are reserved for
+halt and reboot. The meaning of runlevels 1 to 5 differs between distributions.
+
+[solution current_runlevel_differs]
+To temporarily change the current run level, use the "init" command.
+For example, to change the runlevel to 3 issue:
+#init 3
+
+To change the runlevel that is used after booting Linux, change the
+default runlevel in /etc/inittab. For example, to change the default runlevel
+from 5 to 3 change the line
+#id:5:initdefault
+to
+#id:3:initdefault
+In this line, the entry identifier before the first colon depends on the
+distribution and need not be "id" as shown in the example.
+
+If Linux uses the correct runlevel, adjust the "recommended_runlevel" check
+parameter accordingly to prevent this warning in the future.
+
+[reference current_runlevel_differs]
+For information about the available runlevels and about changing the
+current runlevel, see "init" man page.
+
+[summary default_runlevel_differs]
+The default runlevel (&default_runlevel;) does not match the recommended
+runlevel (&param_recommended_runlevel;)
+
+[explanation default_runlevel_differs]
+The recommended runlevel  for the Linux instance is
+&param_recommended_runlevel;, but currently runlevel &default_runlevel; is
+set as default.
+
+Linux runlevels define which processes can run. Linux runlevels are usually
+expressed as integers in the range 0 to 6. Runlevels 0 and 6 are reserved for
+halt and reboot. The meaning of runlevels 1 to 5 differs between distributions.
+
+[solution default_runlevel_differs]
+To change the runlevel that is used after booting Linux, change the default
+runlevel in /etc/inittab. For example, to change the default runlevel
+from 5 to 3 change the line
+#id:5:initdefault
+to
+#id:3:initdefault
+In this line, the entry identifier before the first colon depends on the
+distribution and need not be "id" as shown in the example.
+
+If Linux uses the correct runlevel, adjust the "recommended_runlevel" check
+parameter accordingly to prevent this warning in the future.
+
+[reference default_runlevel_differs]
+For information about the available runlevels and about changing the current
+runlevel, see "init" man page.

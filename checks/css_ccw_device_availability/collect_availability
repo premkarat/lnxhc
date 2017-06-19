@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cd /sys/bus/ccw/devices
+if [ $? -ne 0 ] ; then
+	exit 1
+fi
+
+for device in *
+do
+	read availability < $device/availability
+	echo "${device}:${availability}"
+done

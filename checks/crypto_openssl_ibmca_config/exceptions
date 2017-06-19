@@ -1,0 +1,24 @@
+[summary so_file_path_not_correct]
+The path to libibmca.so in &openssl_cnf_path; is not correct
+
+[explanation so_file_path_not_correct]
+The &openssl_cnf_path; configuration file specifies the
+path to the libibmca.so library in the Linux file system. The
+libibmca.so library is not available at the specified location.
+
+The current specification is:
+#dynamic_path  =  &libibmca_so_file_path_in_config_file;
+
+The specification should be:
+#dynamic_path  =  &libibmca_so_file_path;
+
+[solution so_file_path_not_correct]
+
+Open &openssl_cnf_path; with a text editor.
+Find the following line:
+#dynamic_path  =  &libibmca_so_file_path_in_config_file;
+Changes this line to:
+#dynamic_path  =  &libibmca_so_file_path;
+
+[reference so_file_path_not_correct]
+None.

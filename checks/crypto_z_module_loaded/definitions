@@ -1,0 +1,13 @@
+[check]
+author = "Peter Oberparleiter <peter.oberparleiter@de.ibm.com>"
+component = "crypto/zmodule"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo dev_node]
+program = "ls /dev/z90crypt"
+ignorerc = 1
+
+[exception module_not_loaded]
+severity = medium

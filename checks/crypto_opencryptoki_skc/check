@@ -1,0 +1,147 @@
+#!/usr/bin/perl
+#
+# crypto_opencryptoki_skc
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+my $linux_distro = $ENV{"LNXHC_SYS_sys_distro"};
+
+# Exception IDs
+my $LNXHC_EXCEPTION_CRYPTO_COPROCESSORS_NOT_ONLINE = "crypto_coprocessors_not_available";
+my $LNXHC_EXCEPTION_RPMS_NOT_INSTALLED = "rpms_not_installed";
+my $LNXHC_EXCEPTION_CCA_TOKEN_NOT_CONFIGURED = "cca_token_not_configured";
+my $LNXHC_EXCEPTION_OPENCRYPTOKI_NOT_INITIALIZED = "opencryptoki_not_initialized";
+
+# Path to the file containing data for sysinfo item 'pkcsconf'.
+my $sysinfo_pkcsconf = $ENV{"LNXHC_SYSINFO_pkcsconf"};
+
+# Path to the file containing data for sysinfo item 'rpm_query_all'.
+my $sysinfo_rpm_query_all = $ENV{"LNXHC_SYSINFO_rpm_query_all"};
+
+# Path to the file containing data for sysinfo item 'dev_node'.
+my $sysinfo_dev_node = $ENV{"LNXHC_SYSINFO_dev_node"};
+
+# Path to the file containing data for sysinfo item 'hw_info'.
+my $sysinfo_hw_info = $ENV{"LNXHC_SYSINFO_hw_info"};
+
+# Return code for sysinfo item 'dev_node'
+my $rc_dev_node = $ENV{"LNXHC_SYSINFO_EXIT_CODE_dev_node"};
+
+# Return code for sysinfo item 'sysinfo_pkcsconf'
+my $rc_pkcsconf = $ENV{"LNXHC_SYSINFO_EXIT_CODE_pkcsconf"};
+
+# CCA Flag for configured
+my $cca_config_flag = "44D";
+
+my $handle;
+
+
+# Defining the RPM names required.
+my $opencryptoki_rpm = "opencryptoki";
+my $cca_rpm = "csulcca";
+
+# Checking required module loaded or not
+if ($rc_dev_node > 0) {
+	lnxhc_fail_dep("The System z cryptography kernel module is not loaded");
+} else {
+# Checking required hardware available or not
+	my $handle;
+	open ($handle, "<", $sysinfo_hw_info) or
+	die("Couldn't open file: $sysinfo_hw_info: $!\n");
+
+	my $hw_cop;
+	while (<$handle>) {
+		next unless /^card\d+: CEX/;
+		if (/^card\d+: CEX\d+C/) {
+			$hw_cop = 1;
+		}
+	}
+	close($handle);
+
+	my @hw_unavail;
+	# Pushing the name of the hardware, which is not available
+	push @hw_unavail, "Cryptographic Coprocessor" unless ($hw_cop);
+	if (@hw_unavail) {
+		lnxhc_exception($LNXHC_EXCEPTION_CRYPTO_COPROCESSORS_NOT_ONLINE);
+		lnxhc_exception_var_list("crypto_hw", \@hw_unavail, " ");
+		# No need to check any further
+		exit(0);
+	}
+
+}
+
+# Checking required RPMs installed or not
+open ($handle, "<", $sysinfo_rpm_query_all) or
+	die("Couldn't open file: $sysinfo_rpm_query_all: $!\n");
+
+my $search = "\.s390x";
+my @rpm_query_file = <$handle>;
+close ($handle);
+my (@opencryptoki, @cca);
+@cca = grep { /^$cca_rpm\-\d+.*$search$/ } @rpm_query_file;
+if ($linux_distro eq "RHEL") {
+	@opencryptoki = grep { /^$opencryptoki_rpm-\d+.*$search$/i } @rpm_query_file;
+}
+if ($linux_distro eq "SLES") {
+	@opencryptoki = grep { /^$opencryptoki_rpm-64bit.\d+.*$search$/i } @rpm_query_file;
+}
+
+
+# Variable used for displaying which PRMs are missing.
+my @rpm_unavail;
+push @rpm_unavail, $opencryptoki_rpm unless (@opencryptoki);
+push @rpm_unavail, $cca_rpm unless (@cca);
+
+if (@rpm_unavail)  {
+	lnxhc_exception($LNXHC_EXCEPTION_RPMS_NOT_INSTALLED);
+	lnxhc_exception_var_list("rpm", \@rpm_unavail, ", ", scalar(@rpm_unavail));
+	lnxhc_exception_var_list("rpm_summ", \@rpm_unavail, ", ");
+	# No need to check any further
+	exit(0);
+}
+
+if ($rc_pkcsconf == 0) {
+	# Verifying ibmca engine is configured with openssl or not
+	open ($handle, "<", $sysinfo_pkcsconf) or
+	die("Couldn't open file: $sysinfo_pkcsconf: $!\n");
+	my $cca_data;
+	{
+		local $/;
+		$cca_data = <$handle>;
+	}
+
+	my $cca_flag;
+	close($handle);
+	# Looking for ICA and collecting it's flags
+	if ($cca_data =~ /^Token #\s*.*?Model: IBM CCA.*?Flags: 0x([[:xdigit:]]+)\s/smg) {
+		$cca_flag = $1;
+	}
+	if ($cca_flag ne $cca_config_flag) {
+		lnxhc_exception($LNXHC_EXCEPTION_CCA_TOKEN_NOT_CONFIGURED);
+	}
+} else {
+		lnxhc_exception($LNXHC_EXCEPTION_OPENCRYPTOKI_NOT_INITIALIZED);
+}
+
+exit(0);

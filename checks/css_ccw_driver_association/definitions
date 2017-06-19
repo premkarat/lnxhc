@@ -1,0 +1,14 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "css/ccw"
+repeat = "7d"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo symlink_to_driver]
+program = "$LNXHC_CHECK_DIR/check_symlink_to_driver"
+extrafile = "check_symlink_to_driver"
+
+[exception no_driver]
+severity = medium

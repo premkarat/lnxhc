@@ -1,0 +1,269 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc_text_format 7 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.
+.SH NAME
+lnxhc_text_format \- Describe formatting options in text files
+.
+.
+.SH DESCRIPTION
+The
+.B descriptions
+and
+.B exceptions
+files of a health check or consumer plug-in written for the \*[lhc] framework
+contain text which can be enhanced with basic formatting elements, such as
+paragraphs, preformatted text, lists, and simple tables.
+.PP
+.
+.
+.SS "Paragraphs"
+Multiple consecutive lines of text are aggregated into a paragraph. Any extra
+spacing between words of a paragraph will be unified in the resulting output.
+An empty line, or the beginning of a different formatting block marks the
+end of a paragraph.
+.PP
+.B Example:
+.br
+.RS
+.CL "This is an example for a paragraph"
+.CL "that spans several lines"
+.CL "and has           extra            spacing."
+.CL ""
+.CL "Empty lines mark the end of a paragraph."
+.RE
+.PP
+will be displayed as
+.PP
+.RS
+This is an example for a paragraph that spans several lines and has
+extra spacing.
+.PP
+Empty lines mark the end of a paragraph.
+.PP
+.RE
+.
+.
+.SS "Preformatted text"
+A line of text that starts with a hash character ("#") marks a preformatted
+line. All spacing is retained in the resulting output and the text is displayed
+in a monospaced font.
+.PP
+.B Example:
+.br
+.RS
+.CL "#These lines"
+.CL "#      are    all"
+.CL "#   preformatted"
+.RE
+.PP
+will be displayed as
+.PP
+.RS
+.CL "These lines"
+.CL "      are    all"
+.CL "   preformatted"
+.RE
+.PP
+.
+.
+.SS "Bulleted lists"
+A line of text that starts with a minus ("-") or an asterisk character ("*")
+marks the beginning of an item in a bulleted list. Subsequent lines are
+considered a continuation of the list item when they start with indentation
+beyond the position of the minus or asterisk character. Using this
+continuation, list items can be defined that contain other formatting elements,
+such as paragraphs or sub-list items.
+.PP
+.B Example:
+.br
+.RS
+.CL "- This is a"
+.CL "  bulleted list item"
+.CL "  - This is a sub item"
+.CL "  - And another sub"
+.CL "    item"
+.CL "- This is a new list item"
+.RE
+.PP
+will be displayed as
+.PP
+.RS
+.IP - 2
+This is a bulleted list item
+.RS 2
+.IP * 2
+This is a sub item
+.IP * 2
+And another sub item
+.RE
+.IP - 2
+This is a new list item
+.PP
+.RE
+.
+.
+.SS "Numbered lists"
+A line of text that starts with a positive number, followed by a dot (".")
+marks the beginning of an item in a numbered list. Subsequent lines are
+considered a continuation of the list item when they start with indentation
+beyond the position of the number. Using this continuation, list items can
+be defined that contain other formatting elements, such as paragraphs or
+sub-list items.
+.PP
+.B Example:
+.br
+.RS
+.CL "1. This is the first"
+.CL "   item of a list"
+.CL ""
+.CL "   Including a paragraph."
+.CL ""
+.CL "2. This is the second item"
+.CL "   * This is a sub-item"
+.RE
+.PP
+will be displayed as
+.PP
+.RS
+.IP 1. 3
+This is the first item of a list
+.IP "" 3
+Including a paragraph.
+.IP 2. 3
+This is the second item
+.RS 3
+.IP \(bu 2
+This is a sub-item
+.RE
+.RE
+.
+.
+.SS "Tables"
+A line of text that starts with a pipe character ("|") marks a line defining
+a table row. A table row can contain multiple cells, each being delimited
+by a preceding pipe character. The first row in a table is considered the
+heading row.
+.PP
+Per default, text in cells is left-aligned. This text alignment can optionally
+be changed by specifying "<", "^", or ">" as first character after the pipe
+symbol to specify left-aligned, centered, or right-aligned text respectively.
+.PP
+By specifying a hash character ("#") after the optional alignment character,
+a cell can be defined as containing preformatted text.
+.PP
+.B Example:
+.br
+.RS
+.CL "|PID|>CMD"
+.CL "|^1|>#init"
+.CL "|^64231|>#/sbin/rsyslogd"
+.RE
+.PP
+will be displayed as
+.PP
+.RS
+.CL "+-----+--------------+"
+.CL "|PID  |           CMD|"
+.CL "+-----+--------------+"
+.CL "|  1  |          init|"
+.CL "|64231|/sbin/rsyslogd|"
+.CL "+-----+--------------+"
+.RE
+.
+.
+.SS "Escaping characters"
+Some characters have special meaning when they occur at specific positions
+in the text file, for example a pipe symbol ("|") at the start of a line
+indicates that the line defines a table row. This special meaning of a
+character can be suppressed by escaping the character using a preceding
+backslash ("\[rs]") character.
+.PP
+.B Example:
+.br
+.RS
+.CL "\[rs]|This line is not a table row|"
+.RE
+.PP
+will be displayed as
+.PP
+.RS
+|This line is not a table row|
+.RE
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_check_descriptions 5 ,
+.MP lnxhc_check_exceptions 5 ,
+.MP lnxhc_writing_checks 7 ,
+.MP lnxhc_cons_descriptions 5 ,
+.MP lnxhc_writing_consumers 7

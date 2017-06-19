@@ -1,0 +1,128 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc-devel 1 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.
+.SH NAME
+lnxhc-devel \- Develop new health checks
+.
+.
+.SH SYNOPSIS
+.nh
+.na
+.B lnxhc devel
+.OS show\-sysvar
+.OS create-check "" directory-name
+.ad
+.hy
+.
+.
+.SH DESCRIPTION
+Use the
+.B devel
+subcommand to initiate new health check development.
+.
+.
+.SH ACTIONS
+.OD show\-sysvar
+Show system specifications.
+
+This action collects and displays system specifications, for example about the
+version and platform, for the Linux instance on which you run this command.
+
+The Linux Health Checker uses this information and dependency statements of
+health checks to assess whether a health check is applicable to the Linux
+instance. See
+.MP lnxhc_check_definitions 5 .
+.PP
+.
+.OD create\-check "" directory-name
+.RS
+Starts a dialog to create skeleton files for a new health check.
+
+The dialog asks basic questions about the health check. Based on the
+information you provide,  this action creates the directory
+.I directory-name
+and initial versions of the required files.
+.NT You must specify a unique \fIdirectory-name\fP.
+.PP
+.RE
+.
+.
+.SH EXAMPLES
+.B Create a new health check called \[dq]my_check\[dq]:
+.RS 4
+.CL # lnxhc devel \-\-create-check ./my_check
+.RE
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_writing_checks 7

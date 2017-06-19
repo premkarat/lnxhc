@@ -1,0 +1,23 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "zvm"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+sys_hypervisor=ZVM
+
+[param permitted_privclass]
+default = "G"
+
+[param check_for]
+default = "Currently, Directory"
+
+[sysinfo vmcp_priv_class]
+program = "/sbin/modprobe vmcp 2>/dev/null; vmcp q privclass"
+user = "root"
+
+[exception running_privileges_exceeded]
+severity = medium
+
+[exception default_privileges_exceeded]
+severity = medium

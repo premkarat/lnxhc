@@ -1,0 +1,18 @@
+[check]
+author = "Gowri Shankar <gowrishankar.m@linux.vnet.ibm.com>"
+component = "memory"
+
+[param low_mem_threshold]
+default = "10000000"
+
+[param high_mem_threshold]
+default = "10"
+
+[sysinfo free]
+program = "free"
+
+[exception too_low_memory]
+severity = medium
+
+[exception too_high_memory]
+severity = medium

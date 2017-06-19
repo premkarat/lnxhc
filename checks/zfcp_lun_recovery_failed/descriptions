@@ -1,0 +1,6 @@
+[title]
+Identify if recovery of a zFCP LUN failed
+
+[description]
+A failed zFCP LUN recovery indicates a problem in the storage device. As a
+result, the device is not available for I/O.

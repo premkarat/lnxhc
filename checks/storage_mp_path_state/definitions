@@ -1,0 +1,19 @@
+[check]
+author = "Rajesh K Pirati <rapirati@in.ibm.com>"
+component = "storage/multipath"
+
+[param failed_path_limit]
+default = "1"
+
+[param remaining_path_limit]
+default = "2"
+
+[sysinfo multipath_output]
+program = "/sbin/multipath -ll"
+user = root
+
+[exception too_many_failed_paths]
+severity = medium
+
+[exception too_few_available_paths]
+severity = high

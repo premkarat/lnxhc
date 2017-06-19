@@ -1,0 +1,16 @@
+[title]
+Screen users with superuser privileges
+
+[description]
+This check examines the output of command "getent passwd" to identify
+user names that run with numerical user ID (UID) 0. These users have
+superuser privileges that are conventionally associated with user "root".
+
+Users with UID 0 and the processes started by these users can inadvertently
+or maliciously disrupt, damage, manipulate, or destroy a system. Generally,
+UID 0 must be assigned sparingly and only to trusted user names.
+Security policies often restrict UID 0 to user name "root".
+
+[param trusted_superusers]
+A list of user names that are trusted to run as superusers with UID 0.
+In the list, the user names are separated by blanks.

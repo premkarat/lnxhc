@@ -1,0 +1,15 @@
+[check]
+author = "Manik Bajpai <manibajp@in.ibm.com>"
+component = "zfcp/hba"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[param check_offline]
+default = "0"
+
+[sysinfo lscss]
+program = "/sbin/lscss"
+
+[exception single_chpid]
+severity = high

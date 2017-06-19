@@ -1,0 +1,11 @@
+[title]
+Verify that the multipath service starts automatically when the system launches
+
+[description]
+This check identifies, if the "multipathd" daemon is active and configured to
+start at every boot or reboot, in case of existing "multipath" targets.
+If not configured at the boot time the "multipathd" service will not start
+automatically and cannot be used.
+The multipathd daemon is in charge of re-enabling failed paths. When this
+happens, it will reconfigure the multipath map the path belongs to, so that
+this map regains its maximum performance and redundancy.

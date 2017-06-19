@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# transport_data
+#   Helper program to list devices using specific transports
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+# FCP devices
+if [ -d /sys/class/fc_transport ] ; then
+	# Enable nullglob
+	shopt -s nullglob
+	for TRANSPORT_PATH in /sys/class/fc_transport/target* ;
+	do
+		read NAME < ${TRANSPORT_PATH}/port_name
+		echo "FCP $NAME"
+	done
+fi
+# iSCSI devices
+if [ -d /sys/class/iscsi_session ] ; then
+	# Enable nullglob
+	shopt -s nullglob
+	for TRANSPORT_PATH in /sys/class/iscsi_session/session* ;
+	do
+		read NAME < ${TRANSPORT_PATH}/targetname
+		echo "iSCSI $NAME"
+	done
+fi

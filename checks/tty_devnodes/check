@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+#
+# tty_devnodes
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+use Safe;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+sub main()
+{
+	# read Data::Dump from ls-tty
+	my $jail = new Safe;
+	$jail->permit_only(qw/:base_core anonhash/);
+	my $lstty = $jail->rdo($ENV{"LNXHC_SYSINFO_ls_tty"});
+	die "Failed to load ls-tty system information: $@\n" if $@;
+
+	my $tty_used  = $lstty->{tty_used};
+	my $tty_avail = $lstty->{tty_avail};
+
+	# compare data of $tty_used and $tty_avail
+	my %tty_nodes_differ= ();
+	foreach my $used (keys %$tty_used) {
+		my $tty = $tty_used->{$used};
+		unless (exists $tty_avail->{$tty}) {
+			print STDERR "WARN: Ignoring unknown tty: $tty/$used\n";
+			next;
+		}
+		my $avail = $tty_avail->{$tty};
+		push @{$tty_nodes_differ{$avail}}, $used if $used ne $avail;
+	}
+
+	if (%tty_nodes_differ) {
+		my $fmt = "|#%s|#%s";
+		my @table = ();
+		push @table, sprintf $fmt, "Standard node", "Additional nodes";
+		foreach (sort keys %tty_nodes_differ) {
+			push @table, sprintf $fmt, $_,
+					     join(', ', sort @{$tty_nodes_differ{$_}});
+		}
+		lnxhc_exception("tty_has_multiple_nodes");
+		lnxhc_exception_var("var_node_table", $_) foreach @table;
+		lnxhc_exception_var_list("var_node_list",
+			 [map { s#^/dev/##; $_ } sort keys %tty_nodes_differ],
+			 ", ", 2);
+	}
+}
+
+&main();
+__DATA__
+__END__

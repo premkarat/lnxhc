@@ -1,0 +1,14 @@
+[title]
+Identify I/O devices that are not associated with a device driver
+
+[description]
+When an I/O device is sensed, the associated device driver should
+automatically be loaded. I/O devices that are not associated with
+a device driver cannot be used properly.
+
+Possible reasons for this problem are that the required device driver
+module has been unloaded, that an existing association between the device and
+the device driver has been removed, or that the device is not supported.
+
+This check identifies devices that, in sysfs, do not have a symbolic link
+to a device driver.

@@ -1,0 +1,21 @@
+[title]
+Check for an excessive number of unused I/O devices
+
+[description]
+Even when they are unused (offline), I/O devices consume memory and CPU time
+both during the boot process and when I/O configuration changes occur on a
+running system. In particular, when new I/O devices or I/O paths become
+available or when existing I/O devices or I/O paths become unavailable,
+resources are wasted to unused I/O devices.
+
+This check uses the "lscss" command to identify unused I/O devices.
+
+[param ratio_limit]
+Threshold for the percentage of unused (offline) I/O devices. If this threshold
+is exceeded, an exception is issued.
+Valid values are integers in the range 1 to 100.
+
+[param device_print_limit]
+Threshold for the absolute number of unused (offline) I/O devices. If the
+number of unused I/O devices exceeds this threshold, an exception is issued.
+Valid values are positive integers.

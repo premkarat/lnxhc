@@ -1,0 +1,71 @@
+[summary running_privileges_exceeded]
+The currently active privilege classes '&sum_cur_extrapriv;' exceeds the maximum defined permission
+'&param_permitted_privclass;'.
+
+[explanation running_privileges_exceeded]
+The run-time privilege classes of the currently active z/VM guest virtual machine exceeds the maximum
+defined permission. Higher privilege classes than the permitted ones might allow operations which can
+inadvertently or maliciously affect the security and availability of other z/VM guest virtual machines
+running in the same z/VM instance.
+
+The following entry has higher privileges:
+Currently:	&cur_extrapriv;
+
+Perform these steps to verify the privileges:
+From Linux,
+1. Load the kernel module named "vmcp", if not already loaded or built-in:
+    # modprobe vmcp
+2. Query the privilege class:
+    # vmcp q privclass
+From the console of the z/VM guest virtual machine,
+   Query the privilege class:
+    # cp q privclass
+
+[solution running_privileges_exceeded]
+Use the z/VM "SET PRIVCLASS" command to assign a permitted privilege class to the z/VM guest virtual machine.
+Generally, the privilege class should not be higher than class G.
+
+[reference running_privileges_exceeded]
+For more information about privilege classes, see "z/VM: CP Commands and Utilities Reference".
+You can obtain this publication from
+
+http://www.vm.ibm.com/pubs/
+
+[summary default_privileges_exceeded]
+The privilege classes '&sum_dir_extrapriv;', which are permanently defined in the z/VM user
+directory of the z/VM guest, exceed the maximum defined permission '&param_permitted_privclass;'.
+
+[explanation default_privileges_exceeded]
+The privilege classes of the currently active z/VM guest virtual machine, which are permanently defined
+in the z/VM user directory, exceed the maximum defined permission. Higher privilege classes than the permitted
+ones might allow operations which can inadvertently or maliciously affect the security and availability of other
+z/VM guest virtual machines running in the same z/VM instance.
+
+The following entry has higher privileges:
+Directory:	&dir_extrapriv;
+
+Perform these steps to verify the privileges:
+From Linux,
+1. Load the kernel module named "vmcp", if not already loaded or built-in:
+    # modprobe vmcp
+2. Query the privilege class:
+    # vmcp q privclass
+From the console of the z/VM guest virtual machine,
+ Query the privilege class:
+# cp q privclass
+
+[solution default_privileges_exceeded]
+To change the privilege class in the z/VM user directory, either edit the user privilege class  entries manually,
+or, if DirMaint is installed, use the "DirMaint" commands to modify the privilege classes.
+
+[reference default_privileges_exceeded]
+For more information about privilege classes, see "z/VM: CP Commands and Utilities Reference".
+For more information about modifying privilege class entries in the z/VM user directory, see
+"z/VM: CP Planning and Administration" and the "Directory Maintenance Facility for z/VM" library.
+You can obtain these publications from
+
+http://www.vm.ibm.com/pubs/
+
+and
+
+http://www.vm.ibm.com/library/

@@ -1,0 +1,12 @@
+[check]
+author = "Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>"
+component = "filesystem"
+
+[param mount_points]
+default = "/home:/proc:/tmp:/var/log:/sys"
+
+[sysinfo mount]
+file = "/proc/mounts"
+
+[exception read_only_filesystem]
+severity = high

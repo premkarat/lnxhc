@@ -1,0 +1,10 @@
+[check]
+author = "Rajesh K Pirati <rapirati@in.ibm.com>"
+component = "filesystem/fstab"
+repeat = "7"
+
+[sysinfo disk_type]
+file = "/etc/fstab"
+
+[exception volatile_devnodes_used]
+severity = medium

@@ -1,0 +1,44 @@
+[summary low_loglevel]
+Current console_loglevel set is low (&console_loglevel;)
+
+[explanation low_loglevel]
+When the console_loglevel is set to a low value, user might miss out important
+messages which needs user attention and also it helps user to understand what
+went wrong in the system when a system crash occurs.
+
+Current value for console_loglevel can be verified by the following command:
+
+#sysctl -a | grep printk
+
+You will see four values. First value represents the console_log_level.
+
+Conventional meaning of the loglevels are:
+
+#KERN_EMERG	0	/*system is unusable			*/
+#KERN_ALERT	1	/*action must be taken immediately	*/
+#KERN_CRIT	2	/*critical conditions			*/
+#KERN_ERR	3	/*error conditions			*/
+#KERN_WARNING	4	/*warning conditions			*/
+#KERN_NOTICE	5	/*normal but significant condition	*/
+#KERN_INFO	6	/*informational				*/
+#KERN_DEBUG	7	/*debug-level messages			*/
+
+console_loglevel: messages with a higher priority than current console_loglevel
+will be printed to the console. Lower number has a higher priority.
+
+[solution low_loglevel]
+Its advisable to have console_loglevel set atleast to 4 (KERN_WARNING) to
+receive important messages.
+
+To set the current console_loglevel in the /etc/sysctl.conf file:
+
+#kernel.printk = 4 4 1 7
+
+This setting becomes active the next time the Linux instance is booted.
+
+To temporarily set the current console_log_level issue the following command:
+
+#sysctl -w kernel.printk="4 4 1 7"
+
+[reference low_loglevel]
+See the man pages of the "sysctl" command and of the "proc" filesystem.

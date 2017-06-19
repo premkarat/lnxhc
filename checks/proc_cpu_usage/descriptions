@@ -1,0 +1,29 @@
+[title]
+Ensure processes do not hog cpu time
+
+[description]
+This check ensures that processes do not end up hogging cpu time. If certain
+processes start hogging cpu time then other processes would be deprived of cpu
+time which might cause applications to slow down and the system might even
+become unresponsive.
+
+[param processes]
+A list of processes separated by comma (,) that are expected to consume high
+cpu time and which need not be reported by this check. If the list is empty,
+all the processes consuming high cpu time are reported.
+
+Example:
+#firefox, apache2
+
+[param cpu_usage]
+Per process cpu usage at which to raise a high-severity exception.
+The cpu usage represents the percentage of time that a process spent
+running during its lifetime.
+
+Valid values are integers in the range 1 to 100.
+
+[param cpu_time]
+Per process accumulated cpu time in seconds which must be exceeded before an
+exception is reported.
+
+Valid values are integers starting with 1.

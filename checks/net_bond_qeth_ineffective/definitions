@@ -1,0 +1,16 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "network/bonding"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo lsqeth_p]
+program = "/sbin/lsqeth -p"
+
+[sysinfo bonding_info]
+program = "$LNXHC_CHECK_DIR/collect_bonding_info"
+extrafile = "collect_bonding_info"
+
+[exception single_chpid]
+severity = medium

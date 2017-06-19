@@ -1,0 +1,117 @@
+#!/usr/bin/perl
+#
+# css_ccw_blacklist
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+#
+# Global variables
+#
+
+# Exception IDs
+our $LNXHC_EXCEPTION_ONLINE_DEVICES_IGNORED = "online_devices_ignored";
+
+# Path to the file containing data for sysinfo item 'lscss'.
+our $sysinfo_lscss = $ENV{"LNXHC_SYSINFO_lscss"};
+
+# Path to the file containing data for sysinfo item 'cio_ignore'.
+our $sysinfo_cio_ignore = $ENV{"LNXHC_SYSINFO_cio_ignore"};
+
+
+#
+# Code entry
+#
+
+local *HANDLE;
+my %device_online;
+my %exclusion_list;
+
+# Parse lscss file to get online I/O devices list
+open(HANDLE, "<", $sysinfo_lscss) or
+        die("css_ccw_blacklist: could not open '$sysinfo_lscss': $!\n");
+while (<HANDLE>) {
+        my $dev;
+        my $in_use;
+
+        if (!(/^([0-9a-f]+)\.([0-9a-f]+\.[0-9a-f]+)\s+/i)) {
+                next;
+        }
+        $dev = lc($1).".".lc($2);
+
+        $in_use = substr($_, 35, 3);
+        if ($in_use eq "yes") {
+                $device_online{$dev} = $dev;
+        }
+}
+close(HANDLE);
+
+# Parse cio_ignore and if the devices are grouped then need to ungroup
+open(HANDLE, "<", $sysinfo_cio_ignore) or
+	die("css_ccw_blacklist: could not open '$sysinfo_cio_ignore': $!\n");
+
+while (<HANDLE>) {
+
+	my $dev;
+
+	# Looking for devices, which are grouped (Ex: 0.0.0000-0.0.000f)
+	if (/^([0-9a-f]+\.[0-9a-f]+\.)([0-9a-f]+)\-[0-9a-f]+\.[0-9a-f]+\.([0-9a-f]+)\s*/i) {
+		my ($pre_start_value, $start_value, $end_value) = ($1, $2, $3);
+		my $device1;
+		my $device;
+
+		# Expand the range of devices and add to exclusion_list
+		for ($device = hex($start_value); $device <= hex($end_value); $device++) {
+			$device1 = sprintf("%s%04x", $pre_start_value,$device);
+			$exclusion_list{$device1} =  "$device1";
+		}
+
+	# Single Device add to exclusion_list
+	} elsif (/^([0-9a-f]+\.[0-9a-f]+\.)([0-9a-f]+)\s*/i) {
+		$dev = lc($1).lc($2);
+		$exclusion_list{$dev} = $dev;
+	}
+}
+close(HANDLE);
+
+# Compare two hashes and getting the common devices in to an array.
+my @common = grep exists $exclusion_list{ $_ }, values %device_online;
+
+# If there are some devices in common from both the lists then
+# need to raise an exception
+if (@common) {
+	lnxhc_exception($LNXHC_EXCEPTION_ONLINE_DEVICES_IGNORED);
+
+	my $count = 1;
+	foreach my $device (@common) {
+		if ($count > 4) {
+			lnxhc_exception_var("sum_online_ignored", "...");
+			last;
+		}
+		lnxhc_exception_var("sum_online_ignored", $device);
+		$count++;
+	}
+	foreach my $device (@common) {
+		lnxhc_exception_var("online_ignored", "#$device");
+	}
+}
+
+exit(0);

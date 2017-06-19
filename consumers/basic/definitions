@@ -1,0 +1,19 @@
+[consumer]
+author    = "Peter Oberparleiter <peter.oberparleiter@de.ibm.com>"
+state     = active
+format    = env
+frequency = both
+event     = any
+type      = report
+
+[param show_exception_details]
+default = 0
+
+[param show_stats]
+default = 0
+
+[param show_info]
+default = 0
+
+[param full_hostname]
+default = 0

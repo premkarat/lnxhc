@@ -1,0 +1,136 @@
+[summary     no_kdump]
+kdump is not configured
+
+[explanation no_kdump]
+Your Linux instance is not configured for kdump.  Enable kdump
+to automatically create a dump if a kernel panic occurs.
+
+[solution    no_kdump]
+You typically configure kdump with tools provided by your Linux distribution.
+
+To manually configure kdump, complete these steps:
+
+  1. Use the crashkernel= kernel parameter to reserve memory for
+     the crash kernel.  For example, specify crashkernel=128M.
+  2. Issue the zipl command and reboot your Linux instance.
+  3. Load the kdump kernel and initrd using the kexec-tools suite.
+     For example,
+
+     ## kexec -p <image> --initrd <initrd> --command-line "<kparms>"
+
+     where <image> specifies the kdump image and <initrd> specifies the
+     initial RAM disk of the kdump kernel.  The <initrd> can be omitted
+     if the kdump kernel does not require an initial RAM disk.
+     The <kparms> option specifies kernel parameters for the kdump kernel.
+
+[reference   no_kdump]
+For more information about the dump tools available for Linux on System z,
+see "Using the Dump Tools".
+You can obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+
+
+[summary     no_kdump_standalone]
+dumpconf is not configured as kdump fallback
+
+[explanation no_kdump_standalone]
+The standalone dump configuration using dumpconf is not configured as a
+fallback for kdump.
+
+[solution    no_kdump_standalone]
+To configure a fallback for an existing kdump setup, complete these steps:
+
+  1. Plan and prepare your dump device.
+  2. Edit /etc/sysconfig/dumpconf and configure the dump-on-panic action.
+     Possible actions are dump, dump_reipl, or vmcmd with a CP VMDUMP command.
+  3. Activate the dumpconf service with chkconfig and then start the service.
+
+
+[reference   no_kdump_standalone]
+See the dumpconf man page.
+
+For more information about the dump tools available for Linux on System z,
+see "Using the Dump Tools".
+You can obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+
+
+[summary     no_kdump_dumpconf]
+The dumpconf service is not active
+
+[explanation no_kdump_dumpconf]
+Your Linux instance is configured for dump-on-panic as a fallback for
+an existing kdump setup, but the dumpconf service is not automatically
+started during the boot process.
+
+[solution    no_kdump_dumpconf]
+To configure and activate the dump service, complete these steps:
+
+  1. Edit /etc/sysconfig/dumpconf and configure the dump-on-panic action.
+     Possible actions are dump, dump_reipl, or vmcmd with a CP VMDUMP command.
+  2. Activate the dumpconf service with chkconfig and then start the service.
+
+[reference   no_kdump_dumpconf]
+See the dumpconf man page.
+
+For more information about the dump tools available for Linux on System z,
+see "Using the Dump Tools".
+You can obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+
+
+[summary     no_standalone]
+The dump-on-panic function is not enabled
+
+[explanation no_standalone]
+Your Linux instance is not configured for dump-on-panic.
+Configure dump-on-panic to automatically create a dump if a kernel panic
+occurs.
+
+[solution    no_standalone]
+To configure dump-on-panic, complete these steps:
+
+  1. Plan and prepare your dump device.
+  2. Edit /etc/sysconfig/dumpconf and configure the dump-on-panic action.
+     Possible actions are dump, dump_reipl, or vmcmd with a CP VMDUMP command.
+  3. Activate the dumpconf service with chkconfig and then start the service.
+
+[reference   no_standalone]
+See the dumpconf man page.
+
+For more information about the dump tools available for Linux on System z,
+see "Using the Dump Tools".
+You can obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+
+
+[summary     no_dumpconf]
+The dumpconf service is not active
+
+[explanation no_dumpconf]
+Your Linux instance is configured for dump-on-panic, but the dumpconf service
+is not automatically started during the boot process.
+
+[solution    no_dumpconf]
+To configure and activate the dump service, complete these steps:
+
+  1. Edit /etc/sysconfig/dumpconf and configure the dump-on-panic action.
+     Possible actions are dump, dump_reipl, or vmcmd with a CP VMDUMP command.
+  2. Activate the dumpconf service with chkconfig and then start the service.
+
+[reference   no_dumpconf]
+See the dumpconf man page.
+
+For more information about the dump tools available for Linux on System z,
+see "Using the Dump Tools".
+You can obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html

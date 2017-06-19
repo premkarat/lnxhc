@@ -1,0 +1,89 @@
+#!/usr/bin/perl
+#
+# crypto_cca_stack
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_CRYPTO_COPROCESSORS_NOT_ONLINE = "crypto_coprocessors_not_available";
+my $LNXHC_EXCEPTION_RPMS_NOT_INSTALLED = "rpms_not_installed";
+
+# Path to the file containing data for sysinfo item 'rpm_query_all'.
+my $sysinfo_rpm_query_all = $ENV{"LNXHC_SYSINFO_rpm_query_all"};
+
+# Path to the file containing data for sysinfo item 'dev_node'.
+my $sysinfo_dev_node = $ENV{"LNXHC_SYSINFO_dev_node"};
+
+# Path to the file containing data for sysinfo item 'hw_info'.
+my $sysinfo_hw_info = $ENV{"LNXHC_SYSINFO_hw_info"};
+
+# Return code for sysinfo item 'dev_node'
+my $rc_dev_node = $ENV{"LNXHC_SYSINFO_EXIT_CODE_dev_node"};
+
+my $handle;
+
+# Defining the RPM names required.
+my $cca_rpm = "csulcca";
+
+# Checking required module loaded or not
+if ($rc_dev_node > 0) {
+	lnxhc_fail_dep("The System z cryptography kernel module is not loaded");
+} else {
+	# Checking required hardware available or not
+	my $handle;
+	open ($handle, "<", $sysinfo_hw_info) or
+	die("Couldn't open file: $sysinfo_hw_info: $!\n");
+
+	my $hw_cop;
+	while (<$handle>) {
+		next unless /^card\d+: CEX/;
+		if (/^card\d+: CEX\d+C/) {
+			$hw_cop = 1;
+		}
+	}
+	close($handle);
+	unless ($hw_cop) {
+		lnxhc_exception($LNXHC_EXCEPTION_CRYPTO_COPROCESSORS_NOT_ONLINE);
+		lnxhc_exception_var("crypto_hw", "Cryptographic Coprocessor");
+		# No need to check any further
+		exit(0);
+	}
+}
+
+# Checking required RPMs installed or not
+open ($handle, "<", $sysinfo_rpm_query_all) or
+	die("Couldn't open file: $sysinfo_rpm_query_all: $!\n");
+
+my @rpm_query_file = <$handle>;
+close ($handle);
+my @csulcca = grep { /^$cca_rpm-\d+.*\.s390x$/ } @rpm_query_file;
+
+unless (@csulcca) {
+	lnxhc_exception($LNXHC_EXCEPTION_RPMS_NOT_INSTALLED);
+	lnxhc_exception_var("rpm_summ", $cca_rpm);
+	lnxhc_exception_var("rpm", $cca_rpm);
+}
+
+exit(0);

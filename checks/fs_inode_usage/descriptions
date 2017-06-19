@@ -1,0 +1,29 @@
+[title]
+Check file systems for an adequate number of free inodes
+
+[description]
+Many Linux file systems maintain metadata about file system objects
+(for example, files or folders) in inodes. Each object has a separate inode.
+When a file system runs out of free inodes, no further files or folders
+can be created, even if plenty of free disk space is available.
+
+Some applications and administrative tasks require an adequate number of free
+inodes on each mounted file system. If there are not enough free inodes,
+these applications might no longer be available or the complete system might
+be compromised. Regular monitoring of inode usage can avert this risk.
+
+[param warn_limit]
+Usage of the available inodes of the file system (in percent) at which to raise
+a low-severity exception. Valid values are integers in the range 1 to 100.
+
+[param critical_limit]
+Usage of the available inodes of the file system (in percent) at which to raise
+a high-severity exception. Valid values are integers in the range 1 to 100.
+
+[param mount_points]
+A list of mount points, separated by colons (:). The file systems mounted at
+the specified mount points are to be checked for free inodes. If the list is
+empty, all mounted file systems are checked.
+
+Example:
+#/mnt:/home/mymnt:/usr/data/myapp

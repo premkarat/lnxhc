@@ -1,0 +1,669 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc_properties 7 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.SH NAME
+lnxhc_properties \- Linux Health Checker properties
+.
+.SH DESCRIPTION
+The \*[lhc] provides identifiers called "property keys" to enable users to
+address individual data attributes of objects such as a health check, a
+consumer, or sysinfo data. You can use property keys to display or modify
+these attributes, or to select objects based on attribute values.
+.PP
+A property key consists of a concatenation of words separated by dots. Each word
+is either a placeholder (for example for a check name), or a keyword (for
+example "duration").
+.PP
+.B Example:
+.br
+This property key addresses the state of check "fs_disk_usage":
+.br
+.CL fs_disk_usage.state
+.PP
+Property keys and the associated actions are primarily intended for use by
+advanced users who have a good understanding of the concepts of the
+\*[lhc], or for use in automated operations by other applications.
+.PP
+.
+.
+.SH "CHECK PROPERTIES"
+.SS "Placeholders in property keys for health checks"
+Property keys for health checks can contain the following placeholders:
+.
+.TP
+.I check_name
+Health check name.
+
+.RS
+.NT You can omit this name in property keys used for actions which accept a selection argument. The \*[lhc] then expands the property key to a list of property keys by using the name of each selected check.
+.RE
+.
+.TP
+.I author_num
+Index for the list of health check authors. This starts with 0.
+.
+.TP
+.I extrafile_num
+Index for the list of extra health check files. This starts with 0.
+.
+.TP
+.I dep_num
+Index for the list of health check dependencies. This starts with 0.
+.
+.TP
+.I parameter_id
+Parameter ID.
+.
+.TP
+.I sysinfo_id
+System information item ID.
+.
+.TP
+.I prog_extrafile_num
+Index for the list of extra files for a program-type system information item.
+This starts with 0.
+.
+.TP
+.I rec_extrafile_num
+Index for the list of extra files for a record-type system information item.
+This starts with 0.
+.
+.TP
+.I exception_id
+Exception ID.
+.RE
+.
+.SS "Property keys for health checks"
+.
+The \*[lhc] defines the following property keys for health checks:
+.
+.TP
+.IR  check_name .id
+Health check name.
+.
+.TP
+.IR  check_name .title
+Health check title.
+.
+.TP
+.IR  check_name .desc
+Health check description.
+.
+.TP
+.IR  check_name .author. author_num
+Author information.
+.
+.TP
+.IR  check_name .default_state
+Numerical representation of the default activation state of this check. This
+property can take one of the values 0 or 1, corresponding to the activation
+states inactive and active.
+.
+.TP
+.IR  check_name .state
+Numerical representation of the current activation state of this check. This
+property can take one of the values 0 or 1, corresponding to the activation
+states inactive and active. You can modify this property.
+.
+.TP
+.IR  check_name .component
+Identifier describing the component that is being checked.
+.
+.TP
+.IR  check_name .default_repeat
+Default interval at which this check is repeated.
+.
+.TP
+.IR  check_name .repeat
+Current interval at which this check is repeated. You can modify this
+property.
+See action \-\-rec\-duration in the
+.MP lnxhc-check 1
+man page for an explanation of the format used to specify the interval.
+.
+.TP
+.IR  check_name .multihost
+If this is non-zero, the check analyzes data from multiple hosts at the same
+time.
+.
+.TP
+.IR  check_name .multitime
+If this is non-zero, the check analyzes data from multiple instances (that is,
+points in time) at the same time.
+.
+.TP
+.IR  check_name .dir
+Name of the directory in which this check is installed.
+.
+.TP
+.IR  check_name .system
+If this is non-zero, the check is installed in the system-wide database.
+Otherwise it is installed in the user database.
+.
+.TP
+.IR  check_name .extrafile. extrafile_num
+Name of an additional file which this check provides.
+.
+.TP
+.IR  check_name .dep. dep_num
+Dependencies that must be met by a host so that a check is applicable to
+analyze data from that host. These dependencies are defined by statements
+that compare the contents of system variables provided by a host with values
+provided by the check author. See the
+.MP lnxhc_check_definitions 5
+man page for more information on dependencies.
+.
+.TP
+.IR  check_name .param. parameter_id .id
+ID of this parameter.
+.
+.TP
+.IR  check_name .param. parameter_id .desc
+Description of this parameter.
+.
+.TP
+.IR  check_name .param. parameter_id .default_value
+Default value of this parameter.
+.
+.TP
+.IR  check_name .param. parameter_id .value
+Current value of this parameter. You can modify this property.
+.
+.TP
+.IR  check_name .si. sysinfo_id .id
+ID of this system information item.
+.
+.TP
+.IR  check_name .si. sysinfo_id .type
+Numerical representation of the type of this system information item. This
+property can take one of the values 0, 1, 2, 3, or 4, corresponding to the
+system information item types file, program, record, reference and external.
+.
+.TP
+.IR  check_name .si. sysinfo_id .file_filename
+Name of a file that this system information item defines as input source.
+.
+.TP
+.IR  check_name .si. sysinfo_id .file_user
+Name of the user ID that the \*[lhc] uses to access the specified
+file.
+.
+.TP
+.IR  check_name .si. sysinfo_id .prog_cmdline
+The \*[lhc] runs this command-line to collect the data defined
+by this system information item.
+.
+.TP
+.IR  check_name .si. sysinfo_id .prog_user
+Name of the user ID that the \*[lhc] uses to run the command-line
+defined by this system information item.
+.
+.TP
+.IR  check_name .si. sysinfo_id .prog_ignorerc
+If this is non-zero, the \*[lhc] runs this health check
+even if the specified program used to collect system information terminated
+with a non-zero exit code.
+.
+.TP
+.IR  check_name .si. sysinfo_id .prog_extrafile. prog_extrafile_num
+Name of an additional file which this system information item provides.
+.
+.TP
+.IR  check_name .si. sysinfo_id .rec_start
+The command-line that the \*[lhc] runs to start the
+collection of data defined by this system information item.
+.
+.TP
+.IR  check_name .si. sysinfo_id .rec_stop
+The command-line that the \*[lhc] runs to stop the
+collection of data defined by this system information item.
+.
+.TP
+.IR  check_name .si. sysinfo_id .rec_default_duration
+The default duration that the \*[lhc] waits after
+running the start command-line and before running the stop command-line.
+See action \-\-rec\-duration in the
+.MP lnxhc-check 1
+man page for an explanation of the duration format.
+.
+.TP
+.IR  check_name .si. sysinfo_id .rec_duration
+The current duration that the \*[lhc] waits after
+running the start command-line and before running the stop command-line.
+See action \-\-rec\-duration in the
+.MP lnxhc-check 1
+man page for an explanation of the duration format.
+You can modify this property.
+.
+.TP
+.IR  check_name .si. sysinfo_id .rec_user
+Name of the user ID that the \*[lhc] uses to run the start and
+stop command-lines defined by this system information item.
+.
+.TP
+.IR  check_name .si. sysinfo_id .rec_extrafile. rec_extrafile_num
+Name of an additional file which this system information item provides.
+.
+.TP
+.IR  check_name .si. sysinfo_id .ref_check_name
+Name of the check that this system information item refers to.
+.
+.TP
+.IR  check_name .si. sysinfo_id .ref_sysinfo_id
+ID of the system information item that this system information item refers to.
+.
+.TP
+.IR  check_name .ex. exception_id .id
+ID of this exception.
+.
+.TP
+.IR  check_name .ex. exception_id .default_sev
+Numerical representation of the default severity of this exception. This
+property can take one of the values 0, 1, or 2, corresponding to the severity
+levels low, medium and high.
+.
+.TP
+.IR  check_name .ex. exception_id .sev
+Numerical representation of the current severity of this exception. This
+property can take one of the values 0, 1, or 2, corresponding to the severity
+levels low, medium and high. You can modify this property.
+.
+.TP
+.IR  check_name .ex. exception_id .default_state
+Numerical representation of the default activation state of this exception. This
+property can take one of the values 0 or 1, corresponding to the activation
+states inactive and active.
+.
+.TP
+.IR  check_name .ex. exception_id .state
+Numerical representation of the current activation state of this exception. This
+property can take one of the values 0 or 1, corresponding to the activation
+states inactive and active. You can modify this property.
+.
+.TP
+.IR  check_name .ex. exception_id .summary
+Text template for the summary section of the message of this exception.
+.
+.TP
+.IR  check_name .ex. exception_id .explanation
+Text template for the explanation section of the message of this exception.
+.
+.TP
+.IR  check_name .ex. exception_id .solution
+Text template for the solution section of the message of this exception.
+.
+.TP
+.IR  check_name .ex. exception_id .reference
+Text template for the reference section of the message of this exception.
+.
+.
+.SH "CONSUMER PROPERTIES"
+.SS "Placeholders in property keys for consumers"
+Property keys for consumers can contain the following placeholders:
+.TP
+.I consumer_name
+Consumer name.
+
+.RS
+.NT You can omit this name in property keys used for actions which accept a selection argument. The \*[lhc] then expands the property key to a list of property keys by using the name of each selected consumer.
+.RE
+.
+.TP
+.I author_num
+Index for the list of consumer authors. This starts with 0.
+.
+.TP
+.I extrafile_num
+Index for the list of extra consumer files. This starts with 0.
+.
+.TP
+.I parameter_id
+Parameter ID.
+.RE
+.
+.SS "Property keys for consumers"
+The \*[lhc] defines the following property keys for consumers:
+.TP
+.IR consumer_name .id
+Consumer name.
+.
+.TP
+.IR consumer_name .title
+Consumer title.
+.
+.TP
+.IR consumer_name .desc
+Consumer description.
+.
+.TP
+.IR consumer_name .author. author_num
+Author information.
+.
+.TP
+.IR consumer_name .default_state
+Numerical representation of the default activation state of this consumer. This
+property can take one of the values 0 or 1, corresponding to the activation
+states inactive and active.
+.
+.TP
+.IR consumer_name .state
+Numerical representation of the current activation state of this consumer. This
+property can take one of the values 0 or 1, corresponding to the activation
+states inactive and active. You can modify this property.
+.
+.TP
+.IR consumer_name .format
+Numerical representation of the format in which the \*[lhc]
+passes data to this consumer. This property can take one of the values 0 or 1,
+corresponding to the format specifications xml and env.
+See the
+.MP lnxhc_cons_definitions 5
+man page for more information on consumer format specifications.
+.
+.TP
+.IR consumer_name .freq
+Numerical representation of the frequency at which the \*[lhc]
+calls this consumer. This property can take one of the values 0, 1, or 2,
+corresponding to the frequency specifications foreach, once and both.
+See the
+.MP lnxhc_cons_definitions 5
+man page for more information on consumer frequency specifications.
+.
+.TP
+.IR consumer_name .event
+Numerical representation of the type of event for which the \*[lhc]
+calls this consumer. This property can take one of the values 0 or 1,
+corresponding to the event type specifications ex and any.
+See the
+.MP lnxhc_cons_definitions 5
+man page for more information on consumer event type specifications,
+.
+.TP
+.IR consumer_name .type
+Numerical representation of the type of this consumer. This property can take
+one of the values 0 or 1, corresponding to the consumer types handler and
+report.
+.
+.TP
+.IR  consumer_name .dir
+Name of the directory in which this consumer is installed.
+.
+.TP
+.IR  consumer_name .system
+If this is non-zero, the consumer is installed in the system-wide database.
+Otherwise it is installed in the user database.
+.
+.TP
+.IR  consumer_name .extrafile. extrafile_num
+Name of an additional file which this consumer provides.
+.
+.TP
+.IR  consumer_name .param. parameter_id .id
+ID of this parameter.
+.
+.TP
+.IR  consumer_name .param. parameter_id .desc
+Description of this parameter.
+.
+.TP
+.IR  consumer_name .param. parameter_id .default_value
+Default value of this parameter.
+.
+.TP
+.IR  consumer_name .param. parameter_id .value
+Current value of this parameter. You can modify this property.
+.
+.
+.SH "PROFILE PROPERTIES"
+.SS "Placeholders in property keys for configuration profiles"
+Property keys for configuration profiles can contain the following placeholders:
+.TP
+.I profile_name
+Configuration profile name.
+
+.RS
+.NT You can omit this name in property keys used for actions which accept a selection argument. The \*[lhc] then expands the property key to a list of property keys by using the name of each selected profile.
+.RE
+.
+.TP
+.I check_name
+Health Check name.
+.
+.TP
+.I parameter_id
+Parameter ID.
+.
+.TP
+.I sysinfo_id
+System information item ID.
+.
+.TP
+.I exception_id
+Exception ID.
+.
+.TP
+.I consumer_name
+Consumer name.
+.
+.RE
+.
+.SS "Property keys for configuration profiles"
+The \*[lhc] defines the following property keys for configuration
+profiles:
+.TP
+.IR  profile_name .id
+Configuration profile name.
+.
+.TP
+.IR  profile_name .desc
+Configuration profile description.
+.
+.TP
+.IR  profile_name .filename
+Name of the file which contains the profile.
+.
+.TP
+.IR  profile_name .system
+If this is non-zero, the profile is installed in the system-wide database.
+Otherwise it is installed in the user database.
+.
+.TP
+.IR  profile_name .check. check_name .state
+Numerical representation of the current activation state of this check. This
+property can take one of the values 0 or 1, corresponding to the activation
+states inactive and active.
+.
+.TP
+.IR  profile_name .check. check_name .repeat
+Current interval at which this check is repeated.
+See action \-\-rec\-duration in the
+.MP lnxhc-check 1
+man page for an explanation of the format used to specify the interval.
+.
+.TP
+.IR  profile_name .check. check_name .param. parameter_id .value
+Current value of this health check parameter.
+.
+.TP
+.IR  profile_name .check. check_name .ex. exception_id .sev
+Numerical representation of the current severity of this exception. This
+property can take one of the values 0, 1, or 2, corresponding to the severity
+levels low, medium, and high.
+.
+.TP
+.IR  profile_name .check. check_name .ex. exception_id .state
+Numerical representation of the current activation state of this exception. This
+property can take one of the values 0 or 1, corresponding to the activation
+states inactive and active.
+.
+.TP
+.IR  profile_name .check. check_name .si. sysinfo_id .rec_duration
+The current duration that the \*[lhc] waits after
+running the start command-line and before running the stop command-line
+for this record-type system information item.
+See action \-\-rec\-duration in the
+.MP lnxhc-check 1
+man page for an explanation of the duration format.
+.
+.TP
+.IR  profile_name .cons. consumer_name .state
+Numerical representation of the current activation state of this consumer. This
+property can take one of the values 0 or 1, corresponding to the activation
+states inactive and active.
+.
+.TP
+.IR  profile_name .cons. consumer_name .param. parameter_id .value
+Current value of this consumer parameter.
+.
+.
+.SH "SYSINFO PROPERTIES"
+.SS "Placeholders in property keys for system information"
+Property keys for system information can contain the following placeholders:
+.
+.TP
+.I inst_num
+Index for the list of instance datasets. This starts with 0.
+.
+.TP
+.I host_num
+Index for the list of host datasets of one instance. This starts with 0.
+.
+.TP
+.I item_num
+Index for the list of item datasets of one host. This starts with 0.
+.
+.TP
+.I sysvar_id
+System variable ID.
+.RE
+.
+.SS "Property keys for health checks"
+.
+The \*[lhc] defines the following property keys for system information:
+.TP
+.IR inst_num
+An instance dataset.
+.
+.TP
+.IR inst_num .id
+ID of this instance.
+.
+.TP
+.IR inst_num .host. host_num
+A host dataset.
+.
+.TP
+.IR inst_num .host. host_num .id
+ID of this host.
+.
+.TP
+.IR inst_num .host. host_num .sysvar. sysvar_id
+Value of a system variable for this host.
+.
+.TP
+.IR inst_num .host. host_num .item. item_num
+An item dataset.
+.
+.TP
+.IR inst_num .host. host_num .item. item_num .id
+Data ID of this item.
+.
+.TP
+.IR inst_num .host. host_num .item. item_num .start_time
+Time at which collection of this item started. The time is measured in seconds
+since the start of the epoch (00:00:00 UTC, January 1, 1970).
+.
+.TP
+.IR inst_num .host. host_num .item. item_num .end_time
+Time at which collection of this item ended. The time is measured in seconds
+since the start of the epoch (00:00:00 UTC, January 1, 1970).
+.
+.TP
+.IR inst_num .host. host_num .item. item_num .rc
+Numerical representation of the result code for this item. This property
+can take one of the values 0 or 1, corresponding to the result codes failed
+and ok.
+.
+.TP
+.IR inst_num .host. host_num .item. item_num .data
+The data content of this item.
+.
+.TP
+.IR inst_num .host. host_num .item. item_num .err_data
+The error content of this item.
+.RE
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc-check 1 ,
+.MP lnxhc-consumer 1 ,
+.MP lnxhc-profile 1 ,
+.MP lnxhc-sysinfo 1

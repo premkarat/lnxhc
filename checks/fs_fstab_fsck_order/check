@@ -1,0 +1,126 @@
+#!/usr/bin/perl
+#
+# fs_fstab_fsck_order
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+# Exception IDs
+my $LNXHC_EXCEPTION_ROOT_NOT_CHECKED = "root_not_checked";
+my $LNXHC_EXCEPTION_ROOT_LOW_PRIO_CHECK = "root_low_prio_check";
+my $LNXHC_EXCEPTION_FILESYSTEM_NOT_CHECKED = "filesystem_not_checked";
+
+# Path to the file containing data for sysinfo item 'fstab'.
+my $sysinfo_fstab = $ENV{"LNXHC_SYSINFO_fstab"};
+
+# Path to the file containing data for sysinfo item 'vfs'.
+my $sysinfo_vfs = $ENV{"LNXHC_SYSINFO_vfs"};
+
+sub main()
+{
+	my %mount_points = %{parse_list_param("mount", ':')};
+	my %exclude_list = %{parse_list_param("exclude", ':')};
+
+	my ($device, $directory, $fstype, $option, $order);
+	my $handle;
+	my @filesystem_not_checked;
+	my $fh;
+	my $vfs = {};
+
+	open($fh, "<", $sysinfo_vfs) or
+		die("Could not open $sysinfo_vfs");
+
+	while (<$fh>) {
+		if (/^nodev\s+(\S+)/) {
+			$vfs->{$1} = 1;
+		}
+	}
+
+	close($fh);
+
+	open($handle, "<", $sysinfo_fstab) or
+		die("Could not open $sysinfo_fstab");
+
+	while (<$handle>) {
+		chomp();
+
+		# skip comment lines
+		next if (/^#/);
+
+		# skip blank lines
+		next if (/^\s*$/);
+
+		if (/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+\d\s+(\d)/) {
+			# 5th, 6th field present
+			($device, $directory, $fstype, $option, $order) = ($1,
+			$2, $3, $4, $5);
+		} elsif (/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+/) {
+			# first 4 fields are present
+			($device, $directory, $fstype, $option, $order) = ($1,
+			$2, $3, $4, 0);
+		} else {
+			# fstab misses other fields
+			next;
+		}
+
+		# check for spaces in directory
+		$directory =~ s/\\040/ /g;
+
+		next if ($fstype =~ /^(?:none|ignore|auto|swap)$/);
+
+		next if (grep /^(?:nofail)$/, split(/,/, $option));
+
+		# should this directory be checked?
+		next if (%mount_points && !exists $mount_points{$directory});
+
+		# should this directory be excluded?
+		next if (%exclude_list && exists $exclude_list{$directory});
+
+		# skip nodev entries
+		next if exists $vfs->{$fstype};
+
+		# root should be checked 1st
+		if ($directory =~ m#^/$#) {
+			if ($order == 0) {
+				lnxhc_exception($LNXHC_EXCEPTION_ROOT_NOT_CHECKED);
+			} elsif ($order == 2) {
+				lnxhc_exception($LNXHC_EXCEPTION_ROOT_LOW_PRIO_CHECK);
+			}
+		} elsif ($order == 0) {
+			push(@filesystem_not_checked, $directory);
+		}
+	}
+
+	close($handle);
+
+	if (@filesystem_not_checked) {
+		lnxhc_exception($LNXHC_EXCEPTION_FILESYSTEM_NOT_CHECKED);
+
+		lnxhc_exception_var_list("filesystem_list_summary", \@filesystem_not_checked, ',');
+
+		foreach (@filesystem_not_checked) {
+			lnxhc_exception_var("filesystem_not_checked", join(", ", $_));
+		}
+	}
+}
+
+&main();
+__DATA__
+__END__

@@ -1,0 +1,304 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc_check_exceptions 5 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.
+.SH NAME
+lnxhc_check_exceptions \- Define health check exception messages
+.
+.
+.SH DESCRIPTION
+The
+.B exceptions
+file of a health check defines the exception message that the \*[lhc]
+displays when the corresponding health check program identifies a problem.
+Exception messages contain information about the problem, including a possible
+solution and references to related documentation.
+.PP
+.
+.
+.SS "Example exceptions file"
+.RS 4
+.CL \f(CB[summary critical_limit]\fP
+.CL The critical threshold of &param_critical_limit;% disk space usage
+.CL is exceeded on some file systems (&critical_exceeded_list_summary;)
+.CL
+.CL \f(CB[explanation critical_limit]\fP
+.CL The percentage of used disk space on one or more file systems
+.CL has exceeded the specified critical threshold of
+.CL &param_critical_limit;%.
+.CL
+.CL Further increase in the amount of used space is likely to
+.CL compromise the availability of an application or of the
+.CL complete system.
+.CL
+.CL The following file systems exceed the threshold:
+.CL
+.CL &critical_exceeded_list;
+.CL
+.CL To view the current disk space usage, run the \[dq]df\[dq] command with no
+.CL parameters.
+.CL
+.CL \f(CB[solution critical_limit]\fP
+.CL Free disk space on the affected file systems. For example,
+.CL delete obsolete files and move directories with growing space
+.CL requirements to separate file systems.
+.CL
+.CL \f(CB[reference critical_limit]\fP
+.CL See the man page of the \[dq]df\[dq] command.
+.PP
+.RE
+.
+.
+.SH "FILE FORMAT"
+Data is stored in lines of text that are grouped into named sections. Text
+encoding is UTF-8. Each line can contain data in one of the following
+formats:
+.PP
+.
+.
+.SS "Section heading"
+A section heading line consists of one or more identifiers, separated by blanks
+and enclosed in square brackets ("[ ]"). Identifiers consist of
+lowercase-letters a-z, digits 0-9, and the underscore sign.
+.PP
+.B Example:
+.br
+.CL [summary warn_limit]
+.PP
+.
+.
+.SS Text
+A text line contains arbitrary characters or entities. Entities are
+placeholders for data that the \*[lhc] or the health check program provides
+at run-time. Entities are identified by an ampersand sign ("&"), followed by
+an identifier, followed by a semicolon (";").
+.PP
+.B Example:
+.br
+.CL The warning threshold of &param_warn_limit;% disk space usage is
+.br
+.CL exceeded on some file systems (&warn_exceeded_list_summary;)
+.PP
+This example text uses two entities,
+.B param_warn_limit
+which is automatically
+set by the \*[lhc] to the value of the health check parameter "warn_limit",
+and
+.BR warn_exceeded_list_summary ,
+which is set to a value provided by the health check program.
+.PP
+Entity identifiers consist of lowercase letters a-z, digits 0-9, and the
+underscore sign. Health check authors can choose arbitrary identifiers
+as long as they do not conflict with one of the built-in entities.
+The \*[lhc] provides the following entities:
+.TP
+.BI &param_ param_id ;
+The value of parameter
+.IR param_id .
+.PP
+.
+.
+.SH SECTIONS
+The sections in the list below are valid in an exceptions file. Each
+section is mandatory and must be present exactly once per exception. There
+is no restriction on the order in which sections appear, but keep all sections
+for one exception together.
+.PP
+The
+.I identifier
+in each section heading specifies the name of the exception to which the
+section applies.
+.PP
+.BI [summary " identifier" ]
+.RS
+This section contains a summary of the problem. The summary should be kept
+short but include enough information for users familiar with the problem to
+recognize it.
+.PP
+.B Example:
+.br
+.CL The critical threshold of 90% disk space usage is exceeded
+.CL on some file systems (/ 99%)
+.PP
+.RE
+.
+.BI [explanation " identifier" ]
+.RS
+This section contains a detailed text explaining the problem. Such an
+explanation must at least answer the following questions:
+.PP
+.RS 4
+.IP \(bu 2
+What is the problem?
+.IP \(bu 2
+What is the potential impact on the checked component?
+.IP \(bu 2
+What are the steps to manually verify that the problem exists?
+.PP
+.RE
+The explanation should be written so that users with only basic knowledge
+of the checked component can still understand the problem.
+.PP
+.RE
+.
+.BI [solution " identifier" ]
+.RS
+This section contains a detailed text describing how the problem can be
+solved. If there are multiple solutions, one solution should be chosen
+and described in this section. The description should make it clear that there
+may be more than one way to solve the problem.
+.PP
+.RE
+.
+.BI [reference " identifier" ]
+.RS
+This section contains a list of references to resources (tutorials, papers,
+best practice documents, man pages, mailing list postings, publicly available
+bug reports, etc.) which users can consult to obtain more information on the
+problem and options on how to solve it.
+.PP
+.RE
+.
+.
+.SH GUIDELINES
+When writing exception messages, consider the following guidelines which
+might help maintaining a consistent message quality.
+.PP
+.RS 4
+.IP 1. 3
+Keep the
+.B Summary
+brief. This makes it easy to grasp and also useful for an email subject.
+However, the overriding concern is that all important information is included.
+.
+.IP 2. 3
+Omit the period from the
+.BR Summary .
+This provides more freedom for variables at the end and is more suited to use
+as an email topic.
+.
+.IP 3. 3
+The
+.B Explanation
+starts with a problem description. This should be more detailed than the
+description in the Summary. If no appropriate detail can be given, re-state
+the Summary. This is because the Summary can be separated from the main text,
+for example, if used as an email subject.
+.
+.IP 4. 3
+The
+.B Solution
+should focus on a single solution without implying that this is the only
+solution. Depending on the topic it might be useful to mention several
+solutions, possibly pointing off to more explicit descriptions, such as
+how-to documents, man pages, or URLs.
+.
+.IP 5. 3
+Ideally, URLs in the
+.B Reference
+section should point to a topic that is closely related to the problem.
+It should also be a high-level URL that is likely to remain unchanged.
+If a low-level URL is used, also give the page title to assist in finding
+the site, should the URL or title change.
+.
+.IP 6. 3
+If there are no references in the
+.B Reference
+section say: None.
+.
+.IP 7. 3
+Use double quotation marks (") for highlighting command names, keywords, and
+values; but not for file names and paths.
+.PP
+.RE
+.
+.
+.SH FORMATTING
+Text in an exceptions file can be enhanced with basic formatting elements,
+such as paragraphs, preformatted text, lists, and simple tables. See the
+.MP lnxhc_text_format 7
+man page for more information on available formatting elements.
+.
+.
+.SH LOCALIZATION
+The default language for an exceptions file is American English (en_US).
+Add translated versions of the exceptions file to a subdirectory of the
+health check directory. This sub-directory must be named after the code of the
+language to which the translation applies. See the
+.MP locale 1
+man page for details.
+.PP
+.
+.
+.SH SEE ALSO
+.MP lnxhc 1 ,
+.MP lnxhc_text_format 7 ,
+.MP lnxhc_writing_checks 7

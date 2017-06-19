@@ -1,0 +1,35 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "crypto/openssl"
+state = inactive
+
+[deps]
+sys_platform=s390x
+(sys_distro=RHEL and sys_rhel_version>=5.4) or (sys_distro=SLES and sys_sles_version>=11)
+
+[sysinfo rpm_query_all]
+program = "/bin/rpm -qa --queryformat='%{name}-%{version}-%{release}.%{arch}\n'"
+
+[sysinfo proc_cpuinfo]
+file = "/proc/cpuinfo"
+
+[sysinfo dev_node]
+program = "ls /dev/z90crypt"
+ignorerc = 1
+
+[sysinfo openssl_engine_data]
+program = "/usr/bin/openssl engine -c"
+ignorerc = 1
+
+[sysinfo hw_info]
+program = "/sbin/lszcrypt"
+ignorerc = 1
+
+[exception 32bit_rpms_not_installed]
+severity = high
+
+[exception crypto_adapters_not_available]
+severity = medium
+
+[exception ibmca_not_configured]
+severity = high

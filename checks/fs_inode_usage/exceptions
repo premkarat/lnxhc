@@ -1,0 +1,63 @@
+[summary warn_limit]
+The warning threshold of &param_warn_limit;% inode usage
+is exceeded on some file systems (&warn_exceeded_list_summary;)
+
+[explanation warn_limit]
+The percentage of used inodes on one or more file systems has exceeded the
+specified warning threshold of &param_warn_limit;%.
+
+Many Linux file systems maintain metadata about file system objects
+(for example, files or folders) in inodes. Each object has a separate inode
+When a file system runs out of free inodes, no further files or folders
+can be created, even if plenty of free disk space is available.
+
+Further increase in the number of used inodes might compromise the availability
+of an application or of the complete system.
+
+The following file systems exceed the threshold:
+
+&warn_exceeded_list;
+
+To view the current inode usage, run the "df -i" command with no parameters.
+
+[solution warn_limit]
+Monitor the disk inode usage.
+Consider deleting obsolete files or moving directories to free some inodes.
+
+[reference warn_limit]
+See the man page of the "df" command.
+
+[summary critical_limit]
+The critical threshold of &param_critical_limit;% inode usage is exceeded on some file systems (&critical_exceeded_list_summary;)
+
+[explanation critical_limit]
+The percentage of used inodes on one or more file systems has exceeded the
+specified critical threshold of &param_critical_limit;%.
+
+Many Linux file systems maintain metadata about file system objects
+(for example, files or folders) in inodes. Each object has a separate inode.
+When a file system runs out of free inodes, no further files or folders
+can be created, even if plenty of free disk space is available.
+
+Further increase in the number of used inode is likely to compromise the
+availability of an application or of the complete system.
+
+The following file systems exceed the threshold:
+
+&critical_exceeded_list;
+
+To view the current inode usage, run the "df -i" command with no parameters.
+
+[solution critical_limit]
+Free some inodes on the affected file systems. For example, delete obsolete
+files and move directories to other file systems. Consider re-creating the
+file system, with more inodes. For the options required to control the number
+of inodes, see the mkfs.<filesystem> man page, where <filesystem> specifies
+your file system type.
+
+ATTENTION: Re-creating a file system destroys all contained data. Back up the
+data on the file system before you start.
+
+[reference critical_limit]
+See the man page of the "df" command and of the "mkfs.<filesystem>" command
+for your file system.

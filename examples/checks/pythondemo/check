@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+#
+# pythondemo
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Gowri Shankar <gowrishankar.m@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+
+# Import global modules
+import os
+import sys
+import re
+
+# Import local modules
+checklib = os.path.join(os.environ['LNXHC_LIBDIR'], 'python')
+sys.path.insert(0, checklib)
+from check.base import *
+from check.error import *
+
+class pythondemo(LnxhcCheck):
+	"""
+	Implementation of pythondemo Check
+	"""
+	def run(self):
+		"""
+		Runs check instructions
+		"""
+		# parse check command output
+		free = self.get_sysinfo('free')
+		memfound = 0
+
+		try:
+			fo = open(free, 'r')
+		except IOError:
+			raise LnxhcCheckError('failed to open sysinfo'\
+					       'free output')
+		for line in fo:
+			mo = re.match(r'.*?buffers.*?:\s.*?\d.*?\s.*?(\d.*?)\s.*',
+				      line, re.M|re.I)
+			if not mo:
+				continue
+			memfound = int(mo.group(1))
+		fo.close()
+
+		# Check if available free memory is more than
+		# low memory threshold.
+		threshold = int(self.get_param('low_mem_threshold'))
+		if (memfound < threshold):
+			ex_tlm = LnxhcException('too_low_memory')
+			ex_tlm.setxvar("lmem_threshold", threshold)
+			ex_tlm.setxvar("lmem_available", memfound)
+			self.cause(ex_tlm)
+			LnxhcCheck.debug("added %s exception into lnxhc" %
+					  ex_tlm)
+
+		# Check if available free memory is less than
+		# high memory threshold.
+		threshold = int(self.get_param('high_mem_threshold'))
+		if (memfound > threshold):
+			ex_thm = LnxhcException('too_high_memory')
+			ex_thm.setxvar("hmem_threshold", threshold)
+			ex_thm.setxvar("hmem_available", memfound)
+			self.cause(ex_thm)
+			LnxhcCheck.debug("added %s exception into lnxhc" %
+					  ex_thm)
+
+		return
+
+#
+# Code execution starts here
+#
+def main():
+	# Create LNXHC check class instance
+	lnxhc = pythondemo()
+	lnxhc.setup()
+
+	# Run check with information obtained through sysinfo
+	try:
+		lnxhc.run()
+	except LnxhcCheckDependency as e:
+		pythondemo.fail_dep(e)
+	except (LnxhcBaseError, LnxhcCheckError, LnxhcParamError,
+		LnxhcSysinfoError) as e:
+		pythondemo.error(e)
+
+	# LNXHC framework takes over control now.
+	return
+
+#
+# Code entry
+#
+if __name__ == "__main__":
+	main()
+	sys.exit(0)

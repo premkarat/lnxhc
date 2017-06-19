@@ -1,0 +1,12 @@
+[title]
+Check if control program identification can display meaningful
+Linux instance names
+
+[description]
+You can use the control program identification (CPI) to assign names to
+your Linux instances.  The names are used to identify Linux instances,
+for example, on the Hardware Management Console (HMC) or the service
+element (SE).
+
+To assign meaningful names to your Linux instances, the CPI needs names
+for your Linux system and sysplex.

@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+# Main program starts
+
+# Considering all the files in /proc/net/bonding path
+my $bond_dir = "/proc/net/bonding/";
+# Exiting with '0' not to cause the frame work error
+opendir(my $dh, $bond_dir) or exit(0);
+my @files = grep !/^\./,  readdir($dh);
+closedir $dh;
+
+foreach my $file (@files) {
+	my $handle;
+
+	open($handle, "<", "$bond_dir/$file") or die ("$!\n");
+	while (<$handle>) {
+		# Example line: "Slave Interface: eth1"
+		print "$file=$1\n" if(/Slave Interface: (.*)$/);
+	}
+	close($handle);
+}

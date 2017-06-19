@@ -1,0 +1,21 @@
+[check]
+author = "Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>"
+component = "process"
+
+[param time]
+default = "15"
+
+[param avgload]
+default = "90"
+
+[sysinfo loadavg]
+file = "/proc/loadavg"
+
+[sysinfo cpuinfo]
+file = "/proc/cpuinfo"
+
+[exception over_load]
+severity = high
+
+[exception high_load]
+severity = medium

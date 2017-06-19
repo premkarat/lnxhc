@@ -1,0 +1,89 @@
+#!/usr/bin/perl
+#
+# mem_usage
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+# Exception IDs
+my $LNXHC_EXCEPTION_WARN_LIMIT = "warn_limit";
+my $LNXHC_EXCEPTION_CRITICAL_LIMIT = "critical_limit";
+
+# Value of parameter 'warn_limit'.
+my $param_warn_limit = $ENV{"LNXHC_PARAM_warn_limit"};
+
+# Value of parameter 'critical_limit'.
+my $param_critical_limit = $ENV{"LNXHC_PARAM_critical_limit"};
+
+# Path to the file containing data for sysinfo item 'free'.
+my $sysinfo_free = $ENV{"LNXHC_SYSINFO_free"};
+
+check_int_param("warn_limit", 1, 100);
+check_int_param("critical_limit", 1, 100);
+
+sub main()
+{
+	my ($mem, $cache, $swap, $swap_used);
+
+	open(FILE, "<", $sysinfo_free) or
+		die("Could not read $sysinfo_free");
+
+	while (<FILE>) {
+		next if ($. == 1);
+
+		if (/Mem:\s+(\d+)/) {
+			 $mem = $1;
+		}
+
+		if (/\S+cache:\s+(\d+)/) {
+			$cache = $1;
+		}
+
+		if (/Swap:\s+(\d+)\s+(\d+)/) {
+			$swap = $1;
+			$swap_used = $2;
+		}
+
+	}
+
+	my $total = $mem + $swap;
+	my $used = $cache + $swap_used;
+
+	my $usage = sprintf ("%.2f", ($used/$total) * 100);
+	my $flag = 0;
+
+	if ($usage > $param_critical_limit) {
+		lnxhc_exception($LNXHC_EXCEPTION_CRITICAL_LIMIT);
+		lnxhc_exception_var("critical_limit", "$usage");
+		$flag = 1;
+	} elsif ($usage > $param_warn_limit) {
+		lnxhc_exception($LNXHC_EXCEPTION_WARN_LIMIT);
+		lnxhc_exception_var("warn_limit", "$usage");
+		$flag = 1;
+	}
+
+	if ($flag) {
+		lnxhc_exception_var("mem_used", "$cache of $mem");
+		lnxhc_exception_var("swap_used", "$swap_used of $swap");
+	}
+
+	close(FILE);
+}
+&main();
+__DATA__
+__END__

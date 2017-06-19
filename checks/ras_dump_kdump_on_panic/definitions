@@ -1,0 +1,18 @@
+[check]
+author = "Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>"
+component = "ras/dump"
+
+[sysinfo config]
+program = "/bin/cat /boot/config-$(uname -r)"
+
+[sysinfo crash_size]
+file = "/sys/kernel/kexec_crash_size"
+
+[sysinfo collect_status]
+file = "/sys/kernel/kexec_crash_loaded"
+
+[exception no_kdump_crash]
+severity = high
+
+[exception no_kdump]
+severity = high

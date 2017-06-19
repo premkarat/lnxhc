@@ -1,0 +1,311 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc_writing_checks 7 "lnxhc 1.3-1" 2010\-12\-29 "\*[lhc]"
+.
+.SH NAME
+lnxhc_writing_checks \- Create new health checks
+.
+.
+.SH DESCRIPTION
+A health check consists of a set of files. At the core there is a file
+called "check". This is an executable program that validates a data point in the
+configuration of a Linux instance and informs users of possible problems.
+.PP
+The following steps summarize what you need to do to create a health check.
+See the \*[lhc] User's Guide for details.
+.PP
+.RS 4
+.IP 1. 3
+Create the health check directory and required files.
+
+A health check requires a directory with a set of specific text files called
+definitions, descriptions, and exceptions.
+
+The directory name identifies the health check and must be unique. The name
+can be between 3 and 40 characters long. It can consist of lowercase letters
+a-z, digits 0-9, and the underscore sign ("_").
+
+You can create the files yourself or use the \f(CWlnxhc devel --create-check\fP
+command to create an initial set of files.
+.
+.IP 2. 3
+Define system information.
+
+System information serves as the input data for the health check. The \*[lhc]
+framework collects the system information and provides it to your check program
+in the form of a file before running the health check. Health check programs
+must not themselves collect any data from the systems on which they run.
+
+You must define exactly which information your health check requires. For each
+system information item, assign an ID of your choice and add an entry in the
+definitions file for it. During run-time, the check program accesses sysinfo
+item data using this ID. No other use is made of the ID.
+.
+.IP 3. 3
+Write the health check program.
+
+The check file of a health check contains the program which performs the actual
+analysis step. Its job is to analyze system information provided by the \*[lhc]
+and identify and report problems. You can use any programming language to write
+the health check program.
+
+See the
+.MP lnxhc_check_program 7
+man page for details.
+.
+.IP 4. 3
+Define health check parameters.
+
+Health checks can accept user input through parameters. The framework passes
+the parameters to the check program but makes no other use of the data.
+To define a parameter, assign an ID and an optional default value to it in the
+definitions file.
+
+See the
+.MP lnxhc_check_definitions 5
+man page for details.
+.
+.IP 5. 3
+Define health check exceptions.
+
+You must provide a detailed text message for each problem that your health
+check program can identify. This message should contain all information about
+the problem including example instructions on how to solve it.
+
+Because the \*[lhc] framework generates the message, you must adhere to the
+template form in the exceptions file.
+
+See the
+.MP lnxhc_check_exceptions 5
+man page for details.
+.
+.IP 6. 3
+Finalize the health check.
+
+To correctly handle a new health check the \*[lhc] requires metadata, such as
+author name, component name, repeat intervals, and a description. Add metadata
+to the definitions file. Add a description to the descriptions file.
+
+See the
+.MP lnxhc_check_definitions 5
+and
+.MP lnxhc_check_descriptions 5
+man pages for details.
+.
+.IP 7. 3
+Run the health check.
+
+To run the health check, use the \*[lhc] run subcommand and specify your health
+check directory as parameter:
+
+.CL lnxhc run ./<your-health-check>
+
+See the
+.MP lnxhc-run 1
+man page for details.
+.PP
+.RE
+.
+.
+.SH NAMING
+Health check and exception names should be chosen to be as descriptive as
+possible while at the same time maintaining consistency with existing names.
+The following guidelines may be helpful to achieve these goals.
+.PP
+.
+.
+.SS "Health check names"
+.IP \(bu 3
+The name should uniquely identify the health check while providing an
+indication of what is being checked.
+.PP
+.IP \(bu 3
+The name should consist of several words joined together by underscores.
+.PP
+.IP \(bu 3
+The first words in the check name should indicate the component and,
+if applicable, the subcomponent which is checked, for example, filesystem,
+network, storage, or kernel. Only nouns should be used for components and
+sub-components.
+.PP
+.IP \(bu 3
+Use abbreviations to keep the name short, but stay consistent with the
+abbreviations used in other checks.
+.PP
+.IP \(bu 3
+Avoid words that provide no additional information, such as "system" or
+"check".
+.PP
+.IP \(bu 3
+No underscore, "_", should appear at the beginning or end of a check name.
+.PP
+.IP \(bu 3
+There should be no multiple underscores, "_", next to each other.
+.PP
+.IP \(bu 3
+Do not use names that indicate what source of information is being used,
+for example "sysctl",  unless that source is also the target of the check,
+for example "fstab".
+.PP
+.IP \(bu 3
+Use one of the following suggested naming schemes:
+.RS 4
+.IP 1. 3
+The name refers to the aspect of the component that the health
+checks analyzes. This is the preferred naming scheme.
+
+Example: A check inspects the usage of the filesystem/inode component.
+
+-> fs_inode_usage
+.IP 2. 3
+The name refers to the problem of a component that the health check addresses.
+
+Example:
+A check identifies the problem of idle terminals of component tty.
+
+-> tty_idle_terminals
+.PP
+.IP 3. 3
+The name refers to a best-practice state of a component that the
+health check compares the current state against.
+
+Example:
+A check compares the current setting of component boot/runlevel with
+the recommended setting.
+
+-> boot_runlevel_recommended
+.PP
+.IP 4. 3
+The name refers to the component name. This naming scheme should only
+be used for simple components where it is unlikely that additional checks
+will be implemented.
+
+Example:
+A check analyzes the configuration of component firmware/cpi.
+
+-> fw_cpi
+.PP
+.RE
+.PP
+.
+.
+.SS "Exception names"
+.IP \(bu 3
+The name should identify the problem associated with the exception.
+.PP
+.IP \(bu 3
+Avoid repeating the component or subcomponent in the exception ID unless it is
+required for a better understanding of the problem being reported.
+.PP
+.
+.
+.SH FILES
+.TP
+.IB check_directory /check
+Executable program implementing the health check. See the
+.MP lnxhc_check_program 7
+man page.
+
+.TP
+.IB check_directory /definitions
+Metadata defining health check attributes. See the
+.MP lnxhc_check_definitions 5
+man page.
+
+.TP
+.IB check_directory /descriptions
+Textual description of the health check and its parameters. See the
+.MP lnxhc_check_descriptions 5
+man page.
+
+.TP
+.IB check_directory /exceptions
+Textual description of all possible exceptions. See the
+.MP lnxhc_check_exceptions 5
+man page.
+
+.PD 0
+.TP
+.IB check_directory / language_code /descriptions
+.TP
+.IB check_directory / language_code /exceptions
+Descriptions and exception messages localized for the specified language. See
+the
+.MP locale 1
+man page for more information on language codes.
+.PD
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_check_program 7 ,
+.MP lnxhc_check_definitions 5 ,
+.MP lnxhc_check_descriptions 5 ,
+.MP lnxhc_check_exceptions 5

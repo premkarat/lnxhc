@@ -1,0 +1,26 @@
+[check]
+author = "Peter Oberparleiter <peter.oberparleiter@de.ibm.com>"
+component = "css/ccw"
+repeat = "7d"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo lscss]
+program = "/sbin/lscss"
+
+[sysinfo chplist]
+program = "$LNXHC_CHECK_DIR/chplist"
+extrafile = "chplist"
+
+[exception unused_cfg_off]
+severity = low
+
+[exception used_cfg_off]
+severity = high
+
+[exception unused_vary_off]
+severity = low
+
+[exception used_vary_off]
+severity = high

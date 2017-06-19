@@ -1,0 +1,7 @@
+Trigger          Action
+========================
+Halt             stop
+Power off        stop
+Reboot           reipl
+Restart          kdump,dump_reipl
+Panic            kdump,dump_reipl

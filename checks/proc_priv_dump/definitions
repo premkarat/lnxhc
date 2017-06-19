@@ -1,0 +1,12 @@
+[check]
+author = "Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>"
+component = "process"
+
+[sysinfo sysctl]
+program = "/sbin/sysctl -a"
+
+[exception debug_mode]
+severity = high
+
+[exception suidsafe_mode]
+severity = medium

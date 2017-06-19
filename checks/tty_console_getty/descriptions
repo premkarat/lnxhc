@@ -1,0 +1,10 @@
+[title]
+Spot getty programs on the /dev/console device
+
+[description]
+In Linux, /dev/console is a generic device node that, depending on
+the environment and setup, is mapped to one of the available terminal
+devices (TTY).  This terminal device is then represented by its own,
+specific device node and by /dev/console.
+If getty programs are configured for both device nodes, they interfere
+with each other, so that users cannot log in.

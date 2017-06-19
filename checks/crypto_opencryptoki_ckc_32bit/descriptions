@@ -1,0 +1,13 @@
+[title]
+Verify the availability of System z cryptographic hardware support for PKCS#11 clear key cryptographic operations
+
+[description]
+Software that uses clear key cryptographic functions via openCryptoki (PKCS#11 API) can exploit System z cryptographic hardware if the openCryptoki clear key cryptographic stack is set up correctly. If the setup is incorrect or incomplete, Linux may in some cases emulate cryptographic operations by software. However this emulation will decrease system performance.
+
+The openCryptoki clear key cryptographic stack comprises openCryptoki together with the ICA token, the libica,  possibly the System z cryptography kernel device driver and access to system cryptographic hardware features like CPACF and cryptographic adapters.
+
+This health check verifies that:
+- The Cryptographic hardware (coprocessor and/or accelerator adapters) is available
+- Required RPMs, such as 'openCryptoki', and 'libica' are available
+- openCryptoki is initialized
+- The ICA token is configured

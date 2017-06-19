@@ -1,0 +1,13 @@
+#!/bin/bash
+
+shopt -s nullglob
+
+cd /sys/devices/css0
+for CHPID in chp*; do
+	read STATE < $CHPID/status
+	echo $CHPID:status:$STATE
+	if [ -e $CHPID/configure ] ; then
+		read CONFIGURE < $CHPID/configure
+		echo $CHPID:configure:$CONFIGURE
+	fi
+done

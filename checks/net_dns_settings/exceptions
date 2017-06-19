@@ -1,0 +1,62 @@
+[summary no_nameserver]
+Nameserver is not listed
+
+[explanation no_nameserver]
+Nameserver helps to convert names to numeric ip addresses. If nameserver is not
+listed in resolv.conf file it would prevent accessing any of the systems in the
+network by their name.
+
+[solution no_nameserver]
+Edit the /etc/resolv.conf and add the nameserver address.
+
+#nameserver <ip address>
+
+You can confirm if the nameserver address is right and name resolution is working
+fine by "host" command.
+
+#host <ip> <ip>
+
+where <ip> is the nameserver address, a reverse DNS lookup happens for
+<ip> (Second parameter) using the DNS server at address <ip> (first paramater)
+it will give details of domain server.
+
+or you can also confirm by
+
+#host <domain_name>
+
+[reference no_nameserver]
+Refer to man pages of "resolv.conf" file and "host" command.
+
+[summary incorrect_nameserver]
+System has incorrect nameserver address
+
+[explanation incorrect_nameserver]
+Nameserver helps to convert names to numeric ip addresses. Having an incorrect
+nameserver address would prevent accessing any of the systems in the network by
+their name. Adding more than one nameserver would help in better name resolution
+in a case where previous nameserver fails to resolve the name.
+
+Currently 3 nameservers can be listed.
+
+Incorrect nameservers are
+&invalid_nameservers;
+
+[solution incorrect_nameserver]
+Edit the /etc/resolv.conf and add the nameserver address.
+
+#nameserver <ip address>
+
+You can confirm if the name resolution is working fine by "host" command.
+
+#host <ip> <ip>
+
+where <ip> is the nameserver address, a reverse DNS lookup happens for
+<ip> (Second parameter) using the DNS server at address <ip> (first parameter)
+it will give details of domain server.
+
+or you can also confirm by
+
+#host <domain_name>
+
+[reference incorrect_nameserver]
+Refer to man pages of "resolv.conf" file and "host" command.

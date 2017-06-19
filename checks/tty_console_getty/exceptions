@@ -1,0 +1,33 @@
+[summary getty_on_console]
+A getty program runs on the /dev/console device
+
+[explanation getty_on_console]
+The /dev/console device is a generic output device to which the Linux kernel
+writes messages.
+Depending on the environment and setup, /dev/console is mapped to one of the
+available terminal devices (TTY).  This terminal device is then represented
+by its own, specific device node and by /dev/console.
+
+You enable user logins by configuring a getty program for a terminal device
+node.  If getty programs are configured for two device nodes that both map
+to the same terminal device, the getty programs interfere with each other,
+so that users cannot log in.
+
+With the console= kernel parameter you can control to which terminal device
+/dev/console is mapped.  With a getty program on /dev/console, changing this
+mapping can easily result in blocked user logins.
+
+A process for console with a getty or login program indicates that a getty
+program is configured for /dev/console.
+On a running Linux instance, issue "ps -ef" to see the details for the
+current processes.
+
+[solution getty_on_console]
+Modify your system boot configuration to avoid starting a getty
+program on the /dev/console device.  Instead, configure getty
+programs on terminal devices that are available in your environment.
+
+[reference getty_on_console]
+See the documentation for your system initialization.  For example,
+if your distribution uses the SysV approach, see the inittab man page, or
+if your distribution uses Upstart, see the init man page of section 5.

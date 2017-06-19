@@ -1,0 +1,82 @@
+#!/usr/bin/perl
+#
+# fs_boot_zipl_bootmap
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use File::Basename qw(dirname basename);
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_OUTDATED_BOOTMAP = "outdated_bootmap";
+
+# Path to the file containing data for sysinfo item 'fs_boot_zipl_bootmap'.
+my $sysinfo_fs_boot_zipl_bootmap =
+		$ENV{"LNXHC_SYSINFO_fs_boot_zipl_bootmap"};
+
+
+#
+# Code entry
+#
+
+# Defining variables
+my (%boot_file, $bootmap_modified_time, @mod_time_array, $boot_file);
+
+open($boot_file, "<", $sysinfo_fs_boot_zipl_bootmap) or
+	die("Could not open '$sysinfo_fs_boot_zipl_bootmap': $!\n");
+
+# Putting data into hash
+while (<$boot_file>) {
+	chomp;
+	my ($mtime, $filename) = split /:/;
+	# Checking for /boot/bootmap file
+	if(basename($filename) eq "bootmap") {
+		$bootmap_modified_time = $mtime;
+	}else {
+		$boot_file{$filename} = $mtime;
+	}
+}
+close($boot_file);
+
+# Comparing file modified time with /boot/bootmap modified times.
+foreach my $files (sort (keys %boot_file)) {
+	if ($bootmap_modified_time < $boot_file{$files}) {
+		push(@mod_time_array, $files);
+	}
+}
+
+# Verifying any modified time of files which are referenced by zipl.conf
+# are modified after the last zipl run.
+if (@mod_time_array) {
+	lnxhc_exception($LNXHC_EXCEPTION_OUTDATED_BOOTMAP);
+	print "fs_boot_zipl_bootmap: These are the".
+	" files modified after zipl run and their paths \n";
+
+	printf ("%-20s %-10s\n","filenames","paths");
+
+	foreach my $paths (@mod_time_array) {
+		my $files = basename($paths);
+		printf ("%-20s %-10s\n","$files", "$paths");
+	}
+}
+exit(0);

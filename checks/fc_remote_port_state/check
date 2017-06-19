@@ -1,0 +1,72 @@
+#!/usr/bin/perl
+#
+# fc_remote_port_state
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_RPORTS_NOT_USABLE = "rports_not_usable";
+
+# Path to the file containing data for sysinfo item 'remote_ports_data'.
+my $sysinfo_remote_ports_data = $ENV{"LNXHC_SYSINFO_remote_ports_data"};
+
+my $handle;
+my %rport_hash;
+my %ignore_bus_id;
+
+%ignore_bus_id = %{parse_list_param("ignore_bus_id", ',', 1)};
+
+# Verifying whether fc_transport class is enabled or not
+if (-z $sysinfo_remote_ports_data) {
+	lnxhc_fail_dep("No Fibre channel remote ports found");
+}
+
+open ($handle, "<", $sysinfo_remote_ports_data) or
+	die("Couldn't open file: $sysinfo_remote_ports_data: $!\n");
+
+while (my $line = <$handle>) {
+	chomp $line;
+	my ($rport, $bus_id, $wwpn, $state) = split/,/, $line;
+	# Skip the line when there is no enough data
+	if (-z $wwpn || -z $rport || -z $state || -z $bus_id) {
+		next;
+	}
+	if ($state ne "Online" && !$ignore_bus_id{$bus_id}) {
+		push (@{$rport_hash{$rport}}, $bus_id, $wwpn, $state);
+	}
+}
+close($handle);
+
+if (%rport_hash) {
+	my @keys_list = sort(keys(%rport_hash));
+	lnxhc_exception($LNXHC_EXCEPTION_RPORTS_NOT_USABLE);
+	for my $rport (@keys_list) {
+		my @list = @{$rport_hash{$rport}};
+		lnxhc_exception_var("rport",
+			sprintf("|#%s|#%s|#%s|#%s", ($rport, @list)));
+	}
+	lnxhc_exception_var_list("rport_summ", \@keys_list, ", ");
+}
+exit(0);

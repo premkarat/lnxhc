@@ -1,0 +1,32 @@
+[summary capacity_reduced]
+The System z mainframe runs with reduced capacity
+
+[explanation capacity_reduced]
+The CPUs of the System z mainframe run with reduced capacity, for example,
+in power-saving mode.  This affects all Linux and other operating system
+instances running on this particular System z hardware.
+
+Apart from intentional configuration for power-saving, reduced capacity
+can result from, for example, overheating of the hardware.
+
+The lowest acceptable capacity-adjustment indication is
+"&param_acceptable_cap_adj;" with a capacity-change reason
+"&param_expected_cap_rs;".
+
+The current capacity-adjustment indication is "&cap_adj_ind;" with a
+capacity-change reason "&cap_ch_rs;".
+
+You can find the current capacity-adjustment values in /proc/sysinfo.
+Look for the "Capacity Adj. Ind." and  "Capacity Ch. Reason" entries.
+
+
+[solution capacity_reduced]
+If your System z mainframe intentionally runs with reduced capacity,
+adjust the check parameters accordingly to prevent this check from
+raising further exceptions.
+In other cases, contact your hardware support team.
+
+
+[reference capacity_reduced]
+For information about the capacity change reason codes
+see the "Principles of Operation" for your System z mainframe.

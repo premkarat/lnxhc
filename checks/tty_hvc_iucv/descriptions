@@ -1,0 +1,17 @@
+[title]
+Confirm that all available z/VM IUCV HVC terminals are enabled for logins
+
+[description]
+The z/VM IUCV Hypervisor Console (HVC) device driver can manage up to
+eight HVC terminals that can be enabled for user logins.  The number
+of HVC terminals is specified through a kernel parameter.
+
+HVC terminals that are not enabled for logins serve no purpose and
+cannot provide access to the Linux instance in emergencies.
+
+This check confirms that all available HVC terminals are enabled for
+user logins.
+
+[param min_hvc_iucv]
+Specifies the minimum number of HVC terminal devices that must be
+available.  This in an integer number in the range from 1 to 8.

@@ -1,0 +1,150 @@
+#!/usr/bin/perl
+#
+# net_bond_qeth_ineffective
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_SINGLE_CHPID = "single_chpid";
+
+# Path to the file containing data for sysinfo item 'lsqeth_p'.
+my $sysinfo_lsqeth_p = $ENV{"LNXHC_SYSINFO_lsqeth_p"};
+
+# Path to the file containing data for sysinfo item 'bonding_info'.
+my $sysinfo_bonding_info = $ENV{"LNXHC_SYSINFO_bonding_info"};
+
+
+#
+# Functions
+#
+
+#
+# Takes array as input and returns unique list
+#
+sub uniq_array {
+    return keys %{{ map { $_ => 1 } @_ }};
+}
+
+#
+# Code entry
+#
+
+# Verifying bonding setup configured or not
+if (-z "$sysinfo_bonding_info") {
+	lnxhc_fail_dep("There is no bonding setup");
+}
+
+my $handle;
+my (%interface_chpid, %bond_slaves, %exception_data);
+
+
+# Reading the data from the sysinfo item 'bonding_info'
+open ($handle, "<", $sysinfo_bonding_info) or
+	die ("net_bond_qeth_ineffective: couldn't open file: ".
+		"'$sysinfo_bonding_info' : $!\n");
+while (<$handle>){
+	chomp;
+	# Example line: bond0=eth0
+	my ($bond_dev, $bond_slaves) = split /=/;
+	push (@{$bond_slaves{$bond_dev}}, $bond_slaves);
+}
+close($handle);
+
+# Getting the header from 'lsqeth -p' output and
+# then capture buffer_count for different interfaces
+open ($handle, "<", $sysinfo_lsqeth_p) or
+	die ("net_bond_qeth_ineffective: couldn't open file: ".
+		"'$sysinfo_lsqeth_p' : $!\n");
+my ($chpid_index, $interface_index, @header);
+while (<$handle>){
+	chomp;
+	# Taking the first line as header $. denotes the line number
+	if ($. == 1) {
+		@header = split /\s+/;
+
+		# Calculating the index of 'CHPID' and 'interface'
+		($chpid_index) = grep { $header[$_] eq "CHPID" } 0..$#header;
+		($interface_index) = grep { $header[$_] eq "interface" } 0..$#header;
+	}
+	if ($. > 2) {
+		next if (!(/^[[:xdigit:]]{1,4}(?:\.[[:xdigit:]]{1,4}){2}/));
+		my @data = split /\s+/;
+		$interface_chpid{$data[$interface_index]} = $data[$chpid_index];
+	}
+}
+close($handle);
+
+# For each bonding device
+foreach my $bond_device (keys(%bond_slaves)) {
+
+	# Getting the slaves list for a bonding device
+	my @slaves = @{$bond_slaves{$bond_device}};
+	my $len_slaves = scalar(@slaves);
+	my ($loop1, $loop2);
+
+	# Comparing the interface(s) CHPIDs whether they are same or not
+	for ($loop1 = 0; $loop1 < $len_slaves; $loop1++) {
+		for ($loop2 = $loop1 + 1; $loop2 < $len_slaves; $loop2++) {
+
+			# Comparing hexa-decimal value
+			next if (! defined($interface_chpid{$slaves[$loop1]}) ||
+					! defined($interface_chpid{$slaves[$loop2]}));
+
+			if ($interface_chpid{$slaves[$loop1]} eq
+					$interface_chpid{$slaves[$loop2]}) {
+				# Creating the data structure required
+				# for expection
+				push (@{$exception_data{$bond_device}},
+					$slaves[$loop1], $slaves[$loop2]);
+
+				# Only uniq elements
+				@{$exception_data{$bond_device}} =
+					uniq_array(@{$exception_data{$bond_device}});
+			}
+		}
+	}
+}
+
+# Raising the exception basing on the data
+if (%exception_data) {
+        my @summary = sort(keys(%exception_data));
+	lnxhc_exception($LNXHC_EXCEPTION_SINGLE_CHPID);
+
+	@summary = (@summary[0..3], "...") if (scalar(@summary) > 4);
+
+		lnxhc_exception_var("bond_devices", join(", ", @summary));
+		lnxhc_exception_var("bond_slaves",
+			sprintf("#%-20s     %-10s", "Bonding Interface",
+				"Bonding Slave interface"));
+
+	foreach my $device (sort(keys(%exception_data))) {
+		lnxhc_exception_var("bond_slaves",
+			sprintf("#%-20s     %-10s", $device,
+				join(", ", @{$exception_data{$device}})));
+	}
+}
+
+exit(0);

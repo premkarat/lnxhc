@@ -1,0 +1,150 @@
+#!/bin/bash
+#
+# proc_mem_oom_triggered
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+#            Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+# Global variables
+#
+
+# Exception IDs
+LNXHC_EXCEPTION_PROCESSES_KILLED="processes_killed"
+
+# Non-zero if health check program should output debugging information
+DEBUG="$LNXHC_DEBUG"
+
+# Health check ID
+CHECK_ID="$LNXHC_CHECK_ID"
+
+# Health check installation directory
+CHECK_DIR="$LNXHC_CHECK_DIR"
+
+# Path to the file used to report exceptions
+EX_FILE="$LNXHC_EXCEPTION"
+
+# Path to the file containing data for sysinfo item 'kernel_ring_buffer'
+SYSINFO_KERNEL_RING_BUFFER="$LNXHC_SYSINFO_kernel_ring_buffer"
+
+
+#
+# Functions
+#
+
+#
+# lnxhc_setup - validate input from framework
+#
+function lnxhc_setup()
+{
+	if [ -z "$DEBUG" -o -z "$CHECK_ID" -o -z "$CHECK_DIR" -o \
+	     -z "$EX_FILE" ] ; then
+		echo "proc_mem_oom_triggered: This program cannot be called directly." >&2
+		echo "Please use the 'lnxhc run' function to call this " \
+		     "program." >&2
+		exit 1
+	fi
+}
+
+#
+# lnxhc_exception - report exception
+# @ex_id: ID of the exception to report
+#
+function lnxhc_exception()
+{
+	local EX_ID="$1"
+
+	echo "$EX_ID" >> "$EX_FILE" || exit 1
+}
+
+#
+# lnxhc_exception_var - report value of an exception template variable
+# @var_id: ID of the exception template variable
+# @value: value of the exception template variable
+#
+function lnxhc_exception_var()
+{
+	local VAR_ID="$1"
+	local VALUE="$2"
+
+	echo "$VAR_ID=\"$VALUE\"" >> "$EX_FILE" || exit 1
+}
+
+
+#
+# Code entry
+#
+
+# Validate input from framework
+lnxhc_setup
+
+# variable for counting the Out-of-memory(OOM) Killed processes
+var=0
+
+while read line
+do
+	# Below case statements are to find the process and pids killed by OOM on RHEL5,RHEL6,SLES10,SLES11.
+	case "$line" in
+
+	# This is for RHEL5
+	"Out of memory: Killed process"*,*)
+		intr=${line##Out of memory: Killed process }
+		pid=${intr%%,*}
+		process_intr=${intr##*(}
+		process=${process_intr%).}
+		pid_list[$var]="$pid"
+		process_list[$var]="$process"
+		let var++
+		;;
+
+	# This is for RHEL6,SLES10,SLES11.
+	*"Killed process"*)
+		intr=${line##*Killed process }
+		process_intr=${intr%)*}
+		pid=${process_intr%(*}
+		process=${process_intr##*(}
+		pid_list[$var]="$pid"
+		process_list[$var]="$process"
+		let var++
+		;;
+	esac
+done <$LNXHC_SYSINFO_kernel_ring_buffer
+
+# verifying if number of processes are more than 0
+if [ $var -gt 0 ]; then
+
+	lnxhc_exception "$LNXHC_EXCEPTION_PROCESSES_KILLED"
+
+	# listing only 4 processes to restrict the summary to a maximum size
+	# after that adding '...' to the list of processes
+
+	for((i=0;i<4;i++))
+	do
+		lnxhc_exception_var "process_list_summary" "${process_list[$i]}"
+	done
+
+	if [ $var -gt 4 ]; then
+		lnxhc_exception_var "process_list_summary" "..."
+	fi
+
+	# Formatting PID and Process labels
+	printf "processes_pid_list=%5s	 %s\n" "#PID"   "Process" >> $LNXHC_EXCEPTION
+
+	for((j=0;j<$var;j++))
+	do
+		printf "processes_pid_list=%5s	%4s\n" "#${pid_list[$j]}" "${process_list[$j]}" >> $LNXHC_EXCEPTION
+	done
+else
+	echo "+++++++++++++++++++No Process got killed++++++++++++++++++++++"
+fi
+
+exit 0

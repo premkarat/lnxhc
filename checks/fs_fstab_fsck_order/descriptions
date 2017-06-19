@@ -1,0 +1,23 @@
+[title]
+Check if filesystems are skipped by filesystem check (fsck)
+
+[description]
+This check examines if the filesystems are skipped by filesystem check (fsck)
+while boot. If filesystems are not checked for consistency it might lead
+to filesystem corruption or drive might not even boot the system.
+
+[param mount]
+A list of filesystems, separated by colons (:). The filesystems mounted at
+the specified mount points are to be checked for consistency. If the list
+is empty, all mount points of /etc/fstab except in exclude list are checked.
+
+Example:
+#/:/home
+
+[param exclude]
+A list of filesystems, separated by colons (:). The filesystems mounted at
+the specified mount points are to be excluded from the consistency check.
+Special filesystems like /proc, /sys etc need not be checked for consistency.
+
+Example:
+#/proc:/sys

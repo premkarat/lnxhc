@@ -1,0 +1,8 @@
+[title]
+Ensure that all LUNs configured for persistence, which are accessible
+through an FCP adapter, are available
+
+[description]
+Users configure LUNs when they intend to use them for I/O. If a
+configured LUN is not available, this indicates either a configuration
+error or a loss of connectivity.

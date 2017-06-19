@@ -1,0 +1,116 @@
+#!/usr/bin/perl
+#
+# net_inbound_errors
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_LIMITS_EXCEEDED = "limits_exceeded";
+
+# Value of parameter 'rxerror_ratio'.
+my $param_rxerror_ratio = $ENV{"LNXHC_PARAM_rxerror_ratio"};
+
+# Value of parameter 'rxdrop_ratio'.
+my $param_rxdrop_ratio = $ENV{"LNXHC_PARAM_rxdrop_ratio"};
+
+# Path to the file containing data for sysinfo item 'ifconfig'.
+my $sysinfo_ifconfig = $ENV{"LNXHC_SYSINFO_ifconfig"};
+
+
+#
+# Code entry
+#
+
+check_int_param("rxerror_ratio", 0, 100);
+check_int_param("rxdrop_ratio", 0, 100);
+
+my $si_file;
+my @interface_data;
+my $array_count = -1;
+my %device_error;
+
+open($si_file, "<", $sysinfo_ifconfig) or
+	die("net_inbound_errors: Could not read file '$sysinfo_ifconfig': ".
+		"$!\n");
+# Cretaing an array with only contents of the each interface
+while (<$si_file>) {
+	$array_count++ if (/^\S/);
+	chomp;
+	$interface_data[$array_count] .= $_;
+}
+close($si_file);
+
+lnxhc_fail_dep("There are no Network interfaces") unless @interface_data;
+
+# Collecting the network interface related data
+foreach (@interface_data) {
+	# Comment for review: I found the following interfaces from DD book
+	# eth, hsi, tr, osn, eth<n>.<n>, iucv, ctc, netiucv, claw
+	# In the following regex trying to match the above list.
+	if (/^(\w+\d+|\w+\d+\.\d*)\s+Link.*RX packets:(\d+) errors:(\d+) dropped:(\d+).*/) {
+		my ($nw_interface, $rx_packets, $current_rxerrors,
+			$current_rxdrop) = ($1, $2, $3, $4);
+		my $rx_er_ratio = 0;
+		my $rx_dr_ratio = 0;
+		if ($rx_packets != 0) {
+			$rx_er_ratio = ($current_rxerrors / $rx_packets) * 100;
+			$rx_dr_ratio = ($current_rxdrop / $rx_packets) * 100;
+		}
+		if ($rx_er_ratio > $param_rxerror_ratio ||
+				$rx_dr_ratio > $param_rxdrop_ratio) {
+			# Collecting the data which is required for exception
+			push (@{$device_error{$nw_interface}},
+				$current_rxerrors, $current_rxdrop);
+		}
+	}
+}
+
+# If hash contains some data then exception need to be raised
+if (%device_error) {
+	my @summary_device = sort(keys(%device_error));
+	lnxhc_exception($LNXHC_EXCEPTION_LIMITS_EXCEEDED);
+
+	# Slicing the array to display in summary
+	if (scalar(@summary_device > 4)) {
+		@summary_device = (@summary_device[0..3], "...");
+	}
+	lnxhc_exception_var("summ_interface", join(", ", @summary_device));
+
+	# Displaying all the interfaces and TX Errors
+	lnxhc_exception_var("devices_rxerrors",
+		sprintf("#%-10s     %-10s     %-10s", "Interface",
+				"RX errors", "RX dropped"));
+
+	foreach my $device (sort(keys(%device_error))) {
+		my ($errors, $drops) = @{ $device_error{$device} };
+		lnxhc_exception_var("devices_rxerrors",
+			sprintf("#%-10s     %-10s     %-10s",
+				$device, $errors, $drops));
+	}
+
+}
+
+exit(0);

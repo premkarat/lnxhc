@@ -1,0 +1,26 @@
+[title]
+Identify idle terminals
+
+
+[description]
+Identify terminals on which users are logged in but are not active.
+Each logged-in user occupies a terminal that could be used
+by another user.
+
+
+[param idle_time]
+Specifies the maximum idle time to be tolerated.
+Valid values are positive integers followed by d, h, m, or s for
+days, hours, minutes, or seconds.
+
+If a user exceeds this idle time, an exception message is issued.
+
+
+[param tty]
+A blank-separated list of terminals.
+The check identifies idle users who are logged in through the specified
+terminals.  If the list is empty, all terminals are checked.
+
+Terminals are specified by their device node without the leading /dev/.
+Use an asterisk (*) to match any string of characters.
+For example, "ttyS3 hvc*" matches /dev/ttyS3, /dev/hvc0, /dev/hvc1, ...

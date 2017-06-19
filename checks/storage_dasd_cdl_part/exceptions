@@ -1,0 +1,58 @@
+[summary no_partition_found]
+There are CDL-formatted DASDs without partitions: &no_part_sum;
+
+[explanation no_partition_found]
+There are Compatible Disk Layout (CDL) formatted DASDs with out partitions. If you use a DASD without a partition at a whole, data corruptions might occur.
+
+Here are the list of DASD's not having any partitions.
+DASDs without partitions are:
+
+&no_part;
+
+To confirm that there rae DASDs without partitions, issue the "lsdasd" command to list DASDs. For each DASD, use the "dasdview -x -t info /dev/<dasd>" command and look for a 'CDL formatted' devices. For each CDL-formatted DASD, run "grep <dasd> /proc/partitions" to display partition information. Partitions are numbers following the device name, for example, 'dasda1' is the first partition of the 'dasda' DASD.
+
+[solution no_partition_found]
+For each DASD without a partition, complete these steps:
+
+ 1. Backup existing data
+ 2. Low-level format the DASD with CDL.
+    For example, you can use
+
+    ## dasdfmt -d cdl /dev/<dasd>
+ 3. Partition the DASD with the "fdasd" command.
+ 4. Restore the data from the backup. Depending on your backup mechanism you
+    might create file system before restoring the data.
+
+[reference no_partition_found]
+- See also the man pages for the "lsdasd", "dasdview", and "dasdfmt" commands.
+- To partition a DASD, see the man page of the "fdasd" command.
+
+[summary invalid_partition_start]
+There are CDL-formatted DASDs with invalid partition starts: &track_data_sum;
+
+[explanation invalid_partition_start]
+There are Compat Disk Layout (CDL) formatted DASDs with invalid partition starts. On CDL-formatted DASDs, the first tracks contains metadata such as partition tables and volume labels. These information are required to access the DASD from other operating systems, for example, z/OS.
+
+If partition starts within the first two tracks, metadata can be corrupted.
+
+These are DASDs with invalid parition starts:
+
+&track_data;
+
+To confirm, issue the "lsdasd" command to display DASDs. For each DASD, use the "dasdview -x -t info /dev/<dasd>" command and look for the track start in the table that follows "Other s/390 and zSeries operating systems would see the following data sets".
+
+[solution invalid_partition_start]
+For each DASD with invalid partition start, complete these steps:
+
+ 1. Backup existing data
+ 2. Low-level format the DASD with CDL.
+    For example, you can use
+
+    ## dasdfmt -d cdl /dev/<dasd>
+ 3. Partition the DASD with the "fdasd" command.
+ 4. Restore the data from the backup. Depending on your backup mechanism you
+    might create file system before restoring the data.
+
+[reference invalid_partition_start]
+- See also the man pages for the "lsdasd", "dasdview", and "dasdfmt" commands.
+- To partition a DASD, see the man page of the "fdasd" command.

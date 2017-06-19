@@ -1,0 +1,29 @@
+[summary volatile_devnodes_used]
+Standard DASD device nodes are used in the fstab file.
+
+[explanation volatile_devnodes_used]
+The fstab file contains standard DASD device nodes that have been created by the DASD device driver.
+
+The DASD device driver creates standard device nodes for disks in the order in which they are set online. When you add or remove disks, the standard device node of a disk might change across a reboot. To preserve the mapping between device nodes and the associated physical disks, use device nodes that are based on unique properties for a disk. Such device nodes are independent of the sequence in which the devices are set online and can help you to reliably address an intended disk space.
+
+The following file systems use a standard DASD device node in file /etc/fstab:
+&fs_exp;
+
+[solution volatile_devnodes_used]
+Use the udev-created device nodes to be sure that you access a particular physical disk space, regardless of the device node that is assigned to it.
+
+For example, in the file system information in /etc/fstab you could replace the following specifications:
+
+#/dev/dasdzzz1 /temp1 ext3 defaults 0 0
+#/dev/dasdzzz2 /temp2 ext3 defaults 0 0
+
+with these specifications:
+
+#/dev/disk/by-path/ccw-0.0.b100-part1 /temp1 ext3 defaults 0 0
+#/dev/disk/by-path/ccw-0.0.b100-part2 /temp2 ext3 defaults 0 0
+
+[reference volatile_devnodes_used]
+See the man pages of the "fstab" file, and the "udev" utility.
+For more information about DASD device nodes, see the section about the DASD device driver in "Device Drivers, Features, and Commands".
+You can obtain this publication from
+#http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html

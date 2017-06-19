@@ -1,0 +1,205 @@
+#!/usr/bin/perl
+#
+# net_qeth_buffercount
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_INEFFICIENT_BUFFERCOUNT = "inefficient_buffercount";
+
+# Path to the file containing data for sysinfo item 'proc_meminfo'.
+my $sysinfo_proc_meminfo = $ENV{"LNXHC_SYSINFO_proc_meminfo"};
+
+# Path to the file containing data for sysinfo item 'lsqeth_p'.
+my $sysinfo_lsqeth_p = $ENV{"LNXHC_SYSINFO_lsqeth_p"};
+
+# Value of parameter 'recommended_buffercount'.
+my $param_recommended_buffercount = $ENV{"LNXHC_PARAM_recommended_buffercount"};
+
+
+#
+# Functions
+#
+
+#
+# Convert_memory_to_gb - Used to convert the given memory to GB
+# By that the comparison will be easy
+# $memory: is the memory value in kb/mb/gb
+# $memory_size: contains either of kb or mb or gb
+#
+sub convert_memory_to_gb($$)
+{
+	my ($memory, $memory_size) = @_;
+
+	if (lc($memory_size) eq "kb") {
+		return sprintf("%.2f", ($memory/(1024 * 1024)));
+	} elsif (lc($memory_size) eq "mb") {
+		return sprintf("%.2f", ($memory/1024));
+	} elsif (lc($memory_size) eq "gb") {
+		return sprintf("%.2f", $memory);
+	}
+}
+
+#
+# operator_eval - used for operator evaluation
+# $x is value1 need to be compared
+# $y is value2 need to be compared
+# $op is the operator from the parameter
+#
+sub operator_eval {
+	my ($x, $op, $y) = @_;
+
+	if ($op =~ /(?:<|>|=)?=|<|>/) {
+		return eval "$x $op $y";
+	}
+	return undef;
+}
+
+#
+# Code entry
+#
+
+my $handle;
+my ($ram_memory, $ram_memorysize);
+
+# Reading total memory size from /proc/meminfo
+open ($handle, "<", $sysinfo_proc_meminfo) or
+	die ("net_qeth_buffercount: couldn't open file: ".
+		"'$sysinfo_proc_meminfo': $!\n");
+while (<$handle>) {
+	if (/^MemTotal:\s+(\d+) (\w+)/) {
+		($ram_memory, $ram_memorysize) = ($1, $2);
+		last;
+	}
+}
+close($handle);
+
+$ram_memory = convert_memory_to_gb($ram_memory, $ram_memorysize);
+
+my (@header, @data_array, %interface_bc);
+
+# Getting the header from 'lsqeth -p' output and
+# then capture buffer_count for different interfaces
+open ($handle, "<", $sysinfo_lsqeth_p) or
+	die ("net_qeth_buffercount: couldn't open file: ".
+			"'$sysinfo_lsqeth_p' : $!\n");;
+while (<$handle>){
+	chomp;
+	# Taking the first line as header $. denotes the line number
+	@header = split /\s+/ if($. == 1);
+
+	if (/^[[:xdigit:]]{1,4}(?:\.[[:xdigit:]]{1,4}){2}/) {
+		# Pushing each and every line in to an array
+		# as a single data item
+		push(@data_array, $_);
+	}
+}
+
+# If there is no qeth device configured
+lnxhc_fail_dep("There is no qeth interface") unless @data_array;
+
+close($handle);
+
+# Calculating the index of 'cnt' and 'interface'
+my ($cnt_index) = grep { $header[$_] eq "cnt" } 0..$#header;
+my ($interface_index) = grep { $header[$_] eq "interface" } 0..$#header;
+
+foreach my $data_line (@data_array) {
+
+	my @data = split /\s+/, $data_line;
+
+	# With GuestLAN buffer_count array index will increase
+	if (grep /GuestLAN/, @data) {
+		$interface_bc{$data[$interface_index]} = $data[$cnt_index + 1];
+		next;
+	}
+	# Build a hash with 'interface' as key and 'buffer count' as value
+	$interface_bc{$data[$interface_index]} = $data[$cnt_index];
+}
+
+chomp($param_recommended_buffercount);
+my @parameter_elements = split /,/, $param_recommended_buffercount;
+my $preferred_buffercount = undef;
+
+foreach my $param_values (@parameter_elements) {
+
+	unless ($param_values =~ /([<=>]+)(\d+)([kKmMgGbB]+):(\d+)/) {
+		die("net_qeth_buffercount: Unrecognized rule format ".
+			 "'$param_values'\n");
+	}
+	else {
+		my ($operator, $memory_value) = ($1, $2);
+		my ($memorysize, $buffer_count) = ($3, $4);
+		$memory_value = convert_memory_to_gb($memory_value, $memorysize);
+
+		if (operator_eval ($ram_memory, $operator, $memory_value)) {
+			$preferred_buffercount = $buffer_count;
+			last;
+		}
+	}
+}
+
+if (! defined($preferred_buffercount)) {
+	die("net_qeth_buffercount: No matching rule for memory size".
+		 " '$ram_memory' GB\n");
+}
+
+my %exception_data;
+
+# Checking whether a particular condition met or not
+foreach my $interface (keys %interface_bc) {
+	my $current_bc = $interface_bc{$interface};
+	if ($preferred_buffercount != $current_bc && $interface !~ /^hsi/) {
+		$exception_data{$interface} = $current_bc;
+	}
+}
+
+# Printing in exception
+if (%exception_data) {
+	my @summary_device = sort(keys(%exception_data));
+	lnxhc_exception($LNXHC_EXCEPTION_INEFFICIENT_BUFFERCOUNT);
+
+	if (scalar(@summary_device > 4)) {
+		@summary_device = (@summary_device[0..3], "...");
+	}
+	lnxhc_exception_var("summ_interface", join(", ", @summary_device));
+	lnxhc_exception_var("mem", sprintf("%.2f",$ram_memory));
+	lnxhc_exception_var("rec_bc", $preferred_buffercount);
+
+	lnxhc_exception_var("interface_bc",
+		sprintf("#%-10s     %-20s     %-20s", "Network",
+			"Current", "Recommended"));
+	lnxhc_exception_var("interface_bc",
+		sprintf("#%-10s     %-20s     %-20s", "Interface",
+			"Buffer Count", "Buffer Count"));
+
+	foreach my $device (sort keys(%exception_data)) {
+		lnxhc_exception_var("interface_bc",
+			sprintf("#%-10s     %-20s     %-20s", $device,
+				$exception_data{$device}, $preferred_buffercount));
+	}
+}
+exit(0);

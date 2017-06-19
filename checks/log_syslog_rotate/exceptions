@@ -1,0 +1,72 @@
+[summary log_size_exceeded]
+These syslog files exceed the defined size: &log_summ;
+
+[explanation log_size_exceeded]
+One or more syslog files exceed the maximum size. Large syslog files are difficult to analyze,  and might completely fill up your file system. This might cause the Linux instance to run out of disk space.
+
+These syslog files exceed the defined size:
+&log_exp;
+
+To verify that your syslog files are rotated, confirm that the logrotate settings for each syslog file define a maximum file size and a regular rotation.
+
+[solution log_size_exceeded]
+Enable syslog rotation for the listed files in file /etc/logrotate.conf:
+For example, with the statement
+
+#include /etc/logrotate.d
+
+the logrotate tool considers all syslog files that have a configuration file defined in /etc/logrotate.d.
+
+
+For each of the listed syslog files, create a logrotate configuration file in directory /etc/logrotate.d. In this file, you specify the syslog file name and its logrotate settings. The following settings may be useful:
+
+* #compress
+  specifies whether old versions of log files are to be compressed.
+* #rotate <number>
+  specifies the number of old versions to keep.
+* #daily/weekly/monthly
+  specifies the time interval to rotate log files.
+* #size <file size>
+  specifies the maximum file size of a log file. Whenever a log file size is greater than this size, it is rotated.
+
+[reference log_size_exceeded]
+See the man page of the "logrotate" command.
+
+[summary no_logrotate]
+Syslog file rotation is not enabled because the logrotate package is not installed
+
+[explanation no_logrotate]
+The logrotate program, which rotates syslog files at regular intervals, is not installed. Accumulating syslog
+files can fill up the file system, cause the Linux instance to run out of disk space, and impede analysis.
+
+To verify if logrotate is installed, for example, issue:
+# rpm -qi logrotate
+
+[solution no_logrotate]
+Install the logrotate package. For example, issue:
+# rpm -ihv logrotate-<version>.rpm
+
+[reference no_logrotate]
+See the man pages of the "rpm" and "logrorate" commands.
+
+[summary no_cron]
+Syslog file rotation is not enabled because the cron service is not running
+
+[explanation no_cron]
+The cron service for rotating logs at regular intervals is switched off. Accumulating syslog files can fill up the file
+system, cause the Linux instance to run out of disk space, and impede analysis.
+
+Typical Linux installations provide cron jobs to automatically rotate the syslog files. To automatically run these jobs, the cron service must be switched on.
+
+Use the "chkconfig" command to confirm that the cron service is active.
+For example, issue:
+# chkconfig --list |grep cron
+
+[solution no_cron]
+To switch on the cron service, use the "chkconfig" command. The name of the cron service depends on your Linux distribution.
+
+For example, issue:
+# chkconfig cron on
+
+[reference no_cron]
+See the man pages of the "chkconfig" command and the "cron" daemon.

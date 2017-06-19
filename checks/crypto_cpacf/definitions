@@ -1,0 +1,15 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "crypto/cpacf"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo proc_cpuinfo]
+file = /proc/cpuinfo
+
+[sysinfo proc_sysinfo]
+file = /proc/sysinfo
+
+[exception cpacf_not_enabled]
+severity = medium

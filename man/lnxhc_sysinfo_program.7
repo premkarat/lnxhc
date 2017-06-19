@@ -1,0 +1,195 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc_sysinfo_program 7 "lnxhc 1.3-1" 2013-12-18 "Linux Health Checker"
+.
+.SH NAME
+lnxhc_sysinfo_program \- Implementing a sysinfo program
+.
+.
+.SH DESCRIPTION
+A sysinfo program is a part of a health check. The \*[lhc] runs sysinfo programs
+before the corresponding health checks. It's job is to collect system
+information which the health check program analyzes. Use sysinfo programs
+when the basic system information item types "program" and "file" are not
+sufficient to collect a certain data point.
+.PP
+.
+.
+.SS "Programming languages"
+Sysinfo programs can be implemented using any programming language that provides
+access to environment variables. When choosing a programming language,
+make sure that the required runtime environment is available on a typical
+target system.
+.PP
+.
+.
+.SS "File permissions"
+The sysinfo program file must have the execute file permission set for all users
+who should be allowed to run lnxhc.
+.
+.
+.SS "Invocation"
+Use
+.B lnxhc sysinfo \-\-collect
+to run the sysinfo programs of all active health checks. The \*[lhc] sets the
+current working directory for the sysinfo program to the installation directory
+of the associated health check.
+.PP
+A sysinfo program may only access those
+files in the check directory that it declared as extrafiles (see
+.MP lnxhc_check_definitions 5 .
+It must not expect that any other part of the health check or the \*[lhc]
+framework is available.
+.
+.
+.SH "ENVIRONMENT VARIABLES"
+The \*[lhc] provides the following environment variables to sysinfo programs:
+.PP
+.BR LC_ALL =\[dq]C\[dq]
+.RS
+Program locale.
+.PP
+The \*[lhc] runs sysinfo programs with a fixed locale ("C") to prevent
+problems with localized output of helper programs that the sysinfo
+program runs.
+.PP
+.RE
+.
+.B LNXHC_CHECK_DIR
+.RS
+Health check installation directory.
+.PP
+.RE
+.
+.BI LNXHC_SYS_ sysvar_id
+.RS
+System variable value.
+.PP
+The value of host system specification
+.I sysvar_id
+for the host on which the sysinfo program is running.
+For a description of system variables, see the
+.MP lnxhc_check_definitions 5
+man page.
+.PP
+.RE
+.
+.
+.SH "STANDARD INPUT STREAM"
+.SS "Program type sysinfo items"
+No data is presented on the standard input stream of the sysinfo program.
+.PP
+.
+.
+.SS "Record type sysinfo items"
+No data is presented on the standard input stream of the
+.B start
+sysinfo program.
+The
+.B stop
+sysinfo program receives all of the output of the start program as input.
+.
+.
+.SH "OUTPUT STREAMS"
+.SS "Program type sysinfo items"
+All output written by the sysinfo program to the standard out and standard
+error streams is recorded and presented as system information to the
+health check program. There is no restriction on the format or language of
+such output.
+.PP
+.
+.
+.SS "Record type sysinfo items"
+All output written by the
+.B start
+sysinfo program to the standard out and
+standard error streams is recorded and presented as standard input stream to
+the stop sysinfo program. All output written by the
+.B stop
+sysinfo program
+is recorded and presented as system information to the health check
+program. There is no restriction on the format or language of such output.
+.
+.
+.SH "EXIT CODES"
+The \*[lhc] interprets sysinfo program exit codes to determine the outcome
+of running a sysinfo program. An exit code of 0 indicates that the sysinfo
+program ran successfully. Any other exit code indicates a runtime error.
+.PP
+If the sysinfo item defines ignorerc=1, the health check will be presented
+with the output and exit code of the sysinfo program. Otherwise the health
+check will not run with result code "failed sysinfo".
+.PP
+.
+.
+.SH SEE ALSO
+.MP lnxhc 1 ,
+.MP lnxhc_check_definitions 5 ,
+.MP lnxhc_writing_checks 7

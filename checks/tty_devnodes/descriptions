@@ -1,0 +1,8 @@
+[title]
+Detect terminals with multiple device nodes
+
+[description]
+This check detects terminals that are represented by more than
+one device node.  If getty programs are configured for two
+device nodes that both map to the same terminal, the getty
+programs interfere with each other, so that users cannot log in.

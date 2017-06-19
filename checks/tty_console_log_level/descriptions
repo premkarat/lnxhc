@@ -1,0 +1,23 @@
+[title]
+Check for current console_loglevel
+
+[description]
+This check examines if appropriate console_loglevel is set. console_loglevel
+determines the severity of messages that needs to go to the console. If
+appropriate console_loglevel is not set then the user might miss some important
+messages.
+
+[param log_level]
+Log level below which to raise an exception. Valid values are integers in the
+range 1 to 8
+
+List of log levels are:
+
+#KERN_EMERG	0    /*system is unusable            */
+#KERN_ALERT	1    /*action must be taken immediately    */
+#KERN_CRIT	2    /*critical conditions            */
+#KERN_ERR	3    /*error conditions            */
+#KERN_WARNING	4    /*warning conditions            */
+#KERN_NOTICE	5    /*normal but significant condition    */
+#KERN_INFO	6    /*informational                */
+#KERN_DEBUG	7    /*debug-level messages            */

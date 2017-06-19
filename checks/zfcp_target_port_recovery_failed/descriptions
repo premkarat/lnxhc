@@ -1,0 +1,9 @@
+[title]
+Check if the recovery of a target port failed
+
+[description]
+A failed target port recovery indicates a problem in the FCP
+channel, the fibre channel fabric or link, or in the storage server. As
+a result, none of the LUNs attached through this port are available.
+This health check detects the failure when the recovery of the failed
+target port was initiated by the zfcp device driver, and the recovery failed.

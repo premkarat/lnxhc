@@ -1,0 +1,7 @@
+[title]
+Check whether the path to the OpenSSL library is configured correctly
+
+[description]
+If the libibmca.so path is not specified correctly in the openssl.cnf
+configuration file, "ssh" commands fail. An incorrect specification can
+also prevent logins to Linux.

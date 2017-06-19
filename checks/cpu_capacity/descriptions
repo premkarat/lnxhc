@@ -1,0 +1,28 @@
+[title]
+Check whether the CPUs run with reduced capacity
+
+[description]
+External events or reconfigurations might cause CPUs to run with
+reduced capacity.
+This check examines the CPU capacity-adjustment indication and
+capacity-change reason codes of the System z mainframe.
+
+
+[param acceptable_cap_adj]
+The lowest acceptable CPU capacity-adjustment indication.
+The default value is 100, for regular capacity.  Lower values indicate
+reduced capacity.  An exception is raised if the System z mainframe
+reports a capacity-adjustment indication below this value.
+
+Change this value only if your System z mainframe intentionally runs
+with reduced capacity, for example, in power-saving mode.
+Valid values are integers in the range 1 to 100.
+
+
+[param expected_cap_rs]
+The expected capacity-change reason.
+The default value is 0, for regular operations without capacity changes.
+An exception is raised if the System z mainframe reports a capacity-change
+reason other than this value.
+
+Change this value to 1 if your System z mainframe runs in power-saving mode.

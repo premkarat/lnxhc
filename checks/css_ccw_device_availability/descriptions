@@ -1,0 +1,6 @@
+[title]
+Identify unusable I/O devices
+
+[description]
+This check examines sysfs information to identify I/O devices for which the
+availability status indicates that they cannot be used.

@@ -1,0 +1,75 @@
+[summary unused_ttys]
+These z/VM IUCV terminals are not enabled for user logins: &hvc_short_list;
+
+[explanation unused_ttys]
+The z/VM IUCV Hypervisor Console (HVC) device driver provides you with
+access to the Linux instance using the z/VM Inter-User Communication
+Vehicle (IUCV).  With this setup, you can log in to the Linux instance
+with no external network connection.
+
+The current setup has &num_hvc_iucv; HVC terminal devices that are
+managed by the z/VM IUCV HVC device driver.
+The following &num_hvc_req; HVC terminals are not enabled for user
+logins:
+
+&hvc_dev_list;
+
+HVC terminals that are not enabled for logins serve no purpose and
+cannot provide access to the Linux instance in emergencies.
+
+
+[solution unused_ttys]
+Enable each HVC terminal for user logins by starting a getty program
+on the terminal device.
+Alternatively, you can use the hvc_iucv= kernel parameter to reduce
+the number of z/VM IUCV HVC terminals.
+
+
+[reference unused_ttys]
+For information about HVC terminals and how to set them up see:
+- "How to Set up a Terminal Server Environment"
+- "Device Drivers, Features, and Commands"
+
+You can obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+See also the man pages for the "iucvconn" command and the "hvc_iucv"
+device driver.
+
+
+
+[summary too_few_ttys]
+Number of z/VM IUCV HVC terminals are below the required minimum
+
+
+[explanation too_few_ttys]
+The z/VM IUCV Hypervisor Console (HVC) device driver provides you with
+access to the Linux instance using the z/VM Inter-User Communication
+Vehicle (IUCV).  With this setup, you can log in to the Linux instance
+with no external network connection.
+
+The current setup has &hvc_iucv_avail; HVC terminal devices which is
+below the required minimum of &param_min_hvc_iucv; devices.
+
+HVC terminals that are not available cannot provide access to the
+Linux instance in emergencies.
+
+
+[solution too_few_ttys]
+Use the hvc_iucv= kernel parameter to increase the number of
+z/VM IUCV HVC terminals.
+Alternatively, reduce the min_hvc_iucv check parameter.
+
+
+[reference too_few_ttys]
+For information about HVC terminals and how to set them up see:
+- "How to Set up a Terminal Server Environment"
+- "Device Drivers, Features, and Commands"
+
+You can obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+See also the man pages for the "iucvconn" command and the "hvc_iucv"
+device driver.

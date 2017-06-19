@@ -1,0 +1,270 @@
+#!/usr/bin/perl
+#
+# zfcp_lun_configured_available
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Manik Bajpai <manibajp@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+use strict;
+use warnings;
+use Class::Struct;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+#The Distro name
+my $linux_distro = $ENV{"LNXHC_SYS_sys_distro"};
+
+# Exception IDs
+my $LNXHC_EXCEPTION_LUN_UNAVAILABLE = "lun_unavailable";
+
+# Path to the file containing data for sysinfo item 'read_kernel_cmdline'.
+my $sysinfo_read_kernel_cmdline = $ENV{"LNXHC_SYSINFO_read_kernel_cmdline"};
+
+# Path to the file containing data for sysinfo item 'list_zfcp_disks'.
+my $sysinfo_list_zfcp_disks = $ENV{"LNXHC_SYSINFO_list_zfcp_disks"};
+
+# Path to the file containing data for sysinfo item 'read_udev_rules'.
+my $sysinfo_read_udev_rules = $ENV{"LNXHC_SYSINFO_read_udev_rules"};
+
+# Path to the file containing data for sysinfo item 'read_zfcp_conf'.
+my $sysinfo_read_zfcp_conf = $ENV{"LNXHC_SYSINFO_read_zfcp_conf"};
+
+struct zfcp_details => [
+	busid    => '$',
+	wwpn     => '$',
+	zfcp_lun => '$',
+];
+
+#
+# Subroutine to parse the kernel command line for zfcp disks
+#
+sub parse_cmdline()
+{
+	my $fh;
+	my @zipl_list;
+	my $hd = qr/[[:xdigit:]]/;
+	my $id = qr/$hd+.$hd+.$hd+/;
+	my $dw = qr/0x$hd{16}/;
+	my $re = qr/rd((\.zfcp)|(_ZFCP))=($id),($dw),($dw)/;
+	my $disk;
+
+	#1. Read the output of 'cat /proc/cmdline'
+	open($fh, "<", $sysinfo_read_kernel_cmdline)
+		or die("Could not read file: $!\n");
+	while (my $line = <$fh>) {
+		while ($line =~ /$re/g) {
+			$disk = zfcp_details->new(
+				busid    => $4,
+				wwpn     => $5,
+				zfcp_lun => $6,
+			);
+			push(@zipl_list, $disk);
+		}
+	}
+	close($fh);
+	return \@zipl_list;
+}
+
+#
+# Subroutine to retrieve the FCP Path Info for the available disks
+#
+sub search_available()
+{
+	my @avail_list;
+	my $fh;
+	my $hd = qr/[[:xdigit:]]/;
+	my $dw = qr/0x$hd{16}/;
+	my $re = qr{(.*)/($dw)/($dw)};
+	my $disk;
+
+	#
+	#1. Read the output of "lszfcp -D" command, to:
+	#   a. Find the available disks
+	#   b. Retrieve the FCP Path Info for the available disks
+	#
+	open($fh, "<", $sysinfo_list_zfcp_disks)
+		or die("Could not read file: $!\n");
+	while (my $line = <$fh>) {
+		chomp($line);
+		next if ($line !~ m{$re});
+		$disk = zfcp_details->new(
+			busid    => $1,
+			wwpn     => $2,
+			zfcp_lun => $3,
+		);
+		push(@avail_list, $disk);
+	}
+	close($fh);
+	return \@avail_list;
+}
+
+#
+# Subroutine to compare the zfcp information for two disks
+#
+sub compare_disk($$)
+{
+	my ($left, $right) = @_;
+	return 1
+		if (lc $left->busid eq lc $right->busid
+		&& lc $left->wwpn eq lc $right->wwpn
+		&& lc $left->zfcp_lun eq lc $right->zfcp_lun);
+	return 0;
+}
+
+#
+# Subroutine to retrieve info on disks, intended to be configured.
+# Depending on distro (SLES/RHEL) and version (RHEL 5/6).
+#
+sub search_configured()
+{
+	my @cfgd_list;
+	my $fh;
+	my @zfcp_entry;
+	my $line;
+	my $regex = qr/ATTR\{\[ccw\/(.*)\](.*)\/.*\"(.*)\"$/;
+	my $disk;
+	my $root_disk;
+	my $linux_distro = $ENV{"LNXHC_SYS_sys_distro"};
+	my $zipl_list;
+	my @pers_list;
+
+	# If the ambient Distro is SLES
+	if ($linux_distro eq "SLES") {
+		open($fh, "<", $sysinfo_read_udev_rules)
+			or die("Could not read file: $!\n");
+		while ($line = <$fh>) {
+			chomp($line);
+			next if ($line !~ m{$regex});
+			$disk = zfcp_details->new(
+				busid    => $1,
+				wwpn     => $2,
+				zfcp_lun => $3,
+			);
+			push(@cfgd_list, $disk);
+		}
+		close($fh);
+	}
+
+	# If the ambient Distro is RHEL
+	if ($linux_distro eq "RHEL") {
+		open($fh, "<", $sysinfo_read_zfcp_conf)
+			or die("Could not read file: $!\n");
+		while ($line = <$fh>) {
+			chomp($line);
+			@zfcp_entry = split(' ', $line);
+
+			# If the version is RHEL5
+			if (scalar(@zfcp_entry) == 5) {
+				$disk = zfcp_details->new(
+					busid    => $zfcp_entry[0],
+					wwpn     => $zfcp_entry[2],
+					zfcp_lun => $zfcp_entry[4],
+				);
+				push(@pers_list, $disk);
+			}
+
+			# If the version is RHEL6 or above
+			if (scalar(@zfcp_entry) == 3) {
+				$disk = zfcp_details->new(
+					busid    => $zfcp_entry[0],
+					wwpn     => $zfcp_entry[1],
+					zfcp_lun => $zfcp_entry[2],
+				);
+				push(@pers_list, $disk);
+			}
+		}
+		close($fh);
+		$zipl_list = parse_cmdline();
+		foreach $root_disk (@$zipl_list) {
+			my $found = 0;
+			foreach $disk (@pers_list) {
+				$found = compare_disk($disk, $root_disk);
+				last if $found;
+			}
+			next if $found;
+			push(@cfgd_list, $root_disk);
+		}
+		push(@cfgd_list, @pers_list);
+	}
+	return \@cfgd_list;
+}
+
+#
+# Code for the health check. - Entry point
+#
+sub main()
+{
+	my $cfgd_list;
+	my $avail_list;
+	my @unavail_list;
+	my $disk;
+	my $busid;
+	my $wwpn;
+	my $lun;
+
+	#
+	#1. Search for all the configured disks, and retrieve their ZFCP
+	#   Path Info
+	$cfgd_list = search_configured();
+	if (!@$cfgd_list) {
+		lnxhc_fail_dep("No FCP SCSI disk found configured or your".
+				" operating system uses a mechanism\n".
+				"to persistently configure zFCP LUNs that".
+				" is not supported by this health\ncheck.");
+	}
+
+	#
+	#2. Find all the disks which are available.
+	#
+	$avail_list = search_available();
+
+	#
+	#3. Check if each configured disk is available.
+	#
+	foreach my $cfgd (@$cfgd_list) {
+		my $found = 0;
+		next if (grep { $_ eq $cfgd } @$avail_list);
+		foreach my $avail (@$avail_list) {
+			next
+				if (lc $avail->busid ne lc $cfgd->busid ||
+				lc $avail->wwpn ne lc $cfgd->wwpn ||
+				lc $avail->zfcp_lun ne lc $cfgd->zfcp_lun);
+			$found = 1;
+		}
+		push(@unavail_list, $cfgd) if (!$found);
+	}
+
+	#
+	#4. If there are some disks not available, raise exception.
+	#
+	if (@unavail_list) {
+		lnxhc_exception($LNXHC_EXCEPTION_LUN_UNAVAILABLE);
+		foreach $disk (@unavail_list) {
+			($busid, $wwpn, $lun) = @$disk;
+			lnxhc_exception_var("missing_disk_table",
+				sprintf("|#%s|#%s|#%s", $busid, $wwpn, $lun));
+		}
+	}
+	exit(0);
+}
+&main();
+__DATA__
+__END__
+

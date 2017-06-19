@@ -1,0 +1,8 @@
+[title]
+Identify active DASD alias devices without active base device
+
+[description]
+Alias devices without active base device affect the system performance and indicate a configuration problem.
+Through the Parallel Access Volume (PAV) feature, storage systems can represent the same physical disk space
+ as a base device and one or more alias devices. With IBM HyperPAV, an alias can be used for any base device
+ within the same logical subsystem on the storage system.

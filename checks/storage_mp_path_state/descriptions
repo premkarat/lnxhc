@@ -1,0 +1,13 @@
+[title]
+Identify multipath devices with too few available paths or too many failed paths
+
+[description]
+Through a correctly configured multipath setup, a Linux instance has two or
+more independent connections to the same physical storage device. This path
+redundancy can be used for load balancing and to maintain availability if one
+of the paths fails. Multipath setups with an insufficient number of available paths or an excessive number of failed paths might not meet these goals.
+[param failed_path_limit]
+Maximum number of failed hardware paths to be tolerated for a multipath device.
+
+[param remaining_path_limit]
+Minimum number of available hardware paths to be required for a multipath device.

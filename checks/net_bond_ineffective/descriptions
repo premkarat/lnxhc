@@ -1,0 +1,7 @@
+[title]
+Identify bonding interfaces that are configured with single network interfaces
+
+[description]
+Bonding setups are mainly used to increase availability or performance. A bonding interface is a
+logical interface that aggregates multiple slave interfaces.
+Bonding interfaces that are configured with only one slave interface do not offer path redundancy or increased bandwidth, so neither goal can be achieved.

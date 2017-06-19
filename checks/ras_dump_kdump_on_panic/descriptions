@@ -1,0 +1,8 @@
+[title]
+Ensure kdump is configured and running
+
+[description]
+This check examines if kdump is configured and running on the system. If kdump
+is not running and a system crash occurs, crash dump will not be captured and
+system will not be available for use. Kdump allows the system to come back
+after crash along with crash dump which can be used for post-morterm analysis.

@@ -1,0 +1,11 @@
+[title]
+Verify the availability of System z cryptographic hardware support for PKCS#11 secure key cryptographic operations
+
+[description]
+Secure key cryptographic operations require a Cryptographic Coprocessor. In order to use secure key cryptography via the Public Key Cryptographic Standard 11 (PKCS#11) API, openCryptoki together with the CCA token must be installed and configured correctly.
+
+This health check verifies that:
+- The Cryptographic Coprocessor is available
+- Required RPMs, such as 'openCryptoki', and 'csulcca' are available
+- openCryptoki is initialized
+- The CCA token is configured

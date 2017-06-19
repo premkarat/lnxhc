@@ -1,0 +1,18 @@
+[check]
+author = "Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>"
+component = "memory"
+
+[param warn_limit]
+default = "80"
+
+[param critical_limit]
+default = "90"
+
+[sysinfo free]
+program = "/usr/bin/free"
+
+[exception warn_limit]
+severity = low
+
+[exception critical_limit]
+severity = high

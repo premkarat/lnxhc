@@ -1,0 +1,78 @@
+[summary inactive]
+Automatic problem reporting is disabled
+
+[explanation inactive]
+With the automatic problem reporting feature, problem data is
+automatically collected and sent to IBM service.  Without this feature,
+you need to collect the data manually using the appropriate tools and
+contact IBM service, for example, to open a new Problem Management
+Record (PMR).
+
+
+[solution inactive]
+Omit this check unless a hardware support agreement with IBM is in place
+and the hardware is enabled for the Remote Support Facility.
+
+To temporarily activate automatic problem reporting on a running
+Linux instance, run
+## sysctl -w kernel.callhome=1
+
+To persistently activate automatic problem reporting, ensure that the
+/etc/sysctl.conf file contains an entry for "kernel.callhome" and that
+this entry reads:
+#kernel.callhome=1
+
+If your Linux distribution uses an /etc/sysctl.d directory, you can also
+create a separate file with this entry in that directory.
+
+Also ensure that the "sclp_async" kernel module is loaded before
+sysctl settings are applied.  See the documentation of your Linux
+distribution to automatically load kernel modules during the boot process.
+
+[reference inactive]
+- For details about setting system controls, see the sysctl (section 8)
+  and sysctl.conf (section 5) man pages.
+
+- For more information about automatic problem reporting, see
+  "Device Drivers, Features, and Commands".
+  You can obtain this publication from
+
+  http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+
+
+[summary not_available]
+The automatic problem reporting feature is not available
+
+[explanation not_available]
+The automatic problem reporting feature is not available on your Linux
+instance.  A possible reason is that the kernel module with this feature
+is not loaded.
+
+With the automatic problem reporting feature, problem data is
+automatically collected and sent to IBM service.  Without this feature,
+you need to collect the data manually using the appropriate tools and
+contact IBM service, for example, to open a new Problem Management
+Record (PMR).
+
+
+[solution not_available]
+Omit this check unless the following conditions apply:
+- Your distribution includes the automatic problem reporting feature.
+- A hardware support agreement with IBM is in place and
+  the hardware is enabled for the Remote Support Facility.
+
+If the check is applicable to your Linux instance, ensure that the
+"sclp_async" module is loaded, for example, by issuing:
+## modprobe sclp_async
+
+
+[reference not_available]
+- For information about loading modules, see the man page of the
+  "modprobe" command.
+
+- For more information about automatic problem reporting, see
+  "Device Drivers, Features, and Commands".
+  You can obtain this publication from
+
+  http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html

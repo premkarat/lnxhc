@@ -1,0 +1,59 @@
+#!/usr/bin/perl
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+
+use strict;
+use warnings;
+
+# Defining variables
+my $zipl_file = "/etc/zipl.conf";
+my ($handle, $file_modified_time, $bootmap_file, $boot_target,
+	$global_boot_target);
+
+# Getting modified time for files
+#
+
+sub file_modified_time
+{
+	if (-f $_[0]) {
+		my $file_time = (stat($_[0]))[9];
+		print ("$file_time:$_[0]\n");
+	}
+}
+# Opening zipl.conf in read mode.
+open($handle, "<", "$zipl_file") or
+	die("fs_boot_zipl_bootmap: Could not open the required file $!\n");
+
+# Abort immediately if different distro has different booting targets
+while (<$handle>) {
+	if (/^\s*target\s*=(.*)$/){
+		$boot_target = $1;
+		# Removing spaces at the beginning and end of filename
+		$boot_target =~ s/^\s+|\s+$//g;
+		if (defined($global_boot_target) &&
+			($boot_target ne $global_boot_target)) {
+			print "fs_boot_zipl_bootmap: Unsupported zipl.conf".
+			" file found: differing target= statements found!\n";
+			exit(64);
+		}
+		$global_boot_target = $boot_target;
+	}
+	# Parsing zipl.conf file for files which are relates to boot process
+	if (/^\s*(?:image|ramdisk|parmfile)\s*=(.*)$/) {
+		# Checking if file exists
+		my $file = $1;
+		# Removing spaces at the beginning and end of filename
+		$file =~ s/^\s+|\s+$//g;
+		# Removing optional hexadecimal address
+		$file =~ s/,0x[[:xdigit:]]+$//gi;
+		file_modified_time($file);
+	}
+}
+close($handle);
+$bootmap_file = "$global_boot_target/bootmap";
+
+# Getting modified time for files /etc/zipl.conf and /boot/bootmap
+file_modified_time($zipl_file);
+file_modified_time($bootmap_file);

@@ -1,0 +1,15 @@
+[title]
+Check whether the recommended runlevel is used and set as default
+[description]
+Running Linux with an unsuitable runlevel can mean that required services are
+not available, or it can mean that unnecessary processes degrade performance
+or security.
+
+Linux runlevels are usually expressed as integers in the range 0 to 6, where
+0 and 6 are reserved for halt and reboot. The meaning of runlevels 1 to 5
+differ between distributions. See the "init" man page of your distribution
+for details.
+
+[param recommended_runlevel]
+The recommended runlevel for the Linux instance.
+Valid values are integers in the range 1 to 5.

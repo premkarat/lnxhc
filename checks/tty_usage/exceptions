@@ -1,0 +1,37 @@
+[summary unused_ttys]
+These terminals are unused: &var_short_list;
+
+[explanation unused_ttys]
+There are one or more unused terminal devices.  Terminal devices
+are intended to provide a user interface to a Linux instance.
+Without an associated program, a terminal device does not serve
+this purpose.
+
+These terminal devices are unused:
+
+&var_tty_list;
+
+To confirm that no program is configured for a terminal device,
+issue "ps -ef |grep <terminal>".  Where <terminal> specifies the
+terminal device node without the leading /dev/.
+
+
+[solution unused_ttys]
+Configure a getty program for each unused terminal.  Depending on
+your distribution, you might have to create an inittab entry or an
+Upstart job.  For details, see the documentation that is provided
+with your distribution.
+
+If you want to accept unused terminals, add them to the "exclude_tty"
+check parameter to suppress this warning in the future.
+
+
+[reference unused_ttys]
+For general information about terminals, see
+"Device Drivers, Features, and Commands".
+You can obtain this publication from:
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+For more specific information, see the documentation that is provided
+with your distribution.  Also see the man page of the "ps" command.

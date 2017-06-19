@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+#
+# mem_swap_availability
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+# Exception IDs
+my $LNXHC_EXCEPTION_NO_SWAP_SPACE = "no_swap_space";
+
+# Path to the file containing data for sysinfo item 'swaps'.
+my $sysinfo_swaps = $ENV{"LNXHC_SYSINFO_swaps"};
+
+sub main()
+{
+	my $handle;
+	my $lines = 0;
+
+	open($handle, "<", $sysinfo_swaps) or
+		die("Could not open $sysinfo_swaps");
+
+	# check if /proc/swaps is empty
+	# Filename		Type		Size	Used		Priority
+	while (<$handle>) {
+		$lines++;
+
+		last if ($lines > 1);
+	}
+
+	if ($lines <= 1) {
+		lnxhc_exception($LNXHC_EXCEPTION_NO_SWAP_SPACE);
+	}
+
+	close($handle);
+}
+&main();
+__DATA__
+__END__

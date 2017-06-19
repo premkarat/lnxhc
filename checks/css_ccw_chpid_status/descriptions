@@ -1,0 +1,10 @@
+[title]
+Check for CHPIDs that are not available
+
+[description]
+Unavailable CHPIDs can cause I/O stalls and errors and might result in required
+I/O devices that are not visible within Linux. This check analyzes sysfs
+status information to identify CHPIDs that are unavailable because of a
+"configure standby" or a "vary offline" operation. These operations are commonly
+performed as part of hardware maintenance procedures and need to be reverted
+after maintenance has finished.

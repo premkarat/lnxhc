@@ -1,0 +1,15 @@
+#!/bin/bash
+
+cd /sys/bus/ccw/devices || exit 1
+
+for device in *
+do
+	if [ ! -e $device/driver ] ; then
+		read cutype < $device/cutype
+		read devtype < $device/devtype
+		if [ "${devtype}" = "n/a" ] ; then
+			devtype="0000/00"
+		fi
+		echo "${device}:${devtype}:${cutype}"
+	fi
+done

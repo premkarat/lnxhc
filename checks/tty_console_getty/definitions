@@ -1,0 +1,14 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "terminal"
+
+[sysinfo ps_tty_console]
+program = "ps --no-headers -t '/dev/console'"
+#
+# if ps does not find any process running on /dev/console,
+# it returns an exit code != 0... so ignore and run the check
+# in any case
+ignorerc = 1
+
+[exception getty_on_console]
+severity = medium

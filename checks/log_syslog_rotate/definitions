@@ -1,0 +1,30 @@
+[check]
+author = "Rajesh K Pirati <rapirati@in.ibm.com>"
+component = "log"
+repeat = "7d"
+
+[deps]
+(sys_distro=RHEL and sys_rhel_version < 7 and sys_rhel_version >=5) or (sys_distro=SLES and sys_sles_version < 12 and sys_sles_version >=10)
+
+[param max_log_size]
+default = "1MB"
+
+[sysinfo chkconfig_output]
+program = "/sbin/chkconfig --list"
+
+[sysinfo rpm_output]
+program = "/bin/rpm -q logrotate"
+ignorerc=1
+
+[sysinfo log_output]
+program = "$LNXHC_CHECK_DIR/collected_logfiles"
+extrafile = "collected_logfiles"
+
+[exception log_size_exceeded]
+severity = medium
+
+[exception no_logrotate]
+severity = high
+
+[exception no_cron]
+severity = high

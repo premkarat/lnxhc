@@ -1,0 +1,143 @@
+#!/usr/bin/perl
+#
+# fs_tmp_cleanup
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+use LNXHC::Check::Util qw/load_chkconfig/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_TEMP_DIR_MISS = "temp_dir_miss";
+my $LNXHC_EXCEPTION_MAX_DAYS_NOT_SET = "max_days_not_set";
+my $LNXHC_EXCEPTION_NO_CRON_JOB = "no_cron_job";
+my $LNXHC_EXCEPTION_TMP_WATCH = "tmp_watch";
+
+# Value of parameter 'temp_dir'.
+my $param_temp_dir = $ENV{"LNXHC_PARAM_temp_dir"};
+
+# Path to the file containing data for sysinfo item 'cron_status'.
+my $sysinfo_cron_status = $ENV{"LNXHC_SYSINFO_cron_status"};
+
+# Path to the file containing data for sysinfo item 'rhel_tmpwatch'.
+my $sysinfo_rhel_tmpwatch = $ENV{"LNXHC_SYSINFO_rhel_tmpwatch"};
+
+# Path to the file containing data for sysinfo item 'suse_sysconf_cron'.
+my $sysinfo_suse_sysconf_cron = $ENV{"LNXHC_SYSINFO_suse_sysconf_cron"};
+
+# Environment variables
+my $linux_distro = $ENV{"LNXHC_SYS_sys_distro"};
+my $suse_cron    = $ENV{"LNXHC_SYSINFO_EXIT_CODE_suse_sysconf_cron"};
+my $rhel_tmp_watch = $ENV{"LNXHC_SYSINFO_EXIT_CODE_rhel_tmpwatch"};
+
+# Remove spaces at beginning and ending of param values
+$param_temp_dir =~ s/^\s+|\s+$//g;
+
+# Validating absolute path directories
+check_dir_list_param("temp_dir");
+
+# Creating a list of temporary directories from the check parameter
+my @tmp_dirs = keys %{parse_list_param("temp_dir", qr/\s+/)};
+
+# Checking cron service on or off
+
+sub cron_service_status($)
+{
+	my $cron_service = shift();
+
+	# Parsing the cron service which are active
+	my $chkconfig = load_chkconfig($sysinfo_cron_status);
+	die "Could not open $sysinfo_cron_status: $!\n" unless $chkconfig;
+
+	my $cron_status = $chkconfig->[0]->{$cron_service};
+	if (!$cron_status) {
+		lnxhc_exception($LNXHC_EXCEPTION_NO_CRON_JOB);
+	}
+}
+
+sub sles_clean_up
+{
+	my ($handle, %tmp_config);
+	# Checking if file exists
+	if ($suse_cron > 0) {
+		lnxhc_fail_dep("File /etc/sysconfig/cron not found");
+	}
+	open($handle, "<" , $sysinfo_suse_sysconf_cron) or
+		die("could not open $sysinfo_suse_sysconf_cron: $!\n");
+	# Parsing sysconfig-cron file
+	foreach my $line (<$handle>) {
+		if ($line =~
+		/^\s*(MAX_DAYS_IN_TMP|TMP_DIRS_TO_CLEAR)\s*="(.*)"/){
+			$tmp_config{$1} = $2;
+		}
+	}
+	close($handle);
+
+	# Validating sysconfig-cron settings
+	my ($tmp_val, $max_time_val) =
+	($tmp_config{"TMP_DIRS_TO_CLEAR"}, $tmp_config{"MAX_DAYS_IN_TMP"});
+
+	if (defined($tmp_val)) {
+		# Remove spaces at beginning and ending
+		$tmp_val =~ s/^\s+|\s+$//g;
+
+		# Splitting multiple directories into an array
+		my %dirs = map {$_,1} split(/\s+/, $tmp_val);
+		# Checking TMP_DIRS_TO_CLEAR is pointing
+		# to user specified directories
+		my @dirs_missing = grep !exists $dirs{$_}, @tmp_dirs;
+
+		# Verifying the number of not pointed clean up directories
+		# having alteast one.
+		if (@dirs_missing) {
+			lnxhc_exception($LNXHC_EXCEPTION_TEMP_DIR_MISS);
+			lnxhc_exception_var_list("tmp_dir_list",
+				\@dirs_missing, ", ", scalar(@dirs_missing));
+			lnxhc_exception_var_list("tmp_dir_summ",
+					\@dirs_missing, ", ");
+		}
+	}
+	# Checking MAX_TIME and MAX_NOT_RUN values
+	if (defined($max_time_val)) {
+		# Remove spaces at beginning and ending
+		$max_time_val =~ s/^\s+|\s+$//g;
+		# Verifying whether values are updated or not
+		if ($max_time_val eq "" || $max_time_val < 1) {
+			lnxhc_exception($LNXHC_EXCEPTION_MAX_DAYS_NOT_SET);
+		}
+	}
+}
+
+# For SLES distro
+if ($linux_distro eq "SLES") {
+	cron_service_status("cron");
+	sles_clean_up();
+}
+# For RHEL distro
+if ($linux_distro eq "RHEL") {
+	# Checking whether file is existed or not
+	if ($rhel_tmp_watch > 0) {
+		lnxhc_exception($LNXHC_EXCEPTION_TMP_WATCH);
+	}
+	cron_service_status("crond");
+}
+exit(0);

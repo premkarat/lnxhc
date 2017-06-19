@@ -1,0 +1,13 @@
+[title]
+Verify the availability of System z cryptographic hardware support through a Common Cryptographic Architecture (CCA) stack
+
+[description]
+Applications using cryptographic operations by linking to CCA libraries can only exploit System z cryptography hardware if the CCA stack is configured correctly.
+
+Cryptographic coprocessor adapters must be available. Prerequisites for a well configured CCA stack that uses System z cryptographic hardware is a device driver to exploit cryptographic adapters, and the csulcca library.
+
+The CCA stack is required for secure key cryptography operations.
+
+This health check verifies that:
+- The Cryptographic Coprocessor is available
+- Required RPMs, such as 'csulcca', are available

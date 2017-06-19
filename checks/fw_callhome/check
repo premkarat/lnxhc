@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+#
+# fw_callhome
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+use Data::Dumper;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/load_sysctl/;
+
+# Path to the file containing data for sysinfo item 'sysctl'.
+my $sysinfo_sysctl = $ENV{"LNXHC_SYSINFO_sysctl"};
+
+
+sub main()
+{
+	# hash sysctl's for better access
+	my $sysctl = load_sysctl($sysinfo_sysctl);
+	die "Failed to read sysinfo: $sysinfo_sysctl: $!\n" unless $sysctl;
+
+	# check if call home is supported
+	unless (exists $sysctl->{'kernel.callhome'}) {
+		lnxhc_exception("not_available");
+		exit(0);
+	}
+
+	# raise exception if call home is not enabled
+	unless ($sysctl->{'kernel.callhome'}) {
+		lnxhc_exception("inactive");
+	}
+
+	exit(0);
+}
+
+&main();
+__DATA__
+__END__

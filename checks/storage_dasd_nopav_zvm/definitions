@@ -1,0 +1,31 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "storage/dasd"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+sys_hypervisor=ZVM
+
+[sysinfo proc_cmdline]
+program = 'cat /proc/cmdline'
+ignorerc = 1
+
+#RHEL6 onwards
+[sysinfo etc_dasdconf]
+program = 'cat /etc/dasd.conf'
+ignorerc = 1
+
+[sysinfo etc_rcd_rcmodules]
+program = 'cat /etc/rc.d/rc.modules'
+ignorerc = 1
+
+[sysinfo etc_rcmodules]
+program = 'cat /etc/rc.modules'
+ignorerc = 1
+
+[sysinfo etc_modprobeconf]
+program = 'cat /etc/modprobe.conf'
+ignorerc = 1
+
+[exception ineffective_nopav]
+severity = low

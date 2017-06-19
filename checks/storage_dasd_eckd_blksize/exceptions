@@ -1,0 +1,25 @@
+[summary unexpected_eckd_block_size]
+There are ECKD DASDs with non 4k block size &summary;
+
+[explanation unexpected_eckd_block_size]
+There are ECKD DASDs that have a block size other than 4096 bytes.
+
+Measurements showed that a block size of 4096 Bytes (4KB) shows the best results for I/O throughput and free disk space after formatting the DASD. Further tests showed that this statement is independent to the request size issued by the application.
+
+The following DASDs have non-4K block sizes:
+
+&details;
+
+To confirm, run the "lsdasd" command to display DASDs and their block sizes.
+
+[solution unexpected_eckd_block_size]
+To low-level format a DASD with a 4096 bytes block size, complete these steps:
+
+ 1. Backup existing data that resides on the disk.
+ 2. Low-level format the disk with a block size of 4096.
+    For example, you can use the "dasdfmt" command
+ 3. Restore the backup to the disk. Depending on your backup applications,
+    you might format the disk with a new file system first.
+
+[reference unexpected_eckd_block_size]
+See the man pages of the "lsdasd" and "dasdfmt" commands.

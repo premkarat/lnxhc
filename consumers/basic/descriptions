@@ -1,0 +1,29 @@
+[title]
+Show a textual health check report
+
+[description]
+This report consumers displays health check results in text form on the
+terminal that was used to start the Linux Health Checker.
+
+[param show_exception_details]
+A number which can be 0 or 1. If set to 1, the report includes full exception
+details. If set to 0, the report includes only exception summaries. Running
+the main program in verbose mode (option --verbose) will override this
+parameter setting.
+
+[param show_stats]
+A number which can be 0 or 1. If set to 1, the report includes a run-time
+statistics summary. If set to 0, the report includes no statistics summary.
+Running the main program in verbose mode (option --verbose) will override this
+parameter setting.
+
+[param show_info]
+A number which can be 0 or 1. If set to 1, the report includes informational
+check output. If set to 0, the report includes no informational check output.
+Running the main program in verbose mode (option --verbose specified twice)
+will override this parameter setting.
+
+[param full_hostname]
+A number which can be 0 or 1. If set to 1, the report includes the full name
+of the hosts that are checked. If set to 0, the report only includes the host
+name without domain information.

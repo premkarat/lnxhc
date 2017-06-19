@@ -1,0 +1,12 @@
+[title]
+Check the kernel message log for out-of-memory (OOM) occurrences
+
+[description]
+When a Linux instance runs out of memory, the OOM killer recovers memory
+by killing one or more processes. If important process get killed,
+they might need to be restarted and protected from the OOM killer.
+
+Frequent OOM occurrences indicate that too little memory is available for a given
+workload or that an application is consuming an undue amount of memory.
+Awareness of OOM occurrences can disclose resource shortages or help identify
+malfunctioning applications.

@@ -1,0 +1,109 @@
+#!/usr/bin/perl
+#
+# css_ccw_device_usage
+#   Health check program for the Linux Health Checker
+
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+#
+# Global variables
+#
+# Maximum number of CHPIDs/-ranges to list in summary
+our $MAX_SUMMARY_CHPIDS = 4;
+
+# Exception IDs
+our $LNXHC_EXCEPTION_MANY_UNUSED_DEVICES = "many_unused_devices";
+
+# Value of parameter 'ratio_limit'.
+our $param_ratio_limit = $ENV{"LNXHC_PARAM_ratio_limit"};
+
+# Value of parameter 'device_print_limit'.
+our $param_device_print_limit = $ENV{"LNXHC_PARAM_device_print_limit"};
+
+# Path to the file containing data for sysinfo item 'lscss'.
+our $sysinfo_lscss = $ENV{"LNXHC_SYSINFO_lscss"};
+
+
+#
+# Code entry
+#
+
+check_int_param("ratio_limit", 0, 100);
+check_int_param("device_print_limit", 0, 65535);
+
+local *HANDLE;
+my $count_online = 0;
+my $count_offline = 0;
+my @list_offline;
+my $ratio;
+
+# Parse lscss file
+open(HANDLE, "<", $sysinfo_lscss) or
+	die("css_ccw_device_usage: could not open '$sysinfo_lscss': $!\n");
+while (<HANDLE>) {
+	my $dev;
+	my $in_use;
+
+	if (!(/^([0-9a-f]+)\.([0-9a-f]+\.[0-9a-f]+)\s+/i)) {
+		next;
+	}
+	$dev = lc($1).".".lc($2);
+
+	$in_use = substr($_, 35, 3);
+	if ($in_use eq "yes") {
+		$count_online++;
+        }
+	else {
+		$count_offline++;
+		push(@list_offline, $dev);
+	}
+}
+close(HANDLE);
+
+my $total_devices = $count_offline + $count_online;
+
+# Calculating the Ratio
+if ($total_devices != 0) {
+	$ratio = ($count_offline / $total_devices) * 100;
+}
+if (! $ratio) {
+	$ratio = 1;
+}
+
+# If the calculated ratio is greater than or equal to the
+# parameter value then raise exception
+if ($param_ratio_limit <= $ratio and $param_device_print_limit <= $count_offline) {
+	lnxhc_exception($LNXHC_EXCEPTION_MANY_UNUSED_DEVICES);
+	lnxhc_exception_var("offline_devices", $count_offline);
+	lnxhc_exception_var("online_devices", $count_online);
+	lnxhc_exception_var("total_devices", $total_devices);
+	lnxhc_exception_var("ratio", sprintf("%.2f", $ratio));
+}
+
+# Listing of devices if verbose mode is on
+if ($LNXHC_VERBOSE) {
+	print "Offline Devices are:\n";
+	foreach my $device (@list_offline) {
+		print "$device\n";
+	}
+}
+
+exit(0);

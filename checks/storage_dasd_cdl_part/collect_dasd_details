@@ -1,0 +1,88 @@
+#!/usr/bin/perl
+
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+
+my ($handle, @dasd_list);
+my $lsdasd_cmd = "/sbin/lsdasd";
+my $dasdview_cmd = "/sbin/dasdview -x ";
+
+# Collecting all dasds from lsdasd command
+open($handle, '-|', $lsdasd_cmd) or die("Can't execute '$lsdasd_cmd': $!\n");
+while (<$handle>) {
+	# Matching dasda from
+	# 0.0.3726   active      dasda     94:0    ECKD  4096   7043MB    1803060
+	push(@dasd_list, $1) if ($. > 2 && /\s+(dasd\w+)\s+/);
+}
+close($handle);
+
+foreach my $dasd_item (@dasd_list) {
+	my ($format, $block_per_track, $block_size, $sector_number);
+	my $has_partition = "no";
+	my $cur_track = 0;
+
+	# For each DASD getting format, blocks per track and block size
+	open ($handle, '-|',
+		"$dasdview_cmd /dev/$dasd_item 2>/dev/null")
+		or die("Can't execute '$dasdview_cmd /dev/$dasd_item': $!\n");
+	while (<$handle>) {
+		# format                 : hex 2          dec 2           CDL formatted
+		if (/^format\s+:\s+hex\s([[:xdigit:]]+)/) {
+			$format = $1;
+		}
+
+		# blocks per track       : hex c          dec 12
+		if (/^blocks per track\s+:\s+hex\s[[:xdigit:]]+\s+dec\s(\d+)$/) {
+			$block_per_track = $1
+		}
+
+		# blocksize              : hex 1000       dec 4096
+		if (/^blocksize\s+:\s+hex\s[[:xdigit:]]+\s+dec\s(\d+)$/) {
+			$block_size = $1;
+		}
+
+	}
+	close($handle);
+
+	# If not CDL formatted proceeding next
+	next if ($format != 2);
+
+	if (defined($block_per_track) && defined($block_size)) {
+		$sector_number = (2 * $block_per_track * $block_size) / 512;
+	}
+
+	# Getting the starting sector number
+	my $sector_start_file = "/sys/block/$dasd_item/$dasd_item"."1/start";
+	if (-e $sector_start_file && -r $sector_start_file) {
+		# Collecting track related information
+		open ($handle, "<", $sector_start_file) or
+			die("Can't read '$sector_start_file': $!\n");
+
+		$cur_track = <$handle>;
+		chomp($cur_track);
+
+		close($handle);
+
+		# Marking that the dasd is having partition
+		$has_partition = "yes";
+	}
+
+	if (defined($dasd_item) && defined($has_partition)
+	   && defined($cur_track) && defined($sector_number)) {
+		print "$dasd_item:$has_partition:$cur_track:$sector_number\n";
+	}
+}

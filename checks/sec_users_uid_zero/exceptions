@@ -1,0 +1,45 @@
+[summary non_root_uid0]
+These users with UID 0 are not listed as trusted superusers: (&non_root_user_ids;)
+
+[explanation non_root_uid0]
+Users with numerical user ID (UID) 0 run with superuser privileges that are
+conventionally associated with user "root". These users and the processes they
+start can inadvertently or maliciously disrupt, damage, manipulate, or destroy
+a system. Generally, UID 0 must be assigned sparingly and only to trusted
+user names. Security policies often restrict UID 0 to user name "root".
+
+The "trusted_superusers" parameter of this check identifies the following
+user names as trusted to run with UID 0:
+
+&param_trusted_superusers;
+
+The following user names are not in the list of trusted superusers but run
+with UID 0:
+
+&non_uid_root_list;
+
+Note: The usernames added from external services will start with symbols '+,-'.
+These usernames will not be reported.
+For example:
+ #+username
+ #+
+ #+@username
+ #-username
+ #-
+ #-@username
+
+[solution non_root_uid0]
+Examine the list of user names that run with UID 0 and assess whether they need
+to be superusers and can be trusted with superuser privileges.
+
+For user names that should not or need not run as superusers, change the UID
+from 0 to a non-zero unused UID. For example, issue a command like this:
+#usermod -u <UID> <user name>
+
+To prevent this check from issuing further warnings about legitimate
+superusers, add their user names to the "trusted_superusers" check parameter.
+
+[reference non_root_uid0]
+- For more information about changing user properties, see the "usermod"
+  man page.
+- For information about changing check parameters, see the "lnxhc" man page.

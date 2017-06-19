@@ -1,0 +1,520 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc-sysinfo 1 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.
+.SH NAME
+lnxhc-sysinfo \- Display, modify and manage system information
+.
+.
+.SH SYNOPSIS
+Display actions:
+.PP
+.nh
+.na
+.B lnxhc sysinfo
+.OS list l
+.OS show s
+.OS show\-property "" property_key
+.RS 14
+.
+.OS show\-sysvar
+.OS show\-data "" check_name . sysinfo_name
+.RE
+.ad
+.hy
+.PP
+Modification actions:
+.PP
+.nh
+.na
+.B lnxhc sysinfo
+.OS clear
+.OS add\-data a data_id = filename
+.RS 14
+.
+.OS add\-data a check_name . sysinfo_name = filename
+.br
+.
+.OS set "" property_key = value
+.OS remove r property_key
+.br
+.
+.OS sysvar "" sysvar_id = value
+.OS merge m filename
+.RE
+.ad
+.hy
+.PP
+Management actions:
+.PP
+.nh
+.na
+.B lnxhc sysinfo
+.OS collect c
+.OS new n
+.RS 14
+.OS export e filename
+.OS import i filename
+.RE
+.ad
+.hy
+.PP
+Options:
+.PP
+.nh
+.na
+.B lnxhc sysinfo
+.OS instance\-id I instance_id
+.OS host\-id H host_id
+.RS 14
+.br
+.
+.OS file f filename
+.OS profile "" profile_name
+.br
+.OS no\-sudo
+.RE
+.ad
+.hy
+.
+.NT You must specify exactly one action. See ACTIONS.
+.
+.
+.SH DESCRIPTION
+The
+.B sysinfo
+subcommand provides functions related to the management of
+system information. In the context of the \*[lhc],
+.B system information
+(or
+.B sysinfo
+for short) refers to the sum of health check input data.
+.PP
+Examples for system information are:
+.RS 4
+.IP \(bu 2
+Contents of a file (such as /etc/fstab)
+.IP \(bu 2
+Output of a command (such as /bin/dmesg)
+.RE
+.PP
+In the \*[lhc] framework, health checks do not collect system information
+by themselves. Instead each health check defines
+.B sysinfo items
+which contain instructions on how to obtain the required information.
+.PP
+When you run health checks, the lnxhc program collects the required data using
+these sysinfo item definitions and stores it as
+.BR "current system information" .
+You can use the
+.B display actions
+to browse this data.
+.PP
+.
+.
+.SS "Data hierarchy"
+The current system information can include data for multiple points in time.
+A point in time is referred to as
+.B instance
+and it is identified by an instance ID which can either be a timestamp or a
+symbolic name such as "install day". All data related to one instance is
+called an "instance dataset".
+.PP
+For each instance, the current system information can also include data
+from multiple hosts. A
+.B host
+is identified by a host ID which can either be its hostname or another arbitrary
+name. Associated with a host are system variables which represent system
+specifications, for example about the version and platform, for the Linux
+instance of the host.
+All data related to one host in one instance is called a "host dataset".
+.PP
+A single unit of system information is called a system information
+.BR item .
+All data gathered during the collection of one system information item
+from one host in one instance is called an "item dataset".
+.PP
+.
+.
+.SS "Data ID"
+The \*[lhc] assigns a
+.B data ID
+to each sysinfo item based on the instructions it represents.
+The lnxhc program uses this data ID to identify items which refer to the same
+data so that it can save effort by collecting such data only once.
+.PP
+You can use the data ID to insert system information from a file into the
+current system information. This can be useful if a health check requires
+information that the \*[lhc] cannot collect by itself (for example hardware or
+hypervisor data). You can also use it if you have manually collected data for
+a health check. See the description of the
+.B modification actions
+for more details.
+.PP
+.
+.
+.SH ACTIONS
+.OD "" a check_name . sysinfo_id = filename
+.OD "" a sysinfo_id = filename
+.OD "" a data_id = filename
+.OD add\-data "" check_name . sysinfo_id = filename
+.OD add\-data "" sysinfo_id = filename
+.OD add\-data "" data_id = filename
+Add item data from file
+.I filename
+to the current system information.
+
+This action adds the contents of a file as item data to the current system
+information, which can then be used by a health check as input data.
+This can be useful if a health check requires information that
+the \*[lhc] cannot collect by itself (for example hardware or hypervisor data).
+You can also use it to run health checks on data that was not collected by the
+lnxhc command.
+
+If there is no current system information, the \*[lhc] creates a new instance
+and host dataset and adds the item data to that. Otherwise, it adds the data to
+the "last" host dataset, that is the host dataset with the highest index from
+the instance dataset with the highest index. You can instruct the lnxhc
+command to use a specific instance ID and host ID by using the
+.B \-\-instance\-id
+and
+.B \-\-host\-id
+options.
+
+You identify the target item by providing the corresponding health check name
+and sysinfo item ID concatenated by a dot. The check name and dot can optionally
+be left out, in which case the data for all active or selected checks with a
+corresponding sysinfo item ID will be modified. Alternatively, the target item
+can be identified directly specifying the data ID. See action
+.B \-\-show\-data\-id
+in
+.MP lnxhc-check 1
+for more information on how to determine the data ID of a sysinfo item.
+
+.B Example:
+.br
+.CL # lnxhc check \-\-show\-data\-id fs_disk_usage.df_output
+.CL fs_disk_usage.df_output=program::/bin/df
+.CL Done.
+.CL # lnxhc sysinfo \-\-add\-data program::/bin/df=/tmp/df.txt
+.PP
+.
+.OD clear
+Clear all system information.
+
+This action removes all current system information.
+.PP
+.
+.OD collect c
+Collect system information.
+
+This action collects system information for the active, installed health
+checks and stores it as current system information, replacing any previous
+system information.
+
+.OD export e filename
+Write system information to a file.
+
+This action writes all system information to file
+.IR filename .
+You can use such a file for example to copy system information to another
+instance of the Linux Health Checker or to store it for later use.
+If
+.I filename
+is "-", the output is written to the standard output stream instead.
+.PP
+.
+.OD import i filename
+Read system information from a file written by \-\-export.
+
+This action replaces all current system information with data from file
+.IR filename .
+If
+.I filename
+is "-", the data is read from the standard input stream instead.
+.PP
+.
+.OD list l
+List system information.
+
+This action shows the list of all system information data items, including their
+property-key, data ID, result code, collection time, and size. It also shows
+the instance and host IDs including their property-keys.
+.PP
+.
+.OD merge m filename
+Add system information from a file written by \-\-export.
+
+This action combines the current system information dataset with data found in
+file
+.IR filename .
+If
+.I filename
+is "-", the data is read from the standard input stream instead.
+If an instance, host or item dataset with the same ID is found in both sources,
+the data from the file is used.
+.PP
+.
+.OD new n
+Add new instance and host datasets to the current system information.
+
+This action adds an empty instance and host dataset to the current system
+information. The \*[lhc] appends the new instance to the end of the current
+instance list.
+.PP
+.
+.OD remove r property_key
+Remove a system information property.
+
+This action removes a system information property.
+You identify the property by specifying its
+.I property_key
+(see the
+.MP lnxhc_properties 7
+man page).
+.RS
+.NT You can only remove properties which address a complete dataset such as an instance or host dataset.
+.RE
+.PP
+.
+.OD set "" property_key = value
+Change the value of a system information property.
+
+This action changes the value of a system information property.
+You identify the property by specifying
+its
+.I property_key
+(see the
+.MP lnxhc_properties 7
+man page).
+
+.B Example:
+.br
+.CL # lnxhc sysinfo \-\-set 0.host.0.id=localhost
+.RS
+.NT You can only change properties which do not address a complete dataset such as an instance ID or the start time of an item.
+.RE
+.PP
+.
+.OD show s
+Show system information.
+
+This action displays all current system information. This includes
+the data content of items and the values of system variables.
+.PP
+.
+.OD show\-data "" check_name . sysinfo_id
+.OD show\-data "" sysinfo_id
+.OD show\-data "" data_id
+Show sysinfo item data.
+
+This action displays the actual data that is associated with a specific
+sysinfo item.
+
+You identify the target item by providing the corresponding health check name
+and sysinfo item ID concatenated by a dot. The check name and dot can optionally
+be left out, in which case all active or selected checks are searched for the
+corresponding sysinfo item ID. Note that this function will terminate with an
+error if more than one data ID matches the specification.
+
+Alternatively, the target item can be identified directly specifying the data
+ID. See action
+.B \-\-show\-data\-id
+in
+.MP lnxhc-check 1
+for more information on how to determine the data ID of a sysinfo item.
+.PP
+.
+.OD show\-property "" property_key
+Show the value of a system information property.
+
+This action displays the value of a system information property. You identify
+the property by specifying its
+.I property_key
+(see the
+.MP lnxhc_properties 7
+man page).
+
+.B Example:
+.br
+.CL # lnxhc sysinfo \-\-show-property '0.host.0.sysvar.*'
+.PP
+.
+.OD show\-sysvar
+Show the value of system variables.
+
+This action displays the values of all system variables in a host dataset.
+If there is more than one host dataset in the current system information,
+the \*[lhc] chooses the "last" host dataset, that is the host dataset with
+the highest index from the instance dataset with the highest index.
+
+You can instruct the lnxhc command to use a specific host dataset by
+specifying its instance ID and host ID using the
+.B \-\-instance\-id
+and
+.B \-\-host\-id
+options.
+.PP
+.
+.OD sysvar "" sysvar_id = value
+Change the value of a system variable.
+
+This action changes the value of the system variable identified by
+.IR sysvar_id .
+If there is more than one host dataset in the current system information,
+the \*[lhc] chooses the "last" host dataset, that is the host dataset with
+the highest index from the instance dataset with the highest index.
+
+You can instruct the lnxhc command to use a specific host dataset by
+specifying its instance ID and host ID using the
+.B \-\-instance\-id
+and
+.B \-\-host\-id
+options.
+.
+.
+.SH OPTIONS
+.OD file f filename
+Operate on system information in file.
+
+This option instructs the \*[lhc] to apply actions on the data found in
+.IR filename .
+Without this option, actions apply to the data in
+the current system information.
+.PP
+.
+.OD host\-id H host_id
+Use specified host ID for actions.
+
+This option instructs the \*[lhc] to use the specified
+.I host_id
+as host ID for actions.
+
+.B Example:
+.br
+.CL # lnxhc sysinfo --new --host-id localhost
+.PP
+.
+.OD instance\-id I instance_id
+Use specified instance ID for actions.
+
+This option instructs the \*[lhc] to use the specified
+.I instance_id
+as instance ID for actions.
+
+.B Example:
+.br
+.CL # lnxhc sysinfo --import ./file.sysinfo --instance-id install_time
+.PP
+.
+.OD no\-sudo
+Skip collection of sysinfo data requiring sudo.
+
+This option instructs the \*[lhc] to skip the collection of sysinfo data that
+would require changing the user ID of the calling user using the sudo mechanism.
+You can use this option to prevent ineffective password prompts if your user
+ID is not enabled for sudo usage. See also
+.MP sudo 5 .
+.PP
+.
+.OD profile "" profile_name
+Use configuration values from a specific profile.
+
+This option instructs the \*[lhc] to use configuration data of the profile
+with the specified
+.I profile_name
+when collecting system information.
+Without this option it uses configuration data of the active profile.
+.
+.
+.SH EXAMPLES
+.B Merge sysinfo data from two files:
+.RS 4
+.CL # lnxhc sysinfo --merge ./local.sysinfo --merge ./remote.sysinfo
+.RE
+.PP
+.
+.B Add sysinfo data from remote host using ssh:
+.RS 4
+.CL # ssh user@remote 'lnxhc sysinfo -c -f -' | lnxhc sysinfo -m -
+.RE
+.PP
+.
+.B Add item data for sysinfo item \[dq]df_output\[dq] of check \[dq]fs_disk_usage\[dq]:
+.RS 4
+.CL # lnxhc sysinfo --add-data fs_disk_usage.df_output=./df.txt
+.RE
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_properties 7 ,
+.MP lnxhc_check_definitions 5

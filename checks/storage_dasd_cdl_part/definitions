@@ -1,0 +1,18 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "storage/dasd"
+repeat = "7d"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo collect_dasd_details]
+program = "$LNXHC_CHECK_DIR/collect_dasd_details"
+extrafile = "collect_dasd_details"
+user = "root"
+
+[exception no_partition_found]
+severity = medium
+
+[exception invalid_partition_start]
+severity = high

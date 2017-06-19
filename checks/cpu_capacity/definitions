@@ -1,0 +1,18 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "cpu"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[param acceptable_cap_adj]
+default = "100"
+
+[param expected_cap_rs]
+default = "0"
+
+[sysinfo proc_sysinfo]
+file = /proc/sysinfo
+
+[exception capacity_reduced]
+severity = high

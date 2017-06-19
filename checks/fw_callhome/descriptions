@@ -1,0 +1,11 @@
+[title]
+Confirm that automatic problem reporting is activated
+
+[description]
+When Linux experiences a kernel panic, the automatic problem reporting
+feature sends collected problem data to the IBM service organization
+Hence a system crash automatically leads to a new Problem Management
+Record (PMR), which can be processed by IBM service.
+
+Omit this check unless a hardware support agreement with IBM is in place
+and the hardware is enabled for the Remote Support Facility.

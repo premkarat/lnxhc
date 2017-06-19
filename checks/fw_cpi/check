@@ -1,0 +1,55 @@
+#!/usr/bin/perl
+#
+# fw_cpi
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+sub check_file($);
+sub main();
+
+
+sub validate_cpi_attr($)
+{
+	my $attr = shift();
+	my ($fh, $content);
+
+	open($fh, '<', $ENV{"LNXHC_SYSINFO_$attr"}) or
+		die "Failed to read sysinfo for $attr: $!\n";
+	$content = <$fh>;
+	close($fh);
+
+	# Check if the content is empty or blank.  For now,
+	# do not check for valid characters as this is already
+	# ensured by the kernel devel driver.
+	lnxhc_exception("no_$attr") if $content =~ /^\s*$/;
+}
+
+sub main()
+{
+	# The CPI attributes system_type and system_level are
+	# automatically set, therefore this check ignores them.
+	foreach (qw/system_name sysplex_name/) {
+		validate_cpi_attr($_);
+	}
+	exit(0);
+}
+
+&main();
+__DATA__
+__END__

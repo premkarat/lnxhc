@@ -1,0 +1,30 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "ras/dump"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo lsshut]
+program = "/usr/sbin/lsshut"
+
+[sysinfo chkconfig_list]
+program = "/sbin/chkconfig --list"
+
+[sysinfo kernel_config]
+program = "/bin/cat /boot/config-$(uname -r)"
+
+[exception no_kdump]
+severity = high
+
+[exception no_kdump_standalone]
+severity = low
+
+[exception no_kdump_dumpconf]
+severity = medium
+
+[exception no_standalone]
+severity = high
+
+[exception no_dumpconf]
+severity = high

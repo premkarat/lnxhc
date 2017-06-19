@@ -1,0 +1,8 @@
+[title]
+Check if swap space is available
+
+[description]
+This check examines if swap space is available. For systems having memory
+constraints if swap space is not available it might lead to out-of-memory
+situations as also a system crash. Swapping allows the system to use more
+memory than is physically available.

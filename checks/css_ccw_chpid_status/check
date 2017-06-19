@@ -1,0 +1,333 @@
+#!/usr/bin/perl
+#
+# css_ccw_chpid_status
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+#
+# Global variables
+#
+
+# Maximum number of CHPIDs/-ranges to list in summary
+our $MAX_SUMMARY_CHPIDS	= 4;
+
+# Maximum number of devices/-ranges to list in summary
+our $MAX_SUMMARY_DEVS	= 4;
+
+# Exception IDs
+our $LNXHC_EXCEPTION_UNUSED_CFG_OFF = "unused_cfg_off";
+our $LNXHC_EXCEPTION_USED_CFG_OFF = "used_cfg_off";
+our $LNXHC_EXCEPTION_UNUSED_VARY_OFF = "unused_vary_off";
+our $LNXHC_EXCEPTION_USED_VARY_OFF = "used_vary_off";
+
+# Path to the file containing data for sysinfo item 'lscss'.
+our $sysinfo_lscss = $ENV{"LNXHC_SYSINFO_lscss"};
+
+# Path to the file containing data for sysinfo item 'chplist'.
+our $sysinfo_chplist = $ENV{"LNXHC_SYSINFO_chplist"};
+
+
+#
+# Functions
+#
+
+#
+# adjacent_ids - return non-zero if IDs (e.g. CHPID, bus-ID) are adjacent
+# @id_a: First ID
+# @id_b: Second ID
+#
+sub adjacent_ids($$)
+{
+	my ($id_a, $id_b) = @_;
+	my $prefix_a;
+	my $prefix_b;
+	my $num_a;
+	my $num_b;
+
+	# Parse first ID
+	if ($id_a =~ /^(.*)\.([0-9a-f]+)$/i) {
+		$prefix_a = $1;
+		$num_a = hex($2);
+	} else {
+		$prefix_a = "";
+		$num_a = hex($id_a);
+	}
+
+	# Parse second ID
+	if ($id_b =~ /^(.*)\.([0-9a-f]+)$/i) {
+		$prefix_b = $1;
+		$num_b = hex($2);
+	} else {
+		$prefix_b = "";
+		$num_b = hex($id_b);
+	}
+
+	# Compare
+	if ($prefix_a eq $prefix_b && $num_b == ($num_a + 1)) {
+		return 1;
+	}
+
+	return 0;
+}
+
+#
+# merge_list - merge list of IDs
+# @list: reference to list which should be merged
+# @max: optional maximum number of entries of the resulting list
+sub merge_list($;$)
+{
+	my ($list, $max) = @_;
+	my $current;
+	my $first;
+	my $last;
+	my @result;
+
+	foreach $current (sort(@$list)) {
+		$current =~ s/^([0-9a-f]+\.)*//i;
+		if (!defined($first)) {
+			$first = $current;
+			$last = $current;
+			next;
+		}
+
+		# Find series of adjacent IDs
+		if (adjacent_ids($last, $current)) {
+			$last = $current;
+			next;
+		}
+
+		# Add entries
+		if ($first eq $last) {
+			push(@result, $first);
+		} else {
+			push(@result, "$first-$last");
+		}
+
+		$first = $current;
+		$last = $current;
+
+		if (defined($max) && scalar(@result) >= $max) {
+			push(@result, "...");
+			$first = undef;
+			$last = undef;
+			last;
+		}
+	}
+
+	# Add final entries
+	if (defined($first) && defined($last)) {
+		if ($first eq $last) {
+			push(@result, $first);
+		} else {
+			push(@result, "$first-$last");
+		}
+	}
+
+	return @result;
+}
+
+
+#
+# Code entry
+#
+
+my %cfg_off;
+my %vary_off;
+my %devs;
+
+local *HANDLE;
+
+# Parse chplist file
+open(HANDLE, "<", $sysinfo_chplist) or
+	die("css_ccw_chpid_status: could not open '$sysinfo_chplist': $!\n");
+while (<HANDLE>) {
+	if (/^chp(.*):status:(.*)$/) {
+		if ($2 eq "offline") {
+			$vary_off{$1} = 1;
+		}
+	} elsif (/^chp(.*):configure:(.*)$/) {
+		if ($2 eq "0") {
+			$cfg_off{$1} = 1;
+		}
+	}
+}
+close(HANDLE);
+
+# Parse lscss file
+open(HANDLE, "<", $sysinfo_lscss) or
+	die("css_ccw_chpid_status: could not open '$sysinfo_lscss': $!\n");
+while (<HANDLE>) {
+	my $css;
+	my $dev;
+	my $pim;
+	my $pam;
+	my @chpids;
+	my $mask;
+	my $i;
+	my $in_use;
+
+	if (!(/^([0-9a-f]+)\.([0-9a-f]+\.[0-9a-f]+)\s+/i)) {
+		next;
+	}
+	$css = lc($1);
+	$dev = lc($1).".".lc($2);
+
+	# Be sure to only report devices which are in use
+	$in_use = substr($_, 35, 3);
+	if ($in_use ne "yes") {
+		next;
+	}
+
+	$pim = hex(substr($_, 40, 2));
+	$pam = hex(substr($_, 44, 2));
+	push(@chpids, lc(substr($_, 53, 2)));
+	push(@chpids, lc(substr($_, 55, 2)));
+	push(@chpids, lc(substr($_, 57, 2)));
+	push(@chpids, lc(substr($_, 59, 2)));
+	push(@chpids, lc(substr($_, 62, 2)));
+	push(@chpids, lc(substr($_, 64, 2)));
+	push(@chpids, lc(substr($_, 66, 2)));
+	push(@chpids, lc(substr($_, 68, 2)));
+
+	for ($mask = 0x80, $i = 0; $mask != 0; $mask >>= 1, $i++) {
+		my $chpid;
+
+		# Skip paths which are not installed
+		if (($pim & $mask) == 0) {
+			next;
+		}
+
+		# Get CHPID
+		$chpid = "$css.".$chpids[$i];
+
+		# Add device to CHPID list
+		if (!defined($devs{$chpid})) {
+			$devs{$chpid} = [ $dev ];
+		} else {
+			push(@{$devs{$chpid}}, $dev);
+		}
+
+		# Check configure state
+		if (($pam & $mask) == 0) {
+			$cfg_off{$chpid} = 1;
+		}
+	}
+}
+close(HANDLE);
+
+# Analyse data
+
+my @unused_cfg_list;
+my @used_cfg_list;
+my %cfg_dev_list;
+my @unused_vary_list;
+my @used_vary_list;
+my %vary_dev_list;
+
+# Check configure status
+foreach my $chpid (sort(keys(%cfg_off))) {
+	my $chpid_devs = $devs{$chpid};
+
+	if (!defined($chpid_devs)) {
+		push(@unused_cfg_list, $chpid);
+		next;
+	}
+	push(@used_cfg_list, $chpid);
+
+	# Find devices which are affected
+	foreach my $dev (@$chpid_devs) {
+		$cfg_dev_list{$dev} = 1;
+	}
+}
+
+# Check vary status
+foreach my $chpid (sort(keys(%vary_off))) {
+	my $chpid_devs = $devs{$chpid};
+
+	if (!defined($chpid_devs)) {
+		push(@unused_vary_list, $chpid);
+		next;
+	}
+	push(@used_vary_list, $chpid);
+
+	# Find devices which are affected
+	foreach my $dev (@$chpid_devs) {
+		$vary_dev_list{$dev} = 1;
+	}
+}
+
+# Report exception for CHPIDs which are configured offline and not used
+if (@unused_cfg_list) {
+	my $id;
+
+	lnxhc_exception($LNXHC_EXCEPTION_UNUSED_CFG_OFF);
+	lnxhc_exception_var("unused_cfg_summary",
+	      join(", ", merge_list(\@unused_cfg_list, $MAX_SUMMARY_CHPIDS)));
+	foreach $id (merge_list(\@unused_cfg_list)) {
+		lnxhc_exception_var("unused_cfg_list", "#$id");
+	}
+}
+
+# Report exception for CHPIDs which are configured offline and used
+if (@used_cfg_list) {
+	my @dev_list = sort(keys(%cfg_dev_list));
+	my $id;
+
+	lnxhc_exception($LNXHC_EXCEPTION_USED_CFG_OFF);
+	lnxhc_exception_var("used_cfg_dev_summary",
+	      join(", ", merge_list(\@dev_list, $MAX_SUMMARY_DEVS)));
+	foreach $id (merge_list(\@dev_list)) {
+		lnxhc_exception_var("used_cfg_dev_list", "#$id");
+	}
+	foreach $id (merge_list(\@used_cfg_list)) {
+		lnxhc_exception_var("used_cfg_chp_list", "#$id");
+	}
+}
+
+# Report exception for CHPIDs which are varied offline and not used
+if (@unused_vary_list) {
+	my $id;
+
+	lnxhc_exception($LNXHC_EXCEPTION_UNUSED_VARY_OFF);
+	lnxhc_exception_var("unused_vary_summary",
+	      join(", ", merge_list(\@unused_vary_list, $MAX_SUMMARY_CHPIDS)));
+	foreach $id (merge_list(\@unused_vary_list)) {
+		lnxhc_exception_var("unused_vary_list", "#$id");
+	}
+}
+
+# Report exception for CHPIDs which are varied offline and used
+if (@used_vary_list) {
+	my @list = sort(keys(%vary_dev_list));
+	my $id;
+
+	lnxhc_exception($LNXHC_EXCEPTION_USED_VARY_OFF);
+	lnxhc_exception_var("used_vary_dev_summary",
+	      join(", ", merge_list(\@list, $MAX_SUMMARY_DEVS)));
+	foreach $id (merge_list(\@list)) {
+		lnxhc_exception_var("used_vary_dev_list", "#$id");
+	}
+	foreach $id (merge_list(\@used_vary_list)) {
+		lnxhc_exception_var("used_vary_chp_list", "#$id");
+	}
+}
+
+exit(0);

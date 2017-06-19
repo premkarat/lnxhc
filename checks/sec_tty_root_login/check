@@ -1,0 +1,140 @@
+#!/usr/bin/perl
+#
+# sec_tty_root_login
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+use Data::Dumper;
+use File::Basename qw/fileparse/;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+sub load_securetty($)
+{
+	my $filename = shift;
+	my $fh = undef;
+	my $href = {};
+
+	return undef unless open($fh, "<", $filename);
+	while (<$fh>) {
+		next if /^\s*#/;
+		chomp;
+		s/^\s+|\s+$//g;
+		$href->{$_} = 1;
+	}
+	close($fh);
+	return $href;
+}
+
+# parse, filter, and load ps output into a hash, using the PID
+# as hash key and a list reference as value.
+#
+# For example:
+#             '8307' => [
+#                          'root',		# 0: owner
+#                          '8307',		# 1: PID
+#                          '1',			# 2: PPID
+#                          '0',			# 3: Cpu
+#                          'Aug03',		# 4: STIME
+#                          'ttyS0',		# 5: TTY
+#                          '00:00:00',		# 6: TIME
+#                          '/sbin/mingetty',	# 7..: CMD
+#                          '--noclear',
+#                          '/dev/ttyS0',
+#                          'dumb'
+#                        ]
+sub load_ps_ef($;$)
+{
+	my ($filename, $re_tty_excl) = @_;
+	my $fd = undef;
+	my $href = {};
+
+	return undef unless open($fd, "<", $filename);
+	while (<$fd>) {
+		my @elems = split /\s+/;	  # split fields
+		next unless $elems[1] =~ /\d+/;	  # throw away head lines
+		next if $elems[5] =~ m/^${re_tty_excl}$/; # exclude ttys
+		$href->{$elems[1]} = \@elems;
+	}
+	close($fd);
+
+	return $href;
+}
+
+sub main()
+{
+	my $securetty = load_securetty($ENV{"LNXHC_SYSINFO_etc_securetty"});
+	die "Failed to read sysinfo: securetty: $!\n" unless $securetty;
+
+	my $ps_ef = load_ps_ef($ENV{"LNXHC_SYSINFO_ps_ef"},
+			       qr{(?:pt[ys]/\d+|\?|)});
+	die "Failed to read sysinfo: ps_ef: $!\n" unless $ps_ef;
+
+	# interate through list of available terminal devices and
+	# categorize them into secure and insecure
+	my @secure = ();
+	my @insecure = ();
+	foreach (keys %$ps_ef) {
+		my $tty = $ps_ef->{$_}->[5];
+		$tty = fileparse($tty);	      # strip /dev/ path component
+		if (exists($securetty->{$tty})) {
+			push @secure, $tty;
+		} else {
+			push @insecure, $tty;
+		}
+	}
+
+	# parse health check parameters and store them in a hash
+	my $p = {};
+	$p->{secure} = parse_list_param("secure_ttys", qr/\s+/);
+	$p->{insecure} = parse_list_param("insecure_ttys", qr/\s+/);
+
+	if ($LNXHC_DEBUG) {
+		print STDERR "TTY_SECURE: " . Dumper(\@secure);
+		print STDERR "TTY_INSECURE: " . Dumper(\@insecure);
+		print STDERR "HC_PARAMS: " . Dumper($p);
+	}
+
+	# ensure terminals are not listed in both parameters at the same time
+	foreach my $ent (keys %{$p->{insecure}}) {
+		if (exists $p->{secure}->{$ent}) {
+			lnxhc_param_error "Terminals must not be specified by".
+					  " the secure_ttys and insecure_ttys".
+					  " check parameters at the same time";
+		}
+	}
+
+	# define exception data
+	my @exdata = ();
+
+	# check for insecure terminals that are currently considered as secure
+	@exdata = grep { exists($p->{insecure}->{$_}) } @secure;
+	if (@exdata) {
+		lnxhc_exception("insecure_enabled");
+		lnxhc_exception_var("list_insecure", "#    $_") foreach @exdata;
+	}
+
+	# check for secure terminals which are not considered secure
+	@exdata = grep { exists($p->{secure}->{$_}) } @insecure;
+	if (@exdata) {
+		lnxhc_exception("secure_disabled");
+		lnxhc_exception_var("list_secure", "#    $_") foreach @exdata;
+	}
+}
+
+&main();
+__DATA__
+__END__

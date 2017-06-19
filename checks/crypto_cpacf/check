@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+#
+# crypto_cpacf
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+use Data::Dumper;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+# System information sources
+my $proc_sysinfo = $ENV{"LNXHC_SYSINFO_proc_sysinfo"};
+my $proc_cpuinfo = $ENV{"LNXHC_SYSINFO_proc_cpuinfo"};
+
+my %system_z_types = (
+	9672 => { cpacf => 0, desc => "IBM S/390 9672" }, # G5
+	2064 => { cpacf => 0, desc => "IBM eServer zSeries 900" },
+	2066 => { cpacf => 0, desc => "IBM eServer zSeries 800" },
+);
+
+
+sub main()
+{
+	$Data::Dumper::Sortkeys = 1;
+
+	my $sysinfo = load_proc_sysinfo($proc_sysinfo);
+	die "Failed to read sysinfo: $proc_sysinfo: $!\n" unless $sysinfo;
+
+	my $cpuinfo = load_proc_cpuinfo($proc_cpuinfo);
+	die "Failed to read sysinfo: $proc_cpuinfo: $!\n" unless $cpuinfo;
+
+	print STDERR Dumper($sysinfo, $cpuinfo) if $LNXHC_DEBUG;
+
+	# check if hardware supports CPACF
+	my $type = $sysinfo->{'Type'};
+	if (exists($system_z_types{$type}) &&
+	    !$system_z_types{$type}->{cpacf}) {
+		lnxhc_fail_dep("$LNXHC_CHECK_ID: CPACF is not available on ".
+			       "your ".$system_z_types{$type}->{desc});
+	} else {
+		# hardware supports CPACF and check if the msa flag is present
+		my @features = split /\s+/, $cpuinfo->{features};
+		unless (grep { /\bmsa\b/ } @features) {
+			lnxhc_exception("cpacf_not_enabled");
+		}
+	}
+	exit(0);
+}
+
+&main();
+__DATA__
+__END__

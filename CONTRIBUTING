@@ -1,0 +1,94 @@
+Contributing to the Linux Health Checker
+========================================
+
+Please read this document if you would like to help improving the Linux Health
+Checker. In general, all types of contributions are welcome, for example:
+
+  * Fixes for code or documentation
+  * New plug-ins for health checks or result consumers
+  * Functional enhancements to the health checker framework
+
+There are some rules that these contributions must follow to be acceptable
+for inclusion:
+
+  1. Register and become a contributor.
+
+  2. Your contribution must align with the project goals of the Linux
+     Health Checker.
+
+  3. Your contribution must follow a particular format.
+
+  4. Your contribution must be signed.
+
+Once you have made sure that your contribution follows these rules,
+send it via e-mail to the Linux Health Checker mailing list [1].
+
+
+How to become a contributor
+---------------------------
+To register as a contributor, send a registration mail to the mailing list [1]
+with the following content:
+----
+By making a contribution to this lnxhc (Linux Health Checker) project on
+http://lnxhc.sourceforge.net, I certify that:
+
+  a) The contribution was created by me and I have the right to submit it
+     under the terms and conditions of the open source license
+     "Eclipse Public License version 1.0"
+     (http://www.eclipse.org/legal/epl-v10.html).
+
+  b) The contribution is made free of any other party's intellectual property
+     claims or rights.
+
+  c) I understand and agree that this project and the contribution are public
+     and that a record of the contribution (including all personal information
+     I submit with it, including my sign-off) is maintained indefinitely and
+     may be redistributed consistent with this project or the open source
+     license(s) involved.
+
+Signed-off-by: Your Name <your.email@example.org>
+----
+
+
+Project goals
+-------------
+The goal of the Linux Health Checker project is to provide a tool that
+checks Linux systems for problems. "Problem" in this context can mean anything
+from configuration errors or deviations from best practice setups to non-optimal
+settings of the environment in which Linux runs. If a problem is
+found, the Linux Health Checker generates a message that describes the problem
+and a possible solution in detail and in a way that is understandable by system
+administrators who are familiar with - but not necessarily experts in -
+the problem area.
+
+If you have an idea for a contribution but are unsure if it aligns with the
+project goals, feel free to discuss the idea on the mailing list [1].
+
+
+Contribution format
+-------------------
+To contribute a change, please create a patch using the diff utility with
+the following command line options:
+
+  diff -uprN
+
+Add a meaningful description of the contribution to the top of the patch.
+The description should follow this format:
+
+  <component>: <short description>
+
+  <detailed description>
+
+  Signed-off-by: Your Name <your.email@example.org>
+
+With your Signed-off-by, you certify the rules from your contribution
+registration.
+Be sure that your patch also contains an update of the "CONTRIBUTORS" file
+of the lnxhc package, which lists your contribution.
+
+
+References
+----------
+[1] lnxhc-list@lists.sourceforge.net
+[2] http://www.eclipse.org/legal/epl-v10.html
+[3] http://lnxhc.sourceforge.net

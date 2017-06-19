@@ -1,0 +1,7 @@
+[title]
+Confirm 4K block size on ECKD DASD devices
+
+[description]
+Verify the block size of low-level formatted ECKD DASD devices.
+If the block size is other than 4096 an exception is reported.
+A block size of 4096 maps to the default block size of file systems and typically have a good I/O throughput.

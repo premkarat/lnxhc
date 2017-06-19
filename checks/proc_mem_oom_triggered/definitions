@@ -1,0 +1,14 @@
+[check]
+author = "Rajesh K Pirati <rapirati@in.ibm.com>"
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = process/memory
+
+[deps]
+(sys_distro=RHEL and sys_rhel_version>=5.0) or (sys_distro=SLES and sys_sles_version>=10)
+
+[sysinfo kernel_ring_buffer]
+program = "/bin/dmesg"
+ignorerc = 1
+
+[exception  processes_killed]
+severity = medium

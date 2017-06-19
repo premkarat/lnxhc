@@ -1,0 +1,23 @@
+[summary too_low_memory]
+Available free memory is less than low memory threshold
+
+[explanation too_low_memory]
+Available free memory (&lmem_available;) is low. It is less than threshold setting (&lmem_threshold;). You can check the amount of free and used memory using "free" command.
+
+[solution too_low_memory]
+Shutdown all unwanted processes claiming more memory footprint. You can run "top" command to check which process consume more memory and kill them (only after consulting with system admin or process owner).
+
+[reference too_low_memory]
+See the "top" man page.
+
+[summary too_high_memory]
+Available free memory is higher than high memory threshold
+
+[explanation too_high_memory]
+Available free memory (&hmem_available;) is high. It is higher than threshold setting (&hmem_threshold;). You can check the amount of free and used memory using "free" command.
+
+[solution too_high_memory]
+Shutdown all unwanted processes claiming more memory footprint. You can run "top" command to check which process consume more memory and kill them (only after consulting with system admin or process owner).
+
+[reference too_high_memory]
+See the "top" man page.

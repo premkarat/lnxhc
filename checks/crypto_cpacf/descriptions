@@ -1,0 +1,24 @@
+[title]
+Confirm that CPACF is enabled
+
+[description]
+The CP Assist for Cryptographic Functions (CPACF) accelerates
+symmetric cryptographic algorithms.  This check verifies that
+CPACF is enabled on the system.
+
+CPACF is a mandatory prerequisite for hardware-based acceleration of
+cryptographic operations in the following contexts:
+
+ * the OpenSSL software stack (see also checks crypto_openssl_stack and
+   crypto_openssl_stack_32bit)
+ * the clear key openCryptoki (PKCS#11) software stack (see also checks
+   crypto_opencryptoki_ckc and crypto_opencryptoki_ckc_32bit)
+ * Linux kernel-internal cryptographic operations, such as dm-crypt and
+   IPSec
+
+CPACF is also required for the availability of the /dev/prng pseudo random
+number generator device.
+
+Optionally CPACF enables protected key operation for the Common Cryptographic
+Architecture (CCA) software stack (see also checks crypto_cca_stack,
+crypto_opencryptoki_skc, and opencryptoki_skc_32bit).

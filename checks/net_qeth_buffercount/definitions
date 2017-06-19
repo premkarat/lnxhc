@@ -1,0 +1,20 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "network/qeth"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo lsqeth_p]
+program = "/sbin/lsqeth -p"
+
+[sysinfo proc_meminfo]
+file = "/proc/meminfo"
+
+[param recommended_buffercount]
+default = "<=500MB:16,<=900MB:32,<=1900MB:64,>1900MB:128"
+# comparison operator memory_size:buffer_count
+# comma (,) is the separator
+
+[exception inefficient_buffercount]
+severity = medium

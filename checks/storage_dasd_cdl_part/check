@@ -1,0 +1,92 @@
+#!/usr/bin/perl
+#
+# storage_dasd_cdl_part
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_NO_PARTITION_FOUND = "no_partition_found";
+my $LNXHC_EXCEPTION_INVALID_PARTITION_START = "invalid_partition_start";
+
+
+# Path to the file containing data for sysinfo item 'collect_dasd_details'.
+my $sysinfo_collect_dasd_details = $ENV{"LNXHC_SYSINFO_collect_dasd_details"};
+
+my ($handle, @nopart_list, %wrong_track);
+
+# Verifying CDL formatted disk is there or not
+if (-z "$sysinfo_collect_dasd_details") {
+        lnxhc_fail_dep("There are no CDL formatted DASDs");
+}
+
+# Reading dasd, dasd having partition or not and the starting track
+# from the sysinfo file
+open ($handle, "<", $sysinfo_collect_dasd_details) or
+	die ("couldn't open file: $sysinfo_collect_dasd_details: $!\n");
+
+while (<$handle>) {
+	# Colon separated
+	my ($dasd, $has_part, $cur_track, $cal_track) = split /:/;
+
+	# Preparing no_patition array for display purpose
+	if ($has_part eq "no") {
+		push (@nopart_list, $dasd);
+	} elsif ($has_part eq "yes" && $cur_track < $cal_track) {
+
+		# Preparing hash with dasd as key and track as value
+		# if the starting track is less than actual start
+		$wrong_track{$dasd} = $cur_track;
+	}
+}
+close($handle);
+
+if (scalar(@nopart_list) >= 1) {
+
+	lnxhc_exception($LNXHC_EXCEPTION_NO_PARTITION_FOUND);
+
+	# Printing all dasd having no partitions
+	lnxhc_exception_var("no_part", "#$_") foreach (@nopart_list);
+
+	# Printing summary
+	lnxhc_exception_var_list("no_part_sum", \@nopart_list, ", ");
+}
+
+if (%wrong_track) {
+
+	lnxhc_exception($LNXHC_EXCEPTION_INVALID_PARTITION_START);
+
+	# Printing Summary
+	lnxhc_exception_var_list("track_data_sum", [sort keys %wrong_track], ", ");
+
+	# Printing all data
+	lnxhc_exception_var("track_data", sprintf("#%-20s     %-10s",
+		"DASD", "Starting Track"));
+	foreach my $dasd (sort(keys(%wrong_track))) {
+		lnxhc_exception_var("track_data", sprintf("#%-20s     %-10s",
+			$dasd, $wrong_track{$dasd}));
+	}
+}
+
+exit(0);

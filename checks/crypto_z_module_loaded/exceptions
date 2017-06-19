@@ -1,0 +1,56 @@
+[summary module_not_loaded]
+System z cryptography kernel module is not loaded
+
+[explanation module_not_loaded]
+The System z cryptography kernel module named 'z90crypt' or 'zcrypt_pcixcc' or
+'zcrypt_cex2a' is not loaded. When this kernel module is not loaded, the Linux
+system cannot exploit cryptographic adapters.
+
+Secure key cryptographic functions and true random number generation are only
+supported if the system has access to a cryptographic coprocessor adapter. RSA
+operations are supported by both coprocessor and accelerator adapters. Some
+applications or libraries will emulate clear key RSA operations in software if
+no cryptographic adapters are accessible, but this emulation will decrease the
+system performance exceedingly.
+
+While the kernel module is not loaded, the following health checks will also be
+not applicable:
+
+ * crypto_cca_stack
+ * crypto_opencryptoki_skc and crypto_opencryptoki_skc_32bit
+
+In addition acceleration and off-loading of RSA operations is not possible in
+cryptographic clear key. This affects the following checks:
+
+ * crypto_openssl_stack and crypto_openssl_stack_32bit
+ * crypto_opencryptoki_ckc and crypto_opencryptoki_ckc_32bit
+
+To verify whether System z cryptography kernel module is loaded, issue:
+
+## lsmod | grep "<Module name>"
+
+where <Module name> is the name of the System z cryptography kernel module.
+
+[solution module_not_loaded]
+To use secure key cryptography you need access to a cryptographic coprocessor.
+If the system has access to one or more cryptographic adapters, load the System z cryptography kernel module using the command:
+
+## modprobe "<Module name>"
+
+where <Module name> is the name of the System z cryptography kernel module.
+Note that loading the kernel module may result in an error message when there
+are no cryptographic adapters installed.
+
+For more information about various kernel module parameters, see the 'Generic
+cryptographic device driver' chapter in  'Device Drivers, Features, and
+Commands'.
+
+If there are no cryptographic adapters installed on your system set the
+status of this check to inactive.
+
+[reference module_not_loaded]
+See the man page of the 'modprobe' command, and 'Device Drivers, Features,
+and Commands'.
+
+You can obtain this publication from
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html

@@ -1,0 +1,27 @@
+[summary read_only_filesystem]
+One or more filesystems have been mounted as read-only
+
+[explanation read_only_filesystem]
+Filesystems mounted as read-only would inhibit filesystem operations on the
+drives like editing, deleting files/folders etc.
+
+The following filesystems have been mounted as read-only:
+
+&read_only_filesystems;
+
+To view the mount points with their respective options, run the "mount" command
+with no parameters.
+
+[solution read_only_filesystem]
+Read-only filesystems can be remounted as read-write by the following command:
+
+#mount -o remount,rw <device> <mount_point>
+
+where device is the read-only filesystem mounted on mount_point
+
+If a filesystem has been intentionally mounted as read-only for security
+reasons, remove the filesystem mount point from the mount_points check
+parameter.
+
+[reference read_only_filesystem]
+See the man page of the "mount" command.

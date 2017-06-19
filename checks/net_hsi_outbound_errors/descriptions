@@ -1,0 +1,12 @@
+[title]
+Check for an excessive error ratio for outbound HiperSockets traffic
+
+[description]
+This check examines the transmit (TX) error ratio for HiperSockets network
+interfaces (hsi). A high TX error ratio can be caused by one or more slow
+receivers that require attention.
+
+[param txerror_ratio]
+Threshold for the percentage of TX errors by total TX packets for HiperSockets
+network interfaces. If the ratio of TX errors exceeds this threshold, an
+exception is raised. Valid values are integers in the range 1 to 100.

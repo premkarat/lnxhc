@@ -1,0 +1,112 @@
+#!/usr/bin/perl
+#
+# zvm_priv_class
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_CURRENTLY_HIGHER_PRIVILEGES = "running_privileges_exceeded";
+my $LNXHC_EXCEPTION_DIRECTORY_HIGHER_PRIVILEGES = "default_privileges_exceeded";
+
+# Value of parameter 'permitted_privclass'.
+my $param_permitted_privclass = $ENV{"LNXHC_PARAM_permitted_privclass"};
+
+# Value of parameter 'check_for'.
+my $param_check_for = $ENV{"LNXHC_PARAM_check_for"};
+
+# Path to the file containing data for sysinfo item 'vmcp_priv_class'.
+my $sysinfo_vmcp_priv_class = $ENV{"LNXHC_SYSINFO_vmcp_priv_class"};
+
+
+# Ensuring parameter values are not empty
+check_empty_param("permitted_privclass");
+check_empty_param("check_for");
+
+# Allowed privclasses are from a-z and 1-6
+if ($param_permitted_privclass =~ /[^a-zA-Z1-6]/ ||
+		length($param_permitted_privclass) > 32 ) {
+	lnxhc_param_error("Parameter 'permitted_privclass' specifies " .
+			  "privilege classes that are not valid");
+}
+
+my ($handle, $cur_hash, $dir_hash) = (undef, {}, {});
+
+open ($handle, "<", $sysinfo_vmcp_priv_class) or
+	die ("zvm_priv_class: couldn't open file: ".
+                "'$sysinfo_vmcp_priv_class': $!\n");
+while (<$handle>) {
+	if (/^\s+Currently:\s+(\w+)/) {
+		$cur_hash->{$_} = 1 foreach (split //, uc($1));
+	}
+	if (/^\s+Directory:\s+(\w+)/) {
+		$dir_hash->{$_} = 1 foreach (split //, uc($1));
+	}
+}
+close($handle);
+
+unless ((%$cur_hash) && (%$dir_hash)){
+	die ("Couldn't collect privilege class data\n");
+}
+
+# preparing the required data as a hash for easy comparison.
+my @perm_privclass = split //, uc($param_permitted_privclass);
+my @check_for = keys %{parse_list_param("check_for", ',', 1)};
+my $check_cur = 0;
+my $check_dir = 0;
+
+#Looking for to check what
+foreach (@check_for) {
+	if (lc($_) eq "currently") {
+		$check_cur = 1;
+	} elsif (lc($_) eq "directory") {
+		$check_dir = 1;
+	} else {
+		lnxhc_param_error("Parameter 'check_for' contain values " .
+				  "other than allowed values: " .
+				  "'currently' or 'directory'");
+	}
+}
+
+foreach (@perm_privclass) {
+	delete $cur_hash->{$_};
+	delete $dir_hash->{$_};
+}
+
+if (%$cur_hash && $check_cur &&
+    join("", sort(keys(%{$cur_hash}))) ne join("", sort(keys(%{$dir_hash})))) {
+	my @cur = sort(keys(%$cur_hash));
+	lnxhc_exception($LNXHC_EXCEPTION_CURRENTLY_HIGHER_PRIVILEGES);
+	lnxhc_exception_var_list("sum_cur_extrapriv", \@cur, "");
+	lnxhc_exception_var_list("cur_extrapriv", \@cur, "", scalar(@cur));
+}
+
+if (%$dir_hash && $check_dir) {
+	my @dir = sort(keys(%$dir_hash));
+	lnxhc_exception($LNXHC_EXCEPTION_DIRECTORY_HIGHER_PRIVILEGES);
+	lnxhc_exception_var_list("sum_dir_extrapriv", \@dir, "");
+	lnxhc_exception_var_list("dir_extrapriv", \@dir, "", scalar(@dir));
+}
+exit(0);

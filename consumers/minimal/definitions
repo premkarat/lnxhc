@@ -1,0 +1,10 @@
+[consumer]
+author    = "Peter Oberparleiter <peter.oberparleiter@de.ibm.com>"
+state     = inactive
+format    = env
+frequency = both
+event     = any
+type      = report
+
+[param pager]
+default   = "less"

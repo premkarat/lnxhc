@@ -1,0 +1,23 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "filesystem"
+repeat = "1d"
+
+[param warn_limit]
+default = "80"
+
+[param critical_limit]
+default = "95"
+
+[param mount_points]
+default = ""
+
+[sysinfo df_output]
+program = "df -i"
+
+[exception warn_limit]
+severity = low
+state = inactive
+
+[exception critical_limit]
+severity = high

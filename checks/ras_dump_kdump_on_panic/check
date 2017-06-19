@@ -1,0 +1,87 @@
+#!/usr/bin/perl
+#
+# ras_dump_kdump_on_panic
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+# Exception IDs
+my $LNXHC_EXCEPTION_NO_KDUMP_CRASH = "no_kdump_crash";
+my $LNXHC_EXCEPTION_NO_KDUMP = "no_kdump";
+
+my $sysinfo_config = $ENV{"LNXHC_SYSINFO_config"};
+
+my $sysinfo_cmdline = $ENV{"LNXHC_SYSINFO_cmdline"};
+
+my $sysinfo_crash_size = $ENV{"LNXHC_SYSINFO_crash_size"};
+
+my $sysinfo_collect_status = $ENV{"LNXHC_SYSINFO_collect_status"};
+
+sub load_config($)
+{
+	my $fname = shift;
+	my $fh;
+	my $href = {};
+
+	return undef unless open($fh, "<", $fname);
+
+	while (<$fh>) {
+		next if /^(?:\s*#|\s*$)/;
+		my ($cfg, $val) = split(/=/);
+		$href->{$cfg} = $val;
+	}
+	close($fh);
+
+	return $href;
+}
+
+sub main()
+{
+	my $kdump = {};
+
+	my $kernel = load_config($sysinfo_config) or
+		die("Could not open $sysinfo_config");
+
+	open(FILE1, "<", $sysinfo_collect_status) or
+		die("Could not open $sysinfo_collect_status");
+
+	$kdump->{status} = int(<FILE1>);
+
+	open(FILE2, "<", $sysinfo_crash_size) or
+		die("Could not open $sysinfo_crash_size");
+
+	$kdump->{size} = int(<FILE2>);
+
+	if (exists($kernel->{'CONFIG_CRASH_DUMP'}) &&
+	    $kernel->{'CONFIG_CRASH_DUMP'} =~ m'y') {
+		if (!$kdump->{size}) {
+			lnxhc_exception($LNXHC_EXCEPTION_NO_KDUMP_CRASH);
+		} elsif (!$kdump->{status}) {
+			lnxhc_exception($LNXHC_EXCEPTION_NO_KDUMP);
+		}
+	} else {
+		lnxhc_fail_dep("Linux instance does not support crash dump");
+	}
+
+	close(FILE1);
+	close(FILE2);
+}
+&main();
+__DATA__
+__END__

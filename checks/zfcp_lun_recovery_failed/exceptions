@@ -1,0 +1,39 @@
+[summary lun_not_usable]
+There are unusable zFCP LUNs &lun_summ;
+
+[explanation lun_not_usable]
+Some zFCP LUNs are in a state indicating that there have been problems while
+trying to recover from an error.
+
+The following zFCP LUNs indicate that recovery failed:
+|zFCP LUN|Device_ID|WWPN|Failed
+&lun;
+
+To manually check the state of zFCP LUN, check the value of the associated
+"failed" sysfs attribute.
+
+For example, issue:
+## cd /sys/bus/ccw/drivers/zfcp/<device_bus_id>/<wwpn>/
+## cat <lun>/failed
+where
+* <device_bus_id> - is the device bus-ID that looks like x.x.xxxx
+* <wwpn> - is the world wide port number that looks like 0x<16 digits>
+* <lun> - is the logical unit number that looks like 0x<16 digits>
+
+[solution lun_not_usable]
+Manually trigger LUN recovery by echoing "0" into the corresponding "failed"
+sysfs attribute.
+
+For example, issue:
+## cd /sys/bus/ccw/drivers/zfcp/<device_bus_id>/<wwpn>/
+## echo 0 > <lun>/failed
+
+Search for Storage Server errors and resolve them using the documentation of
+your Storage Server.
+
+[reference lun_not_usable]
+For more information about recovering a failed FCP device, see "Device Drivers,
+Features, and Commands".
+You can obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html

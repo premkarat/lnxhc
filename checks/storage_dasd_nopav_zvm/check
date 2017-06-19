@@ -1,0 +1,88 @@
+#!/bin/bash
+#
+# storage_dasd_nopav_zvm
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+# Non-zero if health check program should output debugging information
+DEBUG="$LNXHC_DEBUG"
+
+# Health check ID
+CHECK_ID="$LNXHC_CHECK_ID"
+
+# Health check installation directory
+CHECK_DIR="$LNXHC_CHECK_DIR"
+
+# Path to the file used to report exceptions
+EX_FILE="$LNXHC_EXCEPTION"
+
+#
+# Functions
+#
+
+#
+# lnxhc_setup - validate input from framework
+#
+function lnxhc_setup()
+{
+        if [ -z "$DEBUG" -o -z "$CHECK_ID" -o -z "$CHECK_DIR" -o \
+             -z "$EX_FILE" ] ; then
+                echo "test: This program cannot be called directly." >&2
+                echo "Please use the 'lnxhc run' function to call this " \
+                     "program." >&2
+                exit 1
+        fi
+}
+
+#write a function which will read the content of a file and then report exception.
+function function_verify()
+{
+	local filename="$1"
+	local programname="$2"
+	# If the file contains no data then we are not going to proceed
+	if ! [ -s "$filename" ] ; then
+		return
+	fi
+	# Collecting the data, which is required
+	data=$(grep -si "dasd\s*=.*nopav" $filename)
+	# If nopav is in the collected output then have to raise exception
+	if [ ! -z "$data" ] ; then
+		echo "ineffective_nopav" >> $LNXHC_EXCEPTION
+		echo "module_info_file_path=$programname" >> $LNXHC_EXCEPTION
+		echo "module_information=${data}" >> $LNXHC_EXCEPTION
+	fi
+}
+
+#
+# Code entry
+#
+
+# Validate input from framework
+lnxhc_setup
+
+
+#main program
+for sysinfo_filename in "$LNXHC_SYSINFO_proc_cmdline  /etc/zipl.conf" \
+    "$LNXHC_SYSINFO_etc_rcd_rcmodules /etc/rc.d/rc.modules" \
+    "$LNXHC_SYSINFO_etc_rcmodules /etc/rc.modules" \
+    "$LNXHC_SYSINFO_etc_modprobeconf /etc/modprobe.conf" \
+    "$LNXHC_SYSINFO_etc_dasdconf /etc/dasd.conf"
+do
+	# Call the function for every sysinfo file
+	function_verify $sysinfo_filename
+done
+
+# end of execution
+exit 0

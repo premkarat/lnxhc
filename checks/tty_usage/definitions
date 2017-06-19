@@ -1,0 +1,13 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "terminal"
+
+[sysinfo ls_tty]
+program = "$LNXHC_CHECK_DIR/ls-tty"
+extrafile = "ls-tty"
+
+[param exclude_tty]
+default = tty
+
+[exception unused_ttys]
+severity = medium

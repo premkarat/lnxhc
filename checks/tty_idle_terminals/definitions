@@ -1,0 +1,16 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "terminal"
+repeat = "12h"
+
+[param idle_time]
+default = "1d"
+
+[param tty]
+default = ""
+
+[sysinfo lsidleusers]
+ref = tty_idle_users.lsidleusers
+
+[exception idle_ttys]
+severity = low

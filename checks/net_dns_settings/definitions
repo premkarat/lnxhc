@@ -1,0 +1,13 @@
+[check]
+author = "Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>"
+component = "network/dns"
+
+[sysinfo host]
+program = "$LNXHC_CHECK_DIR/collect_host"
+extrafile = "collect_host"
+
+[exception no_nameserver]
+severity = medium
+
+[exception incorrect_nameserver]
+severity = medium

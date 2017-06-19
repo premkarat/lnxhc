@@ -1,0 +1,22 @@
+[check]
+author = "Rajesh K Pirati <rapirati@in.ibm.com>"
+component = "boot"
+repeat = "7d"
+
+[deps]
+(sys_distro=RHEL and sys_rhel_version>=5.0) or (sys_distro=SLES and sys_sles_version>=10)
+
+[param recommended_runlevel]
+default = "3"
+
+[sysinfo current_runlevel]
+program = "/sbin/runlevel"
+
+[sysinfo default_runlevel]
+file = "/etc/inittab"
+
+[exception current_runlevel_differs]
+severity = medium
+
+[exception default_runlevel_differs]
+severity = medium

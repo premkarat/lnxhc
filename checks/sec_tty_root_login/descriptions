@@ -1,0 +1,33 @@
+[title]
+Confirm that root logins are enabled for but restricted to secure terminals
+
+[description]
+The login program and the Linux Pluggable Authentication Modules (PAM)
+configuration restrict root logins to the terminals listed in
+/etc/securetty.
+
+This check verifies that root logins are enabled for all terminals that
+are considered secure.  This check also verifies that no root logins are
+permitted on terminals that are considered insecure.
+
+Root logins on multiple terminals might be helpful in emergency
+situations.  However, root logins on insecure terminals constitute
+a security exposure.
+
+
+[param secure_ttys]
+A blank-separated list of terminals that are considered secure,
+and for which root logins should be permitted.
+When specifying terminals, omit the leading /dev/.
+
+An exception message is issued if any terminal listed here is
+missing in /etc/securetty.
+
+
+[param insecure_ttys]
+A blank-separated list of terminals that are considered insecure,
+and for which root logins must not be permitted.
+When specifying terminals, omit the leading /dev/.
+
+An exception message is issued if any terminal here is also listed
+in /etc/securetty.

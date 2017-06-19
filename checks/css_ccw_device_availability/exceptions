@@ -1,0 +1,36 @@
+[summary unusable_device]
+There are unusable I/O devices (&devices_list;)
+
+[explanation unusable_device]
+Some I/O devices have an availability status other than "good". Such devices
+cannot be used for I/O.
+
+The following devices are unusable:
+
+&all_devices;
+
+Use the following command to list your I/O devices with their availability status:
+
+## lscss --avail
+
+If the "lscss" command is not available, read the sysfs availability attribute
+of each device to check the availability status:
+
+## cat /sys/bus/ccw/devices/<device_bus_id>/availability
+
+[solution unusable_device]
+ - For DASD, check whether other systems hold device reservations for the affected devices.
+ - Confirm that the physical connections to the affected devices are in place and secure.
+ - Run the "lscss" command to check if the channel paths to the affected devices are available.
+   In the command output there is a row for each device. If the values in the columns "PIM" and "PAM" differ,
+   one or more channel paths to the device are unavailable.
+
+
+[reference unusable_device]
+For more information about the "availability" status, see the section about
+common sysfs attributes for CCW devices in "Device Drivers, Features, and Commands".
+You can  obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+Also see the "lscss" man page.

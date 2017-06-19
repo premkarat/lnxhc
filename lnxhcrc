@@ -1,0 +1,20 @@
+#
+# /etc/lnxhcrc
+#   System-wide configuration file for the Linux Health Checker
+#
+# To override for a single user, create a copy at ~/.lnxhc/lnxhcrc
+# See lnxhcrc(5) for more information.
+#
+
+# Directory containing system-wide checks, consumers, and profiles. Repeat this
+# line to specify multiple directories. The Linux Health Checker installs new
+# checks, consumers and profiles in the first specified directory.
+# __REP_START_RC_PATHS
+# Note: The Makefile install target replaces these lines with fixed paths.
+db_path = /usr/lib/lnxhc
+db_path = /usr/local/lib/lnxhc
+# __REP_END_RC_PATHS
+# Flag indicating whether checks, consumers and profiles should be read
+# every time the Linux Health Checker is started (value 0) or only when a change
+# has occurred (value 1). Default is 1.
+db_caching = 1

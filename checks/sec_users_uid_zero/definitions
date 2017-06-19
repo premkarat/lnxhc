@@ -1,0 +1,15 @@
+[check]
+author = "Rajesh K Pirati <rapirati@in.ibm.com>"
+component = "security/users"
+
+[deps]
+(sys_distro=RHEL and sys_rhel_version>=5.0) or (sys_distro=SLES and sys_sles_version>=10)
+
+[param trusted_superusers]
+default = "root"
+
+[sysinfo passwd]
+program = "/usr/bin/getent passwd"
+
+[exception non_root_uid0]
+severity = medium

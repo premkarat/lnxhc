@@ -1,0 +1,1394 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc_cons_program 7 "lnxhc 1.3-1" 2013-12-18 "Linux Health Checker"
+.
+.SH NAME
+lnxhc_cons_program \- Interface for implementing a consumer program
+.
+.
+.SH DESCRIPTION
+The
+.B consumer
+file of a consumer contains the program which processes raw health check
+result data.
+.PP
+The consumer type determines the function of this program:
+.PP
+.B report
+.RS
+Report consumers create human-readable output which is directly displayed to
+the user.
+.RE
+.PP
+.B handler
+.RS
+Handler consumers perform arbitrary processing of result data, such as
+converting to HTML, sending via e-mail, or writing to syslog.
+
+.NT The \*[lhc] framework only provides health check result data. Any further processing of this data by a consumer must be implemented by the corresponding consumer program.
+.RE
+.PP
+.
+.
+.SS "Programming languages"
+Consumer programs can be implemented using any programming language which
+provides access to files and environment variables. When choosing a programming
+language, make sure that the required run-time environment is commonly
+available.
+.PP
+.
+.
+.SS "File permissions"
+The consumer file must have the execute file permission set for all users
+which should be allowed to run lnxhc.
+.PP
+.
+.
+.SS "Invocation"
+The \*[lhc] runs consumer programs during the execution of the
+\f(CWlnxhc run\fP subcommand. Depending on the consumer's frequency setting,
+the program is called each time a health check program finishes, or
+only once at the end of the health checking process, or both. See
+.MP lnxhc_cons_definitions 5 .
+.PP
+
+The current working directory at the time a consumer program is run is the
+directory in which the consumer is installed.
+.
+.
+.SH "RESULT DATA"
+During the health checking process the \*[lhc] can run a single health check
+multiple times, for example when data for several hosts is analyzed. Each
+invocation of a health check produces one chunk of result data called
+"run data". Consumers which define a frequency setting of "foreach" or "both"
+receive this data.
+.PP
+At the end of the health checking process, the \*[lhc] calculates statistics
+data which includes for example the number of exceptions that were generated.
+Consumers which define a frequency setting of "once" or "both" receive this
+data.
+.PP
+Depending on the consumer's format setting, the program receives result data
+either in the form of environment variables (see ENVIRONMENT VARIABLES) or
+as a stream of XML data (see STANDARD INPUT STREAM).
+.PP
+.
+.
+.SS "Run data"
+Below is a list of all run-related data, including a symbolic
+name by which it is referenced throughout this man page.
+.PP
+.B RUN_ID
+.RS
+Sequence number of this run.
+
+This number starts at 0 and is increased by one after each run.
+.PP
+.RE
+.
+.B RUN_ID_MAX
+.RS
+Sequence number of the final run.
+.PP
+.RE
+.
+.B RUN_CHECK_ID
+.RS
+Check name.
+.PP
+.RE
+.
+.B RUN_INST_IDS
+.RS
+List of system information instance IDs.
+
+Identifies the points in time at which the health check input data for this
+run was collected. This data is represented as a one-dimensional array
+containing the instance IDs.
+.PP
+.RE
+.
+.B RUN_HOST_IDS
+.RS
+List of system information host names.
+
+Identifies the hosts on which health check input data for this run was
+collected. This data is represented as a one-dimensional array containing
+the host names.
+.PP
+.RE
+.
+.B RUN_SOURCE
+.RS
+Map of instance-host combinations.
+
+Identifies the combinations of instances and hosts that were used
+as input data for this run. This data is represented as a two-dimensional
+array over the INST_IDS and HOST_IDS indexes. A value of 1 indicates
+that the combination was used, 0 indicates that it was not used.
+
+.B Example:
+.br
+System information was collected yesterday from hosta and today from hostb:
+
+.CL INST_IDS[0]=yesterday
+.CL INST_IDS[1]=today
+.CL HOST_IDS[0]=hosta
+.CL HOST_IDS[1]=hostb
+.CL SOURCE[0][0]=1 # Yesterday, hosta
+.CL SOURCE[0][1]=0 # Yesterday, hostb
+.CL SOURCE[1][0]=0 # Today, hosta
+.CL SOURCE[0][1]=1 # Today, hostb
+.PP
+.RE
+.
+.B RUN_DEPS
+.RS
+List of dependency results per instance-host combination.
+
+Identifies the result of the evaluation of each health check dependency
+statement for each instance-host combination. This data is represented as a
+three-dimensional array over the INST_IDS, HOST_IDS, and dependency statement
+indexes. It contains the following fields:
+
+.B RUN_DEPS_STATEMENT
+.RS 4
+Dependency statement.
+.RE
+
+.B RUN_DEPS_RESULT
+.RS 4
+Dependency evaluation result code. A code of 1 indicates that the dependency was
+met, 0 indicates that it was not met.
+.RE
+
+This data is only available when the check defines dependency statements.
+
+.B Example:
+.br
+A health check defines that it can only run on data from an s390 system
+(dependency statement "sys_platform=s390 or sys_platform=s390x"). The user
+runs this check on data collected today from two hosts: hosta which is an
+s390x system (sys_platform=s390x) and hostb which is an x86 system
+(sys_platform=i386):
+
+.CL INST_IDS[0]=today
+.CL HOST_IDS[0]=hosta
+.CL HOST_IDS[1]=hostb
+.CL DEPS[0][0][0].STATEMENT=sys_platform=s390 or sys_platform=s390x
+.CL DEPS[0][0][0].RESULT=1
+.CL DEPS[0][1][0].STATEMENT=sys_platform=s390 or sys_platform=s390x
+.CL DEPS[0][1][0].RESULT=0
+.PP
+.RE
+.
+.B RUN_RC
+.RS
+Summary result code.
+
+Identifies the overall result of this run. Valid result codes are:
+
+.RS 4
+.IP 0: 4
+Check ran successfully without exceptions
+.IP 1: 4
+Check ran successfully with exceptions
+.IP 2: 4
+Check failed to run because it is not applicable
+.IP 3: 4
+Check failed to run because of missing system information
+.IP 4: 4
+Check failed to run because of check program run-time errors
+.RE
+.PP
+.RE
+.
+.B RUN_MULTIHOST
+.RS
+Check multihost setting.
+
+A value of 1 indicates that the check supports analyzing data from multiple
+hosts at the same time, 0 indicates that it can only analyze data from a
+single host.
+.PP
+.RE
+.
+.B RUN_MULTITIME
+.RS
+Check multitime setting.
+
+A value of 1 indicates that the check supports analyzing data from multiple
+instances at the same time, 0 indicates that it can only analyze data
+from a single instance.
+.PP
+.RE
+.
+.B RUN_START_TIME
+.RS
+Check program start time.
+
+Identifies the time at which the check program was started. The time is
+passed in seconds since the epoch. It can be of sub-second precision.
+
+This data is only provided when the check program was run.
+.PP
+.RE
+.
+.B RUN_END_TIME
+.RS
+Check program end time.
+
+Identifies the time at which the check program finished. The time is
+passed in seconds since the epoch. It can be of sub-second precision.
+
+This data is only provided when the check program was run.
+.PP
+.RE
+.
+.B RUN_PROG_EXIT_CODE
+.RS
+Check program exit code.
+
+This data is only provided when the check program was run.
+.PP
+.RE
+.
+.B RUN_PROG_INFO
+.RS
+Check program informational output.
+
+Contains all check program output if the check program returned with a zero
+exit code.
+
+This data is only provided when there was no error running the check program.
+.PP
+.RE
+.
+.B RUN_PROG_ERR
+.RS
+Check program error output.
+
+Contains either an error message indicating why a check program could not be
+run, or the output of the check program if it returned a non-zero exit code.
+
+This data is only provided when there was an error running the check program.
+.PP
+.RE
+.
+.B RUN_INACTIVE_EX_IDS
+.RS
+List of IDs of suppressed exceptions.
+
+Identifies the exceptions which the check program raised but which were
+inactive at the time of health checking.
+.PP
+.RE
+.
+.B RUN_EXCEPTIONS
+.RS
+List of reported exceptions.
+
+Identifies the exceptions which the check program raised and which were
+active at the time of health checking. This data is represented as a
+one-dimensional array containing the following fields:
+
+.B RUN_EX_ID
+.RS 4
+Exception ID.
+.RE
+
+.B RUN_EX_SEVERITY
+.RS 4
+Severity level. Valid severity levels are:
+
+.RS 4
+.IP 0: 4
+Low
+.IP 1: 4
+Medium
+.IP 2: 4
+High
+.RE
+.RE
+
+.B RUN_EX_SUMMARY
+.RS 4
+Summary section text.
+.RE
+
+.B RUN_EX_EXPLANATION
+.RS 4
+Explanation section text.
+.RE
+
+.B RUN_EX_SOLUTION
+.RS 4
+Solution section text.
+.RE
+
+.B RUN_EX_REFERENCE
+.RS 4
+Reference section text.
+.RE
+
+.NT Texts for the explanation, solution and reference sections are unformatted. The consumer program must apply formatting according to the description in \fBlnxhc_check_descriptions\fP(5) before presenting these texts to the user.
+.PP
+.RE
+.
+.
+.SS "Statistics data"
+Below is a list of all statistics-related data, including a
+symbolic name by which it is referenced throughout this man page.
+.PP
+.B STATS_START_TIME
+.RS
+Health checking start time.
+.PP
+Identifies the time at which the health checking process was started. The time
+is passed in seconds since the epoch. It can be of sub-second precision.
+.PP
+.RE
+.
+.B STATS_END_TIME
+.RS
+Health checking end time.
+.PP
+Identifies the time at which the health checking process finished. The time
+is passed in seconds since the epoch. It can be of sub-second precision.
+.PP
+.RE
+.
+.B STATS_NUM_RUNS_SCHEDULED
+.RS
+Number of scheduled health check program runs.
+.PP
+.RE
+.
+.B STATS_NUM_RUNS_SUCCESS
+.RS
+Number of health check program runs which finished successfully and did not
+identify exceptions.
+.PP
+.RE
+.
+.B STATS_NUM_RUNS_EXCEPTIONS
+.RS
+Number of health check program runs which finished successfully and identified
+exceptions.
+.PP
+.RE
+.
+.B STATS_NUM_RUNS_NOT_APPLICABLE
+.RS
+Number of health check program runs which did not start because the check
+was not applicable.
+.PP
+.RE
+.
+.B STATS_NUM_RUNS_FAILED_SYSINFO
+.RS
+Number of health check program runs which did not start because required system
+information was missing.
+.PP
+.RE
+.
+.B STATS_NUM_RUNS_FAILED_CHKPROG
+.RS
+Number of health check program runs which started but did not finish
+successfully because the check program encountered a run-time error.
+.PP
+.RE
+.
+.B STATS_NUM_EX_REPORTED
+.RS
+Total number of active exceptions that were reported by check programs.
+.NT Exceptions that were reported by check programs but which were set to inactive by the user are counted towards STATS_NUM_EX_INACTIVE instead of this number.
+.PP
+.RE
+.
+.B STATS_NUM_EX_LOW
+.RS
+Total number of active exceptions that were reported with a low level of
+severity.
+.PP
+.RE
+.
+.B STATS_NUM_EX_MEDIUM
+.RS
+Total number of active exceptions that were reported with a medium level of
+severity.
+.PP
+.RE
+.
+.B STATS_NUM_EX_HIGH
+.RS
+Total number of active exceptions that were reported with a high level of
+severity.
+.PP
+.RE
+.
+.B STATS_NUM_EX_INACTIVE
+.RS
+Total number of inactive exceptions that were reported by check programs.
+.PP
+.RE
+.
+.
+.SH "ENVIRONMENT VARIABLES"
+The \*[lhc] uses environment variables to pass generic data related to
+the execution of a consumer to the consumer program. Consumers which define a
+format setting of "env" additionally receive result data in environment
+variables.
+.
+.
+.SS "Generic data"
+Below is a list of environment variables which are available for all consumer
+programs.
+.PP
+.B COLUMNS
+.RS
+Width of the output terminal.
+.PP
+.RE
+.
+.B LNXHC_USE_COLOR
+.RS
+Color usage flag.
+.PP
+A value of 1 indicates that the consumer may use ANSI color codes when
+writing output to the terminal, while a value of 0 indicates that no color
+codes should be used. Per default, the \*[lhc] determines automatically if
+the current terminal supports colors codes. Users can change this behavior
+by specifying option \-\-color when running the lnxhc tool.
+.PP
+.RE
+.
+.B LNXHC_LIBDIR
+.RS
+Location of the \*[lhc] library directory.
+.PP
+.RE
+.
+.B LNXHC_INVOCATION
+.RS
+Command name by which the user called the \*[lhc].
+.PP
+.B Example:
+.br
+.CL LNXHC_INVOCATION=./bin/lnxhc
+.PP
+.RE
+.
+.B LNXHC_CONS_ID
+.RS
+Consumer name.
+.PP
+.RE
+.
+.B LNXHC_CONS_DIR
+.RS
+Consumer installation directory.
+.PP
+.RE
+.
+.B LNXHC_DEBUG
+.RS
+Debugging flag.
+.PP
+A value of 1 indicates that the consumer program should add debugging
+information to its output. Users can set the debugging flag by specifying
+command line option \-\-debug when running the lnxhc tool.
+.PP
+.RE
+.
+.B LNXHC_VERBOSE
+.RS
+Verbosity level.
+.PP
+Specifies the level of verbosity that the consumer program should provide
+in its output. A value of 0 indicates normal output, a value greater zero
+indicates increased level of verbosity. Users can increase the verbosity
+level by specifying command line option \-\-verbose an arbitrary number of
+times when running the lnxhc tool.
+.PP
+.RE
+.
+.B LNXHC_NUM_INSTS
+.RS
+Number of system information instances.
+.PP
+Specifies the total number of unique points in time at which the health check
+input data for this health checking process was collected.
+.PP
+.RE
+.
+.B LNXHC_NUM_HOSTS
+.RS
+Number of system information hosts.
+.PP
+Specifies the total number of unique hosts on which the health check input
+data for this health checking process was collected.
+.PP
+.RE
+.
+.B LNXHC_RUN_ID
+.RS
+Sequence number of this run (see RUN_ID).
+.PP
+This data is only available if the consumer program is called after a health
+check program finishes.
+.PP
+.RE
+.
+.B LNXHC_RUN_ID_MAX
+.RS
+Sequence number of the final run (see RUN_ID_MAX).
+.PP
+.RE
+.
+.BI LNXHC_PARAM_  param_id
+.RS
+Consumer parameter value.
+.PP
+Specifies the value of consumer parameter
+.IR param_id .
+This environment variable is only available if the consumer defines parameters.
+.PP
+.RE
+.
+.
+.SS "Run result data"
+Below is a list of environment variables which are only available for consumers
+which define the following settings:
+.PP
+.RS 4
+.IP \(bu 2
+.B format=env
+.PP
+.
+.IP \(bu 2
+.BR frequency=foreach " or " frequency=both
+.PP
+.RE
+When the consumer program is called after a health check program finished,
+data for a single run is available. Otherwise, when it is called at the
+end of the health checking process, data for all runs is available.
+In both cases
+.I run_id
+specifies the run ID to which the data applies.
+.PP
+.BI LNXHC_RUN_ run_id _CHECK_ID
+.RS
+Check name (see RUN_CHECK_NAME).
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _NUM_INSTS
+.RS
+Number of system information instance IDs (see RUN_INST_IDS).
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _INST_ inst_num _ID
+.RS
+System information instance ID (see RUN_INST_IDS).
+.PP
+.TP
+.I inst_num
+Instance ID index.
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _NUM_HOSTS
+.RS
+Number of system information host names (see RUN_HOST_IDS).
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _HOST_ host_num _ID
+.RS
+System information host name (see RUN_HOST_IDS).
+.PP
+.TP
+.I host_num
+Host name index
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _INST_ inst_num _HOST_ host_num _SOURCE
+.RS
+Map of instance-host combinations (see RUN_SOURCE).
+.PP
+.PD 0
+.TP
+.I inst_num
+Instance ID index.
+.TP
+.I host_num
+Host ID index.
+.PD
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _INST_ inst_num _HOST_ host_num _NUM_DEPS
+.RS
+Number of dependency results per instance-host combination (see RUN_DEPS).
+.PP
+.PD 0
+.TP
+.I inst_num
+Instance ID index.
+.TP
+.I host_num
+Host ID index.
+.PD
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _INST_ inst_num _HOST_ host_num _DEP_ dep_num _STATEMENT
+.RS
+Dependency statement (see RUN_DEPS_STATEMENT).
+.PP
+.PD 0
+.TP
+.I inst_num
+Instance ID index.
+.TP
+.I host_num
+Host ID index.
+.TP
+.I dep_num
+Dependency ID index.
+.PD
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _INST_ inst_num _HOST_ host_num _DEP_ dep_num _RESULT
+.RS
+Dependency evaluation result code (see RUN_DEPS_RESULT).
+.PP
+.PD 0
+.TP
+.I inst_num
+Instance ID index.
+.TP
+.I host_num
+Host ID index.
+.TP
+.I dep_num
+Dependency ID index.
+.PD
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _RC
+.RS
+Summary result code (see RUN_RC).
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _MULTIHOST
+.RS
+Check multihost setting (see RUN_MULTIHOST).
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _MULTITIME
+.RS
+Check multitime setting (see RUN_MULTITIME).
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _START_TIME
+.RS
+Check program start time (see RUN_START_TIME).
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _END_TIME
+.RS
+Check program end time (see RUN_END_TIME).
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _PROG_EXIT_CODE
+.RS
+Check program exit code (see RUN_PROG_EXIT_CODE).
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _PROG_INFO
+.RS
+Check program informational output (see RUN_PROG_INFO).
+.PP
+This variable identifies the name of a file which contains the corresponding
+informational output.
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _PROG_ERR
+.RS
+Check program error output (see RUN_PROG_ERR).
+.PP
+This variable identifies the name of a file which contains the corresponding
+error output.
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _NUM_INACTIVE_EX_IDS
+.RS
+Number of suppressed exceptions (see RUN_INACTIVE_EX_IDS).
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _INACTIVE_EX_ inactive_num _ID
+.RS
+ID of suppressed exception (see RUN_INACTIVE_EX_IDS).
+.PP
+.TP
+.I inactive_num
+Exception ID index.
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _NUM_EXCEPTIONS
+.RS
+Number of reported exceptions (see RUN_EXCEPTIONS).
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _EX_ ex_num _ID
+.RS
+Exception ID (see RUN_EX_ID).
+.TP
+.I ex_num
+Exception index.
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _EX_ ex_num _SEVERITY
+.RS
+Severity level (see RUN_EX_SEVERITY).
+.PP
+.TP
+.I ex_num
+Exception index.
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _EX_ ex_num _SUMMARY
+.RS
+Summary section text (see RUN_EX_SUMMARY).
+.PP
+.TP
+.I ex_num
+Exception index.
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _EX_ ex_num _EXPLANATION
+.RS
+Explanation section text (see RUN_EX_EXPLANATION).
+.PP
+.TP
+.I ex_num
+Exception index.
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _EX_ ex_num _SOLUTION
+.RS
+Solution section text (see RUN_EX_SOLUTION).
+.PP
+.TP
+.I ex_num
+Exception index.
+.PP
+.RE
+.
+.BI LNXHC_RUN_ run_id _EX_ ex_num _REFERENCE
+.RS
+Reference section text (see RUN_EX_REFERENCE).
+.PP
+.TP
+.I ex_num
+Exception index.
+.PP
+.RE
+.
+.
+.SS "Statistics result data"
+Below is a list of environment variables which are only available for consumers
+which define the following settings:
+.PP
+.RS 4
+.IP \(bu 2
+.B format=env
+.PP
+.
+.IP \(bu 2
+.BR frequency=once " or " frequency=both
+.PP
+.RE
+This data is provided when the consumer program is called at the
+end of the health checking process.
+.PP
+.B LNXHC_STATS_START_TIME
+.RS
+Health checking start time (see STATS_START_TIME).
+.PP
+.RE
+.
+.B LNXHC_STATS_END_TIME
+.RS
+Health checking end time (see STATS_END_TIME).
+.PP
+.RE
+.
+.B LNXHC_STATS_NUM_RUNS_SCHEDULED
+.RS
+Number of scheduled health check program runs (see STATS_NUM_RUNS_SCHEDULED).
+.PP
+.RE
+.
+.B LNXHC_STATS_NUM_RUNS_SUCCESS
+.RS
+Number of health check program runs which finished successfully and did not
+identify exceptions (see STATS_NUM_RUNS_SUCCESS).
+.PP
+.RE
+.
+.B LNXHC_STATS_NUM_RUNS_EXCEPTIONS
+.RS
+Number of health check program runs which finished successfully and identified
+exceptions (see STATS_NUM_RUNS_EXCEPTIONS).
+.PP
+.RE
+.
+.B LNXHC_STATS_NUM_RUNS_NOT_APPLICABLE
+.RS
+Number of health check program runs which did not start because the check was
+not applicable (see STATS_NUM_RUNS_NOT_APPLICABLE).
+.PP
+.RE
+.
+.B LNXHC_STATS_NUM_RUNS_FAILED_SYSINFO
+.RS
+Number of health check program runs which did not start because required system
+information was missing (see STATS_NUM_RUNS_FAILED_SYSINFO).
+.PP
+.RE
+.
+.B LNXHC_STATS_NUM_RUNS_FAILED_CHKPROG
+.RS
+Number of health check program runs which started but did not finish
+successfully because the check program encountered a run-time error
+(see STATS_NUM_RUNS_FAILED_CHKPROG).
+.PP
+.RE
+.
+.B LNXHC_STATS_NUM_EX_REPORTED
+.RS
+Total number of active exceptions that were reported by check programs (see
+STATS_NUM_EX_REPORTED).
+.PP
+.RE
+.
+.B LNXHC_STATS_NUM_EX_LOW
+.RS
+Total number of active exceptions that were reported with a low level of
+severity (see STATS_NUM_EX_LOW).
+.PP
+.RE
+.
+.B LNXHC_STATS_NUM_EX_MEDIUM
+.RS
+Total number of active exceptions that were reported with a medium level of
+severity (see STATS_NUM_EX_MEDIUM).
+.PP
+.RE
+.
+.B LNXHC_STATS_NUM_EX_HIGH
+.RS
+Total number of active exceptions that were reported with a high level of
+severity (see STATS_NUM_EX_HIGH).
+.PP
+.RE
+.
+.B LNXHC_STATS_NUM_EX_INACTIVE
+.RS
+Total number of inactive exceptions that were reported by check programs (see
+STATS_NUM_EX_INACTIVE).
+.PP
+.RE
+.
+.
+.SH "STANDARD INPUT STREAM"
+Consumers which define a format setting of "xml" receive result data as an XML
+stream on the standard input stream of the consumer program. The document type
+of this stream is defined by DTD file "result.dtd" (see FILES).
+.PP
+The top-level tag for consumer input data is "result". This tag defines one
+attribute "version" which must be "1".
+.PP
+.
+.
+.SS "Run result data"
+Below is a list of XML tags which are only available for consumers which
+define the following settings:
+.RS 4
+.IP \(bu 2
+.B format=xml
+.PP
+.
+.IP \(bu 2
+.BR frequency=foreach " or " frequency=both
+.PP
+.RE
+When the consumer program is called after a health check program finished,
+data for a single run is available. Otherwise, when it is called at the
+end of the health checking process, data for all runs is available.
+.PP
+.B run
+.RS
+Container for data for a single run.
+.PP
+.PD 0
+.B Attributes:
+.TP
+.I run_id
+Sequence number of this run (see RUN_ID).
+.TP
+.I run_id_max
+Sequence number of the final run (see RUN_ID_MAX).
+.PD
+.PP
+.RE
+.
+.B check_id
+.RS
+.B PCDATA:
+.br
+Check name (see RUN_CHECK_ID).
+.PP
+.RE
+.
+.B instance
+.RS
+Container for data for one system information instance.
+.PP
+.PD 0
+.B Attributes:
+.TP
+.I id
+System information instance ID (see RUN_INST_IDS).
+.PD
+.PP
+.RE
+.
+.B host
+.RS
+Container for data for one system information hosts. Host tags are only
+provided for valid instance-host combinations (see RUN_SOURCE).
+.PP
+.PD 0
+.B Attributes:
+.TP
+.I id
+System information host name (see RUN_HOST_IDS).
+.PD
+.PP
+.RE
+.
+.B dep
+.RS
+Data for one dependency statement (see RUN_DEPS).
+.PP
+.B PCDATA:
+.br
+Dependency statement (see RUN_DEPS_STATEMENT).
+.PP
+.PD 0
+.B Attributes:
+.TP
+.I result
+Dependency evaluation result code (see RUN_DEPS_RESULT).
+.PD
+.PP
+.RE
+.
+.B rc
+.RS
+.B PCDATA:
+.br
+Summary result code (see RUN_RC).
+.PP
+.RE
+.
+.B multihost
+.RS
+.B PCDATA:
+.br
+Check multihost setting (see RUN_MULTIHOST).
+.PP
+.RE
+.
+.B multitime
+.RS
+.B PCDATA:
+.br
+Check multitime setting (see RUN_MULTITIME).
+.PP
+.RE
+.
+.B start_time
+.RS
+.B PCDATA:
+.br
+Check program start time (see RUN_START_TIME).
+.PP
+.RE
+.
+.B end_time
+.RS
+.B PCDATA:
+.br
+Check program end time (see RUN_END_TIME).
+.PP
+.RE
+.
+.B prog_exit_code
+.RS
+.B PCDATA:
+.br
+Check program exit code (see RUN_PROG_EXIT_CODE).
+.PP
+.RE
+.
+.B prog_info
+.RS
+.B PCDATA:
+.br
+Check program informational output (see RUN_PROG_INFO).
+.PP
+.PD 0
+.B Attributes:
+.TP
+.I encoding
+A value of "none" specifies that the PCDATA is present in raw format. A value
+of "base64" specifies that the PCDATA is present in base64 encoding.
+.PD
+.PP
+.RE
+.
+.B prog_err
+.RS
+.B PCDATA:
+.br
+Check program error output (see RUN_PROG_ERR).
+.PP
+.PD 0
+.B Attributes:
+.TP
+.I encoding
+A value of "none" specifies that the PCDATA is present in raw format. A value
+of "base64" specifies that the PCDATA is present in base64 encoding.
+.PD
+.PP
+.RE
+.
+.B inactive_ex_id
+.RS
+.B PCDATA:
+.br
+ID of suppressed exception (see RUN_INACTIVE_EX_IDS).
+.PP
+.RE
+.
+.B exception
+.RS
+Data for a single exception (see RUN_EXCEPTIONS).
+.PP
+.PD 0
+.B Attributes:
+.TP
+.I id
+Exception ID (see RUN_EX_ID).
+.PD
+.PP
+.RE
+.
+.B severity
+.RS
+.B PCDATA:
+.br
+Severity Level (see RUN_EX_SEVERITY).
+.PP
+.RE
+.
+.B summary
+.RS
+.B PCDATA:
+.br
+Summary section text (see RUN_EX_SUMMARY).
+.PP
+.RE
+.
+.B explanation
+.RS
+.B PCDATA:
+.br
+Explanation section text (see RUN_EX_EXPLANATION).
+.PP
+.RE
+.
+.B solution
+.RS
+.B PCDATA:
+.br
+Solution section text (see RUN_EX_SOLUTION).
+.PP
+.RE
+.
+.B reference
+.RS
+.B PCDATA:
+.br
+Reference section text (see RUN_EX_REFERENCE).
+.PP
+.RE
+.
+.
+.SS "Statistics result data"
+Below is a list of XML tags which are only available for consumers which define
+the following settings:
+.PP
+.RS 4
+.IP \(bu 2
+.B format=xml
+.PP
+.
+.IP \(bu 2
+.BR frequency=once " or " frequency=both
+.PP
+.RE
+This data is provided when the consumer program is called at the
+end of the health checking process.
+.PP
+.B stats
+.RS
+Container for statistics data.
+.PP
+.RE
+.
+.B start_time
+.RS
+.B PCDATA:
+.br
+Health checking start time (see STATS_START_TIME).
+.PP
+.RE
+.
+.B end_time
+.RS
+.B PCDATA:
+.br
+Health checking end time (see STATS_END_TIME).
+.PP
+.RE
+.
+.B num_runs_scheduled
+.RS
+.B PCDATA:
+.br
+Number of scheduled health check program runs (see STATS_NUM_RUNS_SCHEDULED).
+.PP
+.RE
+.
+.B num_runs_success
+.RS
+.B PCDATA:
+.br
+Number of health check program runs which finished successfully and did not
+identify exceptions (see STATS_NUM_RUNS_SUCCESS).
+.PP
+.RE
+.
+.B num_runs_exceptions
+.RS
+.B PCDATA:
+.br
+Number of health check program runs which finished successfully and
+identified exceptions (see STATS_NUM_RUNS_EXCEPTIONS).
+.PP
+.RE
+.
+.B num_runs_not_applicable
+.RS
+.B PCDATA:
+.br
+Number of health check program runs which did not start because the check was
+not applicable (see STATS_NUM_RUNS_NOT_APPLICABLE).
+.PP
+.RE
+.
+.B num_runs_failed_sysinfo
+.RS
+.B PCDATA:
+.br
+Number of health check program runs which did not start because required system
+information was missing (see STATS_NUM_RUNS_FAILED_SYSINFO).
+.PP
+.RE
+.
+.B num_runs_failed_chkprog
+.RS
+.B PCDATA:
+.br
+Number of health check program runs which started but did not finish
+successfully because the check program encountered a run-time error
+(see STATS_NUM_RUNS_FAILED_CHKPROG).
+.PP
+.RE
+.
+.B num_ex_reported
+.RS
+.B PCDATA:
+.br
+Total number of active exceptions that were reported by check programs (see
+STATS_NUM_EX_REPORTED).
+.PP
+.RE
+.
+.B num_ex_low
+.RS
+.B PCDATA:
+.br
+Total number of active exceptions that were reported with a low level of
+severity (see STATS_NUM_EX_LOW).
+.PP
+.RE
+.
+.B num_ex_medium
+.RS
+.B PCDATA:
+.br
+Total number of active exceptions that were reported with a medium level of
+severity (see STATS_NUM_EX_MEDIUM).
+.PP
+.RE
+.
+.B num_ex_high
+.RS
+.B PCDATA:
+.br
+Total number of active exceptions that were reported with a high level of
+severity (see STATS_NUM_EX_HIGH).
+.PP
+.RE
+.
+.B num_ex_inactive
+.RS
+.B PCDATA:
+.br
+Total number of inactive exceptions that were reported by check programs (see
+STATS_NUM_EX_INACTIVE).
+.PP
+.RE
+.
+.
+.SH "OUTPUT STREAMS"
+.SS "Standard output stream"
+Report type consumers must write results to the standard output stream. Handler
+type consumers must not write any output to the standard output stream.
+.PP
+.
+.
+.SS "Standard error stream"
+All consumer types can use the standard error stream to report run-time
+problems.
+.
+.
+.SH "EXIT CODES"
+Consumers must exit with a zero exit code if all processing was successful.
+In case of a run-time error, consumer programs should exit with non-zero
+exit code.
+.
+.
+.SH FILES
+.TP
+/usr/lib/lnxhc/result.dtd
+Document-Type-Definition for the XML data format that the \*[lhc] uses to pass
+result data to consumers which define the "xml" format setting.
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_writing_consumers 7

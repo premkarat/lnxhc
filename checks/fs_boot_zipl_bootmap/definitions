@@ -1,0 +1,14 @@
+[check]
+author = "Rajesh K Pirati <rapirati@in.ibm.com>"
+component = "filesystem/boot"
+repeat = "1d"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo fs_boot_zipl_bootmap]
+program = "$LNXHC_CHECK_DIR/collect_modified_time"
+extrafile = "collect_modified_time"
+
+[exception outdated_bootmap]
+severity = medium

@@ -1,0 +1,9 @@
+[title]
+Identify multipath setups that consist of a single path only
+
+[description]
+Through a correctly configured multipath setup, a Linux instance has two or
+more independent connections to the same physical storage device. This path
+redundancy can be used for load balancing and to maintain availability if one
+of the paths fails. Multipath setups with only a single path cannot achieve
+either of these goals.

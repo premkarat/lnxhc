@@ -1,0 +1,21 @@
+[summary idle_users]
+These users are idle: &short_list;
+
+[explanation idle_users]
+One or more of the users who are logged in to the Linux instance
+do not work with the system.
+The terminals these users occupy are not available for logins by
+other users, for example, in emergencies.
+
+For these users the idle time has exceeded the specified "&param_idle_time;":
+
+&long_list;
+
+You can run the "w" command to display user IDs and their idle times.
+
+
+[solution idle_users]
+Log off the idle user IDs on their terminal.
+
+[reference idle_users]
+See the man page of the "w" command.

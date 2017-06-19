@@ -1,0 +1,324 @@
+#!/usr/bin/perl
+#
+# storage_mp_zfcp_redundancy
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Manik Bajpai <manibajp@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+use strict;
+use warnings;
+use Class::Struct;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# The declaration of the structures used.
+#
+struct zfcp_details => [
+	busid    => '$',
+	wwpn     => '$',
+	zfcp_lun => '$',
+	chpid    => '$',
+];
+
+struct scsi_dev => {
+	scsi_hctl => '$',
+	wwid      => '$',
+	details   => 'zfcp_details',
+};
+
+struct spof => {
+	chpid => '$',
+	busid => '$',
+	wwpn  => '$',
+	wwid  => '$',
+};
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_SINGLE_POINT_OF_FAILURE = "single_point_of_failure";
+
+# Path to the file containing data for sysinfo item 'read_multipath_info'.
+my $sysinfo_read_multipath_info = $ENV{"LNXHC_SYSINFO_read_multipath_info"};
+
+# Path to the file containing data for sysinfo item 'list_zfcp_disks'.
+my $sysinfo_list_zfcp_disks = $ENV{"LNXHC_SYSINFO_list_zfcp_disks"};
+
+# Path to the file containing data for sysinfo item 'lscss'.
+my $sysinfo_lscss = $ENV{"LNXHC_SYSINFO_lscss"};
+
+#
+# Subroutine to retrieve the wwid for all the (fcp) devices participating
+# in the dm-multipath configuration. This information will be used as a
+# 'primary-key' to filter out (possible) 'black-listed' devices.
+#
+sub get_wwid()
+{
+	my %uhashref;
+	my $fh;
+	my $scsi_hctl;
+	my $wwid;
+	my $line;
+	my $re1 = qr/[^\d]*(\d+:\d+:\d+:\d+)\s+./;
+	my $re2 = qr/^([\w-]+)\s+\((\w+)\)\s+/;
+	my $re3 = qr/^(\w+)\s+/;
+
+	open($fh, "<", $sysinfo_read_multipath_info)
+		or die("Could not read file: $!\n");
+
+	# Validating multipath configuration
+	while ($line = <$fh>) {
+		if (($line =~ m{$re2}) || ($line =~ m{$re3})) {
+			if (defined($1) && defined($2)) {
+				$wwid = $2;
+			} else {
+				$wwid = $1;
+			}
+		}
+		if ($line =~ m{$re1}) {
+			$scsi_hctl = $1;
+			$uhashref{$scsi_hctl} = $wwid;
+		}
+	}
+	close($fh);
+	return \%uhashref;
+}
+
+#
+# Parse the lscss output, and search the CHPIDs of all FCP Devices
+#
+sub search_chpids($)
+{
+	my ($check_offline) = @_;
+	my %chpidhash;
+	my $fh;
+	my $hd       = qr/[[:xdigit:]]/;
+	my $id       = qr/$hd+.$hd+.$hd+/;
+	my $byte     = qr/$hd{2}/;
+	my $word     = qr/$hd{8}/;
+	my $compart1 = qr{^($id)\s+$id\s+1732/0[34]};
+	my $compart2 = qr{($byte)\s+$byte\s+$byte\s+($word)\s+($word)};
+	my $regex0   = qr{$compart1.*$compart2};
+	my $regex1   = qr{$compart1.*yes\s+$compart2};
+	my $re;
+	my $place;
+	my @idarray;
+	my $busid;
+	my $num;
+
+	open($fh, "<", $sysinfo_lscss)
+		or die("Could not read file: $!\n");
+	$re = ($check_offline == "1") ? $regex0 : $regex1;
+	while (my $line = <$fh>) {
+		next if ($line !~ m{$re});
+		$num = hex($2);
+		next if (!$num);
+		$place = 0;
+		$busid = $1;
+		while ($num) {
+			last if (!$num);
+			if ((0x1 << 7) & $num) {
+				last;
+			}
+			$place = $place + 1;
+			$num   = $num << 1;
+		}
+		my $str = $3.$4;
+		@idarray = ($str =~ m/../g);
+		$chpidhash{$busid} = $idarray[$place];
+	}
+	return \%chpidhash;
+}
+
+#
+# Subroutine to retrieve the ZFCP path and hctl for all the devices
+# which are a part of the multipath configuration.
+#
+sub get_zfcp_info($)
+{
+	my ($whash) = @_;
+	my @dev_arr;
+	my $fh;
+	my $scsi_hctl;
+	my $busid;
+	my $wwpn;
+	my $zfcp_lun;
+	my $wwid;
+	my $curdev;
+	my $zfcp_str;
+	my $line;
+	my $chpid_hash;
+
+	#Search the chpids, ignore offline FCP devices
+	#Argument 0: ignore offline, 1: not ignore offline
+	$chpid_hash = search_chpids(0);
+	open($fh, "<", $sysinfo_list_zfcp_disks)
+		or die("Could not read file: $!\n");
+
+	# Retrieve the 'zfcp' path information
+	while ($line = <$fh>) {
+		chomp($line);
+		next if ($line !~ m{(.*)\ +(.*)});
+		($zfcp_str, $scsi_hctl) = ($1, $2);
+		next if (not exists($$whash{$scsi_hctl}));
+		next if ($zfcp_str !~ m{(.*)\/(.*)\/(.*)});
+		($busid, $wwpn, $zfcp_lun) = ($1, $2, $3);
+		if (not exists $$chpid_hash{$busid}) {
+			die "Error Parsing Input.
+				Could not find the CHPID for $busid\n";
+		}
+		$curdev = scsi_dev->new(
+			scsi_hctl => $scsi_hctl,
+			wwid      => $$whash{$scsi_hctl},
+			details   => zfcp_details->new(
+				busid    => $busid,
+				wwpn     => $wwpn,
+				zfcp_lun => $zfcp_lun,
+				chpid    => $$chpid_hash{$busid},
+			)
+		);
+		push(@dev_arr, $curdev);
+	}
+	close($fh);
+	return \@dev_arr;
+}
+
+#
+# Subroutine to retrieve all the multipath, and zfcp related information
+#
+sub get_devs()
+{
+	my $fcp_devs;
+	my $whash;
+
+	# Retrieve the 'wwid' to SCSI_HCTL mapping
+	$whash = get_wwid();
+
+	# Retrieve the 'ZFCP' Path information for the WWIDs, if they exist
+	$fcp_devs = get_zfcp_info($whash) if scalar(keys %$whash);
+	return $fcp_devs;
+}
+
+#
+# Subroutine to check all the paths for points of failure (vulnerable paths)
+#
+sub check_vulnerable_paths($)
+{
+	my ($dev_list) = @_;
+	my @out_list;
+	my @checked;
+	my $busid;
+	my $wwpn;
+	my $chpid;
+	my $wwid;
+	my $dev;
+	my $cur_dev;
+	my $numchpids;
+	my $numhosts;
+	my $numports;
+
+	#For each of  SCSI Devices (Disks), search all CHPIDs,
+	#HBA BusIDs, WWPN, and SCSI LUN
+	for $dev (@$dev_list) {
+		my @busids;
+		my @wwpns;
+		my @chpids;
+		my $pof;
+		$wwid = $dev->wwid;
+		next if (grep { $_ eq $wwid } @checked);
+		push(@checked, $wwid);
+		for $cur_dev (@$dev_list) {
+			next if ($wwid ne $cur_dev->wwid);
+			$busid = $cur_dev->details->busid;
+			$wwpn  = $cur_dev->details->wwpn;
+			$chpid = $cur_dev->details->chpid;
+			push(@busids, $busid)
+				if not(grep { $_ eq $busid } @busids);
+			push(@wwpns, $wwpn) if not(grep { $_ eq $wwpn } @wwpns);
+			push(@chpids, $chpid)
+				if not(grep { $_ eq $chpid } @chpids);
+		}
+		$numchpids = @chpids;
+		$numhosts  = @busids;
+		$numports  = @wwpns;
+
+		#If number of CHPIDs, HBAs, and WWPN are more than 1
+		#Then there is no issue, continue.
+		next if ($numchpids > 1 and $numhosts > 1 and $numports > 1);
+
+		#If number of (any of) CHPIDs, HBAs, and WWPN is 1
+		#Then this is an issue.
+		$pof = new spof;
+		$pof->chpid('-');
+		$pof->busid('-');
+		$pof->wwpn('-');
+		$pof->wwid("$wwid");
+		$pof->wwpn("$wwpns[0]")   if ($numports == 1);
+		$pof->chpid("$chpids[0]") if ($numchpids == 1);
+		$pof->busid("$busids[0]") if ($numhosts == 1);
+		push(@out_list, $pof);
+	}
+	return @out_list;
+}
+
+#
+# Code for the health check. - Entry point
+#
+sub main()
+{
+	my $fcp_devs;
+	my @cutpoint_info;
+	my $cutpoint;
+
+	#1. Scan all the devices in multipath configuration, and retrieve
+	#   their FCP path information, and "SCSI 4-tuple" or "HCTL".
+	$fcp_devs = get_devs();
+
+	#2. If the device is not found, raise failed_dep exception
+	if (!$fcp_devs) {
+		lnxhc_fail_dep("No zFCP based multipath device found\n");
+	} else {
+		@cutpoint_info = check_vulnerable_paths($fcp_devs);
+	}
+
+	#3. If there are any single point(s) of failure raise
+	#   the appropriate exception.
+	if (@cutpoint_info) {
+		lnxhc_exception($LNXHC_EXCEPTION_SINGLE_POINT_OF_FAILURE);
+		foreach $cutpoint (@cutpoint_info) {
+			lnxhc_exception_var(
+				"spof_info_table",
+				sprintf(
+					"|#%s|#%s|#%s|#%s",
+					(
+						$cutpoint->wwid,
+						$cutpoint->chpid,
+						$cutpoint->busid,
+						$cutpoint->wwpn
+					)
+				)
+			);
+		}
+	}
+	exit(0);
+}
+&main();
+__DATA__
+__END__
+

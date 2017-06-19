@@ -1,0 +1,23 @@
+[title]
+Check file systems for adequate free space
+
+[description]
+Some applications and administrative tasks require an adequate amount of free
+space on each mounted file system. If there is not enough free space,
+these applications might no longer be available or the complete system might be compromised. Regular monitoring of disk space usage averts this risk.
+
+[param warn_limit]
+File system usage (in percent) at which to raise a low-severity exception.
+Valid values are integers in the range 1 to 100.
+
+[param critical_limit]
+File system usage (in percent) at which to raise a high-severity exception.
+Valid values are integers in the range 1 to 100.
+
+[param mount_points]
+A list of mount points, separated by colons (:). The file systems mounted at
+the specified mount points are to be checked for free space. If the list is
+empty, all mounted file systems are checked.
+
+Example:
+#/mnt:/home/mymnt/usr/data/myapp

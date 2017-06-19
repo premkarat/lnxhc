@@ -1,0 +1,11 @@
+[title]
+Verify that temporary files are deleted at regular intervals.
+
+[description]
+Linux instances have one or more directories, for example, /tmp,
+to store temporary files. If temporary files are not deleted at regular intervals, they can fill up file systems and cause the Linux instance to run out of disk space.An exception message is issued unless a program is configured to clear directories with temporary files at regular intervals.
+
+[param temp_dir]
+A blank-separated list of directories that contain temporary files.
+The check verifies that temporary files in the specified directories
+are deleted at regular intervals.

@@ -1,0 +1,90 @@
+#!/usr/bin/env perl
+#
+# remote_ports_data
+#   Program to read the sysfs attribs for fc remote ports.
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Manik Bajpai <manibajp@in.ibm.com>,
+#	     Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+use warnings;
+use strict;
+use Cwd 'abs_path';
+use File::Basename;
+
+sub readbusid($)
+{
+	my ($iname) = @_;
+	my $hd      = qr{[[:digit:]]+};
+	my $re      = qr{.*/(.*)/(host$hd)};
+	my $busid;
+
+	while ($iname ne "/") {
+		$iname = dirname($iname);
+		next if (!-e "$iname/fc_host");
+		next if ($iname !~ m{$re});
+		$busid = $1;
+		last;
+	}
+	die(
+		"Directory \"fc_host\" not found in iterating
+		the canonicalized path @_\n"
+	) if ($iname eq "/");
+	return $busid;
+}
+
+sub readfile($)
+{
+	my ($filename) = @_;
+	my $hd         = qr{[[:digit:]]+};
+	my $re         = qr{.*/(rport-$hd:$hd-$hd)/fc_remote_ports/.*};
+	my $canon_name;
+	my $port_name;
+	my $port_state;
+	my $fh;
+	my $pname;
+	my $busid;
+	my $wwpn;
+	my $ps_value;
+
+	return unless -l $filename;
+	$canon_name = abs_path($filename);
+	return if ($canon_name !~ m{$re});
+	$pname     = $1;
+	$port_name = $canon_name."/port_name";
+	open($fh, "<", $port_name)
+		or die("Could not read file: $!\n");
+	$wwpn = <$fh>;
+	close($fh);
+	chomp($wwpn);
+	$port_state = $canon_name."/port_state";
+	open($fh, "<", $port_state)
+		or die("Could not read file: $!\n");
+	$ps_value = <$fh>;
+	close($fh);
+	chomp($ps_value);
+	return if !($busid = readbusid($port_name));
+	print "$pname,$busid,$wwpn,$ps_value\n";
+	return;
+}
+
+sub main
+{
+	foreach my $filename (@ARGV) {
+		readfile($filename);
+	}
+}
+&main();
+__DATA__
+__END__
+##USAGE ./remote_ports_data /sys/class/fc_remote_ports/*

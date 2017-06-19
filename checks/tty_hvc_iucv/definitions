@@ -1,0 +1,27 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "terminal/hvc"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+sys_hypervisor=ZVM
+
+[sysinfo hvc_iucv_devices]
+program = "/bin/ls -1d /sys/devices/iucv/hvc_iucv*"
+ignorerc = 1
+
+[sysinfo has_hvc_iucv]
+program  = "stat /sys/bus/iucv/drivers/hvc_iucv/"
+ignorerc = 1
+
+[sysinfo ps_ef]
+program = "/bin/ps -ef"
+
+[param min_hvc_iucv]
+default = 1
+
+[exception unused_ttys]
+severity = medium
+
+[exception too_few_ttys]
+severity = low

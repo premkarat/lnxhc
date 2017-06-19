@@ -1,0 +1,5 @@
+[title]
+Identify bonding interfaces that aggregate qeth interfaces with the same CHPID
+
+[description]
+Bonding setups are mainly used to increase availability or performance. A bonding interface is a logical interface that aggregates multiple slave interfaces. Slave interfaces that are configured with the same CHPID do not offer path redundancy or increased bandwidth, so neither goal can be achieved.

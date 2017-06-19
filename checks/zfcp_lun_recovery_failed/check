@@ -1,0 +1,72 @@
+#!/usr/bin/perl
+#
+# zfcp_lun_recovery_failed
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_LUN_NOT_USABLE = "lun_not_usable";
+
+# Path to the file containing data for sysinfo item 'lun_data'.
+my $sysinfo_lun_data = $ENV{"LNXHC_SYSINFO_lun_data"};
+
+my $handle;
+my %data_hash;
+
+# Verifying whether fc_transport class is enabled or not
+if (-z $sysinfo_lun_data) {
+	lnxhc_fail_dep("No zFCP LUNs found");
+}
+
+open($handle, "<", $sysinfo_lun_data)
+	or die("Couldn't open file: $sysinfo_lun_data: $!\n");
+
+while (my $line = <$handle>) {
+	chomp $line;
+	my ($adapter, $wwpn, $lun, $failed) = split /,/, $line;
+	if (-z $adapter || -z $wwpn || -z $lun || -z $failed) {
+		next;
+	}
+
+	# Taking LUN and WWPN as key
+	my $key = $lun.":".$wwpn;
+	if ($failed != 0) {
+		push(@{$data_hash{$key}}, $adapter, $wwpn, $failed);
+	}
+}
+close($handle);
+
+if (%data_hash) {
+	lnxhc_exception($LNXHC_EXCEPTION_LUN_NOT_USABLE);
+	my @keys_list = sort(keys(%data_hash));
+	foreach my $key (@keys_list) {
+		my ($lun) = split(/:/, $key);
+		my @list = @{$data_hash{$key}};
+		lnxhc_exception_var("lun",
+			sprintf("|#%s|#%s|#%s|#%s", ($lun, @list)));
+	}
+	lnxhc_exception_var_list("lun_summ", \@keys_list, ", ");
+}
+exit(0);

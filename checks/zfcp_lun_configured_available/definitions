@@ -1,0 +1,25 @@
+[check]
+author = '"Manik Bajpai <manibajp@in.ibm.com>"'
+component = "zfcp/lun"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo read_kernel_cmdline]
+file = "/proc/cmdline"
+
+[sysinfo list_zfcp_disks]
+program = "/sbin/lszfcp -D"
+ignorerc=1
+
+[sysinfo read_udev_rules]
+program = "$LNXHC_CHECK_DIR/read_sysfs /etc/udev/rules.d/*zfcp*.rules"
+extrafile = "read_sysfs"
+ignorerc=1
+
+[sysinfo read_zfcp_conf]
+program = "/bin/cat /etc/zfcp.conf"
+ignorerc=1
+
+[exception lun_unavailable]
+severity = high

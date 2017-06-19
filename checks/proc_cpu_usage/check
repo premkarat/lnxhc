@@ -1,0 +1,96 @@
+#!/usr/bin/perl
+#
+# proc_cpu_usage
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+
+use strict;
+use warnings;
+use File::Basename;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+# Exception IDs
+my $LNXHC_EXCEPTION_PROCESS_HOGS_CPU = "process_hogs_cpu";
+
+# value of parameter 'processes'
+my $param_processes = $ENV{"LNXHC_PARAM_processes"};
+
+# Value of parameter 'cpu_usage'
+my $param_cpu_usage = $ENV{"LNXHC_PARAM_cpu_usage"};
+
+# Value of parameter 'cpu_time'
+my $param_cpu_time = $ENV{"LNXHC_PARAM_cpu_time"};
+
+# Path to the file containing data for sysinfo item 'ps_status'.
+my $sysinfo_ps_status = $ENV{"LNXHC_SYSINFO_ps_status"};
+
+check_int_param("cpu_usage", 0, 100);
+check_int_param("cpu_time", 1);
+
+sub main()
+{
+	my $handle;
+	my %cpu = ();
+	my %procs = ();
+
+	foreach (split(/,/, $param_processes)) {
+		next if (/^\s*$/);
+		$procs{$_} = 1;
+	}
+
+	open ($handle, "<", $sysinfo_ps_status) or
+		die("Could not open $sysinfo_ps_status");
+
+	while (<$handle>) {
+		next if ($. == 1);
+
+		my @value = split(/\s+/);
+
+		my ($pid, $pname, $usage, $bsdtime) =
+			($value[1], basename($value[10]), $value[2], $value[9]);
+
+		next if ($bsdtime !~ /^(\d+):?(.*)$/);
+		# bsdtime can be any of MMM:SS, MMMM:S, MMMMM:, MMMMMM
+		$bsdtime = $1 * 60;
+		$bsdtime += $2 if (defined($2) && length($2) == 2);
+		$bsdtime += $2 * 10 if (defined($2) && length($2) == 1);
+
+		next if (%procs && $procs{$pname});
+		if ($usage > $param_cpu_usage && $bsdtime > $param_cpu_time) {
+			$cpu{$pid}{$pname} = $usage;
+		}
+	}
+
+	if (%cpu) {
+		lnxhc_exception($LNXHC_EXCEPTION_PROCESS_HOGS_CPU);
+
+		my $fmt = "#%-15s %-22s %-20s";
+		lnxhc_exception_var("hogging_procs",
+		sprintf($fmt, "PID", "PROCESS", "%CPU"));
+
+		foreach my $pid (keys %cpu) {
+			foreach my $pname (keys %{$cpu{$pid}}) {
+				lnxhc_exception_var("hogging_procs",
+				sprintf($fmt, $pid, $pname, $cpu{$pid}{$pname}));
+			}
+		}
+	}
+
+	close($handle)
+}
+&main();
+__DATA__
+__END__

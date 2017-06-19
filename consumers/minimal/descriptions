@@ -1,0 +1,14 @@
+[title]
+Minimal report consumer
+
+[description]
+This consumer shows a progress bar and lists exception IDs. When run in
+verbose mode (command line option -V specified), it also lists detailed
+exception messages with the option to run these through a pager program
+such as "less".
+
+[param pager]
+Specify a pager program such as "less" to use for viewing detailed exception
+messages when running this consumer in verbose mode (command line option -V
+specified). If set to an empty value, the exception messages will be written
+directly to the output stream.

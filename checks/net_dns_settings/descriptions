@@ -1,0 +1,7 @@
+[title]
+Ensure nameserver is listed with correct address
+
+[description]
+Nameserver helps to resolve names to numerical ip addresses. If nameserver is
+not listed or has an incorrect address it would prevent accessing any of the
+systems in the network by their name.

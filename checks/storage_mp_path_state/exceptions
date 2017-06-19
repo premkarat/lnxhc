@@ -1,0 +1,103 @@
+[summary too_many_failed_paths]
+These multipath devices have more than &param_failed_path_limit; failed paths: &failed_path_summ;
+
+[explanation too_many_failed_paths]
+In Linux, separate paths to the same physical device appear as separate
+devices. The Linux multipath tools aggregate such devices into a single
+multipath device. Through a correctly configured multipath setup, a Linux
+instance has two or more independent connections to the same storage device.
+This path redundancy can be used for load balancing and to maintain
+availability if one of the paths fails. Multipath setups with too many failed paths might not meet these goals.
+
+To investigate your multipath configuration, use "multipath -ll".
+
+The following multipath devices have more than &param_failed_path_limit; failed paths:
+
+&failed_path_details;
+[solution too_many_failed_paths]
+Take these actions to investigate your multipath devices:
+
+1. List your storage devices to ensure that Linux has registered
+   each expected path.
+
+   For example, use "lszfcp -D" to list your SCSI devices. The command output
+   consists of lines of the form
+
+   #<device_bus_id>/<wwpn>/<hex_lun> <h>:<c>:<id>:<d_lun>
+
+   where each line represents a path to a storage device.
+   Each line has two representations for the LUN of the storage device,
+   <hex_lun> is the hexadecimal format of the LUN and <d_lun> is a decimal
+   representation.
+
+   Lines that represent paths to the same storage device have both identical
+   values for <hex_lun> and identical values for <d_lun>.
+
+   If not all expected paths are shown, ensure that all hardware components are
+   in place and set up to provide multiple paths for your multipath devices.
+
+2. If multiple paths are available, ensure that the multipath configuration
+   file groups these paths correctly. In particular, ensure that the missing
+   paths are not blacklisted. See the documentation that is provided with your
+   distribution for details of this configuration file.
+
+3. Restart the multipath daemon, for example, by issuing:
+   ## /etc/init.d/multipathd restart
+
+[reference too_many_failed_paths]
+See the documentation that is provided with your distribution for more
+specific information about multipathing.
+Also see the man pages for the "multipath", and "lszfcp" commands.
+
+[summary too_few_available_paths]
+These multipath devices have less than &param_remaining_path_limit; available paths: &available_path_summ;
+
+[explanation too_few_available_paths]
+In Linux, separate paths to the same physical device appear as separate
+devices. The Linux multipath tools aggregate such devices into a single
+multipath device. Through a correctly configured multipath setup, a Linux
+instance has two or more independent connections to the same storage device.
+This path redundancy can be used for load balancing and to maintain
+availability if one of the paths fails. Multipath setups with a small number of remaining paths
+cannot achieve either of these goals.
+
+To investigate your multipath configuration, use
+
+## multipath -ll
+
+The following multipath devices have less than &param_remaining_path_limit; available paths:
+
+&available_path_details;
+[solution too_few_available_paths]
+Take these actions to investigate your multipath devices:
+
+1. List your storage devices to ensure that Linux has registered
+   each expected path.
+
+   For example, use "lszfcp -D" to list your SCSI devices. The command output
+   consists of lines of the form
+
+   #<device_bus_id>/<wwpn>/<hex_lun> <h>:<c>:<id>:<d_lun>
+
+   where each line represents a path to a storage device.
+   Each line has two representations for the LUN of the storage device,
+   <hex_lun> is the hexadecimal format of the LUN and <d_lun> is a decimal
+   representation.
+
+   Lines that represent paths to the same storage device have both identical
+   values for <hex_lun> and identical values for <d_lun>.
+
+   If not all expected paths are shown, ensure that all hardware components are
+   in place and set up to provide multiple paths for your multipath devices.
+
+2. If multiple paths are available, ensure that the multipath configuration
+   file groups these paths correctly. In particular, ensure that the missing
+   paths are not blacklisted. See the documentation that is provided with your
+   distribution for details of this configuration file.
+
+3. Restart the multipath daemon, for example, by issuing:
+   ## /etc/init.d/multipathd restart
+[reference too_few_available_paths]
+See the documentation that is provided with your distribution for more
+specific information about multipathing.
+Also see the man pages for the "multipath", and "lszfcp" commands.

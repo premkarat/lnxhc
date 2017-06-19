@@ -1,0 +1,70 @@
+#!/usr/bin/perl
+#
+# fs_mount_option_ro
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+# Exception IDs
+my $LNXHC_EXCEPTION_READ_ONLY_FILESYSTEM = "read_only_filesystem";
+
+# Path to the file containing data for sysinfo item 'mount'.
+my $sysinfo_mount = $ENV{"LNXHC_SYSINFO_mount"};
+
+sub main()
+{
+	my %mount_points;
+	my $handle;
+	my ($device, $option, $directory);
+	my $href = {};
+
+	# Parse value of the 'mount_points' check parameter
+	%mount_points = %{parse_list_param("mount_points", ':')};
+
+	open($handle, "<", $sysinfo_mount) or
+		die("Could not open $sysinfo_mount");
+
+	while (<$handle>) {
+		chomp();
+
+		#match for device,directory and mount option
+		if (/^(\S+)\s(\S+)\s\S+\s(\w{2})/) {
+			($device, $directory, $option) = ($1, $2, $3);
+		}
+
+		#check for mount points to be checked
+		next if (%mount_points && !exists $mount_points{$directory});
+
+		if ($option =~ /ro/) {
+			$href->{$directory} = $device;
+		}
+	}
+
+	close($handle);
+
+	if (keys %$href) {
+		lnxhc_exception($LNXHC_EXCEPTION_READ_ONLY_FILESYSTEM);
+
+		foreach (keys %$href) {
+			lnxhc_exception_var("read_only_filesystems", "$href->{$_} mounted on $_");
+		}
+	}
+}
+&main();
+__DATA__
+__END__

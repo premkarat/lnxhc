@@ -1,0 +1,15 @@
+[check]
+author = "Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>"
+component = "process/memory"
+
+[param processes]
+default = "lnxhc"
+
+[param mem_usage]
+default = 90
+
+[sysinfo ps_status]
+program = "/bin/ps auxww"
+
+[exception process_hogs_memory]
+severity = high

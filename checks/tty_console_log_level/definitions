@@ -1,0 +1,12 @@
+[check]
+author = "Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>"
+component = "terminal"
+
+[param log_level]
+default = "4"
+
+[sysinfo sysctl]
+program = "/sbin/sysctl -a"
+
+[exception low_loglevel]
+severity = medium

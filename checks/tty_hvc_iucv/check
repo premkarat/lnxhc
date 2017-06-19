@@ -1,0 +1,143 @@
+#!/usr/bin/perl
+#
+# tty_hvc_iucv
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+use Data::Dumper;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+# System information about hvc_iucv devices
+my $sysinfo_hvc_devlist = $ENV{"LNXHC_SYSINFO_hvc_iucv_devices"};
+
+
+# parse, filter, and load ps output into a hash, using the PID
+# as hash key and a list reference as value.
+#
+# For example:
+#             '8307' => [
+#                          'root',		# 0: owner
+#                          '8307',		# 1: PID
+#                          '1',			# 2: PPID
+#                          '0',			# 3: Cpu
+#                          'Aug03',		# 4: STIME
+#                          'ttyS0',		# 5: TTY
+#                          '00:00:00',		# 6: TIME
+#                          '/sbin/mingetty',	# 7..: CMD
+#                          '--noclear',
+#                          '/dev/ttyS0',
+#                          'dumb'
+#                        ]
+sub load_ps_ef($)
+{
+	my $filename = shift;
+	my $fd = undef;
+	my $href = {};
+
+	return undef unless open($fd, "<", $filename);
+	while (<$fd>) {
+		my @elems = split /\s+/;    # split fields
+		$href->{$elems[1]} = \@elems;
+	}
+	close($fd);
+	return $href;
+}
+
+sub load_hvc_iucv_devices($)
+{
+	my $filename = shift;
+	my $fh = undef;
+	my $href = {};
+
+	return undef unless open($fh, "<", $filename);
+	while (<$fh>) {
+		chomp;
+		# map hvc* to hvc_iucv* devices, use hvc* devices as keys
+		if (m{/.+/hvc_iucv(\d+)$}) {
+			$href->{"hvc$1"} = "$_";
+		}
+	}
+	close($fh);
+	return $href;
+}
+
+sub retrieve_hvc_iucv_info()
+{
+	my $href = {};
+
+	# retrieve list of hvc_iucv devices
+	unless ($ENV{"LNXHC_SYSINFO_EXIT_CODE_hvc_iucv_devices"}) {
+		$href = load_hvc_iucv_devices($sysinfo_hvc_devlist);
+	}
+	return $href;
+}
+
+sub main()
+{
+	# ensure that the z/VM HVC IUCV device driver exists
+	if ($ENV{"LNXHC_SYSINFO_EXIT_CODE_has_hvc_iucv"}) {
+		lnxhc_fail_dep("The z/VM IUCV HVC terminal device driver ".
+			       "is not available or active");
+	}
+
+	# read and parse ps -ef output to get the list of used hvc devices
+	my $ps_ef = load_ps_ef($ENV{"LNXHC_SYSINFO_ps_ef"});
+	die "Failed to read sysinfo: ps output: $!\n" unless $ps_ef;
+
+	# retrieve and save number of available hvc_iucv devices
+	my $hvc_iucv = retrieve_hvc_iucv_info();
+	my $num_hvc_iucv = scalar(keys %$hvc_iucv);
+	unless ($num_hvc_iucv) {
+		print STDERR "There are no z/VM IUCV HVC devices available\n";
+	}
+
+	# ensure that at least min hvc terminal devices are available
+	check_int_param("min_hvc_iucv", 1, 8);
+	if ($num_hvc_iucv < $ENV{"LNXHC_PARAM_min_hvc_iucv"}) {
+		lnxhc_exception("too_few_ttys");
+		lnxhc_exception_var("hvc_iucv_avail", $num_hvc_iucv);
+	}
+
+	# check if available hvc terminal devices are also active/used
+	my %active_hvc = ();
+	foreach (sort keys %$ps_ef) {
+		$active_hvc{$1} = 1 if $ps_ef->{$_}->[5] =~ /^(hvc\d+)$/;
+	}
+
+	if ($LNXHC_DEBUG) {
+		print STDERR "HVC_IUCV_DEV: " . Dumper($hvc_iucv);
+		print STDERR "HVC_USED: " . Dumper(\%active_hvc);
+	}
+
+	# remove used terminals
+	delete $hvc_iucv->{$_} foreach keys %active_hvc;
+
+	# issue an exception message for remaining (unused) hvc terminals
+	if (%$hvc_iucv) {
+		lnxhc_exception("unused_ttys");
+		lnxhc_exception_var("num_hvc_iucv", $num_hvc_iucv);
+		lnxhc_exception_var("num_hvc_req", scalar(keys %$hvc_iucv));
+		foreach (sort keys %$hvc_iucv) {
+			lnxhc_exception_var("hvc_dev_list", "#    $_");
+		}
+		lnxhc_exception_var_list("hvc_short_list",
+					 [sort keys %$hvc_iucv], ", ", 2);
+	}
+}
+
+&main();
+__DATA__
+__END__

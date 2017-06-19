@@ -1,0 +1,122 @@
+#!/bin/bash
+#
+# crypto_openssl_ibmca_config
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+# Creating the variables required for checking whether
+# the required software is installed or not.
+exists_openssl_ibmca_rpm=0
+exists_libica_rpm=0
+exists_openssl_rpm=0
+
+# Non-zero if health check program should output debugging information
+DEBUG="$LNXHC_DEBUG"
+
+# Health check ID
+CHECK_ID="$LNXHC_CHECK_ID"
+
+# Health check installation directory
+CHECK_DIR="$LNXHC_CHECK_DIR"
+
+# Path to the file used to report exceptions
+EX_FILE="$LNXHC_EXCEPTION"
+
+
+#
+# Functions
+#
+
+#
+# lnxhc_setup - validate input from framework
+#
+function lnxhc_setup()
+{
+        if [ -z "$DEBUG" -o -z "$CHECK_ID" -o -z "$CHECK_DIR" -o \
+             -z "$EX_FILE" ] ; then
+                echo "test: This program cannot be called directly." >&2
+                echo "Please use the 'lnxhc run' function to call this " \
+                     "program." >&2
+                exit 1
+        fi
+}
+#
+# Code entry
+#
+
+# Validate input from framework
+lnxhc_setup
+
+
+# Identifying whether required packages are installed or not
+# if the required software are not available then the program
+# will exit with exit value '64'
+if [ ! -z "$LNXHC_SYSINFO_rpm_qa_openssl_ibmca" ] ; then
+	exists_openssl_ibmca_rpm=1
+fi
+if [ ! -z "$LNXHC_SYSINFO_rpm_qa_libica" ] ; then
+	exists_libica_rpm=1
+fi
+if [ ! -z "$LNXHC_SYSINFO_rpm_qa_openssl" ] ; then
+	exists_openssl_rpm=1
+fi
+
+# Condition which validates the above data
+if [ $exists_openssl_ibmca_rpm -eq 0 -o $exists_libica_rpm -eq 0 -o $exists_openssl_rpm -eq 0 ] ; then
+	cat <<-EOF
+	Required rpms libica/openssl-ibmca/openssl NOT installed
+	To run this check you have to install libica,openssl & openssl-ibmca package
+	EOF
+	exit 64
+fi
+
+# Gathering the openssl.cnf file path from the openssl RPM
+# There are chances of getting more than one line because of
+# 64-bit and 31-bit RPM installation - so getting uniq
+read openssl_cnf_path < $LNXHC_SYSINFO_rpm_ql_openssl
+
+# Gathering the libibmca.so path from the openssl-ibmca RPM
+read libibmca_so_file_path < $LNXHC_SYSINFO_rpm_ql_openssl_ibmca
+
+if [  -z "$openssl_cnf_path" -o  -z "$libibmca_so_file_path" ] ; then
+	echo "Required configuration file/libibmca.so path not found"
+	echo "Can't proceed further !!"
+	exit 64
+fi
+
+
+# Checking whether the ibmca engine is enabled in the openssl.cnf file
+# If not enabled then exiting with exit value '64'
+if (grep -q "^\s*dynamic_path\s*=" $openssl_cnf_path) ; then
+	echo "ibmca-section enabled"
+
+	# Gathering the libibmca.so file path from the config file openssl.cnf
+	libibmca_so_file_path_in_config_file=$(grep "^\s*dynamic_path" $openssl_cnf_path | grep 'libibmca' | tail -1 | cut -d'=' -f2)
+
+
+	# If found libibmca.so file path not correct in the config file then report exception
+	if [ $libibmca_so_file_path_in_config_file != $libibmca_so_file_path ] ; then
+		echo "so_file_path_not_correct" >> $LNXHC_EXCEPTION
+		echo "libibmca_so_file_path=$libibmca_so_file_path" >> $LNXHC_EXCEPTION
+		echo "openssl_cnf_path=$openssl_cnf_path" >> $LNXHC_EXCEPTION
+		echo "libibmca_so_file_path_in_config_file=$libibmca_so_file_path_in_config_file" >> $LNXHC_EXCEPTION
+	fi
+else
+	echo "ibmca engine is not enabled in file $openssl_cnf_path"
+        exit 64
+fi
+
+# end of execution
+exit 0

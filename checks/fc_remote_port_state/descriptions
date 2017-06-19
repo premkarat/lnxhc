@@ -1,0 +1,11 @@
+[title]
+Identify unusable Fibre Channel(FC) remote ports
+
+[description]
+When the I/O devices are not reachable via remote ports, this indicates storage
+server problems. The remote ports should be available for better performance
+and availability.
+
+[param ignore_bus_id]
+List of FC device bus-IDs by which associated remote ports are excluded.
+This parameter accepts listed FC host bus-IDs as comma ',' separated values.

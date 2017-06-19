@@ -1,0 +1,217 @@
+#!/usr/bin/perl
+#
+# minimal_consumer
+#   Report consumer program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+
+my @sev_str	= ("low", "medium", "high");
+my $cons_id	= $ENV{"LNXHC_CONS_ID"};
+my $run_id	= $ENV{"LNXHC_RUN_ID"};
+my $run_id_max	= $ENV{"LNXHC_RUN_ID_MAX"};
+my $verbose	= $ENV{"LNXHC_VERBOSE"};
+my $param_pager = $ENV{"LNXHC_PARAM_pager"};
+
+
+#
+# print_progress_bar(pos, max, text)
+#
+# Print a progress bar for progress POS of MAX, followed by TEXT.
+#
+sub print_progress_bar($$$)
+{
+	my ($pos, $max, $text) = @_;
+	my $columns = $ENV{"COLUMNS"};
+	my $bar_width = int($columns * 0.4);
+	my $txt_width = $columns - $bar_width - 18;
+	my $marks;
+	my $bar;
+	my $ratio;
+
+	# Skip if there is not enough space on the terminal
+	return if ($txt_width < 1);
+
+	$ratio = $max > 0 ? $pos / $max : 1;
+
+	$marks = int($bar_width * $ratio);
+
+	# Adjust fringe cases
+	$marks = 1 if ($marks == 0);
+	$marks = $bar_width - 1 if ($marks == $bar_width && $pos != $max);
+
+	$bar = ("="x$marks).("-"x($bar_width - $marks));
+	$text = substr($text, 0, $txt_width);
+
+	printf("Checking: [%s] %3d%% %*s\r", $bar, 100 * $ratio,
+	       -$txt_width, $text);
+}
+
+#
+# get_exception_list(list)
+#
+# Return list of exceptions.
+#
+sub get_exception_list($)
+{
+	my ($list) = @_;
+
+	for (my $id = 0; $id <= $run_id_max; $id++) {
+		my $prefix	= "LNXHC_RUN_".$id."_";
+		my $num_ex	= $ENV{$prefix."NUM_EXCEPTIONS"};
+		my $check_id	= $ENV{$prefix."CHECK_ID"};
+
+		# Skip if there is no exception
+		next if ($num_ex == 0);
+
+		for (my $ex_num = 0; $ex_num < $num_ex; $ex_num++) {
+			my $cprefix	= $prefix."EX_".$ex_num."_";
+			my $id		= $ENV{$cprefix."ID"};
+			my $severity	= $ENV{$cprefix."SEVERITY"};
+			my $summary	= $ENV{$cprefix."SUMMARY"};
+			my $explanation	= $ENV{$cprefix."EXPLANATION"};
+			my $solution	= $ENV{$cprefix."SOLUTION"};
+			my $reference	= $ENV{$cprefix."REFERENCE"};
+			push(@$list,
+			     [ $check_id, $id, $severity, $summary,
+			       $explanation, $solution, $reference ]);
+		}
+	}
+}
+
+#
+# print_exception_details(exception)
+#
+# Print exception details for EXCEPTION.
+#
+sub print_exception_details($)
+{
+	my ($ex) = @_;
+	my ($check_id, $ex_id, $severity, $summary, $explanation, $solution,
+	    $reference) = @$ex;
+	my $sev = $sev_str[$severity];
+
+	$summary	= format_as_text($summary, 4, -4);
+	$explanation	= format_as_text($explanation, 4, -4);
+	$solution	= format_as_text($solution, 4, -4);
+	$reference	= format_as_text($reference, 4, -4);
+
+	$summary	=~ s/\n$//;
+	$explanation	=~ s/\n$//;
+	$solution	=~ s/\n$//;
+	$reference	=~ s/\n$//;
+
+	print(<<EOF);
+ >EXCEPTION $check_id.$ex_id($sev)
+
+  SUMMARY
+$summary
+
+  EXPLANATION
+$explanation
+
+  SOLUTION
+$solution
+
+  REFERENCE
+$reference
+
+EOF
+}
+
+#
+# print_exception_list(list)
+#
+# Print exceptions in LIST. If VERBOSE is set, print detailed exceptions,
+# otherwise only exception IDs and severity.
+#
+sub print_exception_list($)
+{
+	my ($list) = @_;
+
+	if (!@$list) {
+		print("No exceptions\n");
+		return;
+	}
+
+	if ($verbose) {
+		my $pager;
+		my $needs_close;
+
+		# Load the module here to prevent unnecessary overhead
+		# during the progress bar phase
+		eval {
+			require LNXHC::Consumer::Base;
+			LNXHC::Consumer::Base->import("format_as_text");
+		};
+
+		# Redirect output to pager program if requested
+		if ($param_pager ne "") {
+			no warnings 'exec';
+			if (open($pager, "|$param_pager")) {
+				select($pager);
+				$needs_close = 1;
+			} else {
+				warn("$cons_id: Could not run command ".
+				     "'$param_pager' specified by parameter ".
+				     "'pager'!\n");
+			}
+		}
+
+		print("Exceptions:\n");
+		foreach my $ex (@$list) {
+			print_exception_details($ex);
+		}
+
+		if ($needs_close) {
+			select(STDOUT);
+			close($pager);
+		}
+	} else {
+		print("Exceptions:\n");
+		foreach my $ex (@$list) {
+			my ($check_id, $ex_id, $sev) = @$ex;
+
+			print("  ".$check_id.".".$ex_id."(".$sev_str[$sev].
+			      ")\n");
+		}
+	}
+}
+
+#
+# main()
+#
+# Print a progress bar while health checks are running. List identified
+# exceptions at the end.
+#
+sub main()
+{
+	if (defined($run_id)) {
+		my $check_id = $ENV{"LNXHC_RUN_".$run_id."_CHECK_ID"};
+
+		print_progress_bar($run_id, $run_id_max, $check_id);
+	} else {
+		my @list;
+
+		print_progress_bar($run_id_max, $run_id_max, "");
+		print("\n");
+		get_exception_list(\@list);
+		print_exception_list(\@list);
+	}
+}
+
+main();

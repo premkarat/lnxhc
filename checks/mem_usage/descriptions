@@ -1,0 +1,15 @@
+[title]
+Ensure memory usage is within the threshold
+
+[description]
+The check examines the RAM usage of the system. If not enough RAM is available
+system will slow down and become much more unresponsive and difficult or even
+impossible to use.
+
+[param warn_limit]
+Memory usage (in percent) at which to raise a warning exception.
+Valid values are integers in the range of  1 to 100
+
+[param critical_limit]
+Memory usage (in percent) at which to raise a critical exception.
+Valid values are integers in the range of  1 to 100

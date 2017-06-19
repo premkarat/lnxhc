@@ -1,0 +1,33 @@
+[summary slow_hsi_receivers]
+One or more HiperSockets interfaces exceeded the TX error threshold: &summ_interface;
+
+[explanation slow_hsi_receivers]
+One or more HiperSockets (hsi) interfaces exceeded the specified error threshold for outbound (TX) traffic. The receiving interface does not have sufficient buffer space for the HiperSockets traffic. High TX error rates for a qeth HiperSockets device are a strong indication for one or more slow receivers.
+
+&devices_txerrors;
+
+You can use the "ifconfig" command to investigate TX errors for your HiperSockets interfaces.
+
+[solution slow_hsi_receivers]
+Examine the receivers of your HiperSockets network traffic. In particular, ensure that a suitable number of buffers has been configured for the receiving interface. The following table provides a general guideline that works well for most cases:
+
+|>RAM size|^Number of buffers
+|>up to 500 MB|^16
+|>up to 1 GB|^32
+|>up to 2 GB|^64
+|>more than 2 GB|^128
+
+If the receiving interface is on a Linux instance, use the "lsqeth" command to find out how many buffers are defined for the this interface.  In the default command output, the buffer count is shown as the value for the buffer_count attribute. With the -p option, the output is in table format and the buffer count is shown in the "cnt" column.
+
+To change the number of buffers for an interface run a command of this form:
+Offline the interface (Before offline make sure you are not running any critical task using this interface)
+## echo 0 > /sys/devices/qeth/<device_bus_id>/online
+Change the buffer count
+## echo <value> > /sys/devices/qeth/<device_bus_id>/buffer_count
+Online the interface
+## echo 1 > /sys/devices/qeth/<device_bus_id>/online
+
+where <value> is the new buffer number and <device_bus_id> is the bus ID of the qeth group device that corresponds to the interface.  In the "lsqeth" output, this is the first of the three listed bus IDs.
+
+[reference slow_hsi_receivers]
+For information about the commands, see the "lsqeth" and "ifconfig" man pages.

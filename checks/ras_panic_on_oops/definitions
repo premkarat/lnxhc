@@ -1,0 +1,9 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "ras"
+
+[sysinfo sysctl]
+program = "/sbin/sysctl -a"
+
+[exception no_panic_on_oops]
+severity = medium

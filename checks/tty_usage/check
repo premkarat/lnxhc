@@ -1,0 +1,119 @@
+#!/usr/bin/perl
+#
+# tty_usage
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+use strict;
+use warnings;
+use Safe;
+use Data::Dumper;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+sub build_range($)
+{
+	my $list = shift;
+	my $distinct = {};
+
+	# split device name and numbers
+	foreach (@$list) {
+		s/(\d+)$// or next;
+		if (exists($distinct->{$_})) {
+			push @{$distinct->{$_}}, $1;
+		} else {
+			$distinct->{$_} = [$1];
+		}
+	}
+
+	foreach my $key (keys %$distinct) {
+		my @minors = sort {$a <=> $b} @{$distinct->{$key}};
+		next unless @minors;
+
+		# initialize first range
+		my $num = shift @minors;
+		$distinct->{$key} = [[$num, $num]];
+
+		# process remaining ranges
+		foreach my $n (@minors) {
+			my $last = $distinct->{$key}->[-1];
+			if ($n == $last->[1] + 1) {
+				$last->[1]++;	  # inc value in listref
+			} else {
+				push @{$distinct->{$key}}, [$n, $n];
+			}
+		}
+	}
+
+	return $distinct;
+}
+
+
+sub main()
+{
+	$Data::Dumper::Sortkeys = 1;
+
+	# read Data::Dump from ls-tty
+	my $jail = new Safe;
+	$jail->permit_only(qw/:base_core anonhash/);
+	my $lstty = $jail->rdo($ENV{"LNXHC_SYSINFO_ls_tty"});
+	die "Failed to load ls-tty system information: $@\n" if $@;
+
+	my $tty_used  = $lstty->{tty_used};
+	my $tty_avail = $lstty->{tty_avail};
+
+	# remove known terminal devices and, then, report unused devices
+	delete $tty_avail->{$_} foreach values %$tty_used;
+
+	# filter out unused terminal devices
+	my $filter = $ENV{"LNXHC_PARAM_exclude_tty"};
+	if ($filter) {
+		# create tty exclusion regular expression
+		$filter =~ s/\s/|/g;
+		$filter =~ s/\*/.*/g;
+		$filter = qr{^/dev/(?:$filter)$};
+
+		if ($LNXHC_DEBUG) {
+			print STDERR "Terminal exclusion regexp: $filter\n";
+		}
+	}
+	my @unused = ($filter) ? grep { !/$filter/ } sort values %$tty_avail
+			       : sort values %$tty_avail;
+	if (@unused) {
+		local $Data::Dumper::Terse = 1;
+		print "WARNING: Found unused terminal devices: " .
+		      Dumper(\@unused);
+		# build ranges of unused terminals
+		my @ttylist = ();
+		my $ranges = build_range(\@unused);
+		foreach my $tty (sort keys %$ranges) {
+			foreach my $r (@{$ranges->{$tty}}) {
+				if ($r->[0] == $r->[1]) {
+					push @ttylist, $tty . $r->[0];
+				} else {
+					push @ttylist,
+					     "${tty}[$r->[0]-$r->[1]]";
+				}
+			}
+		}
+		lnxhc_exception("unused_ttys");
+		lnxhc_exception_var("var_tty_list", "#    $_") foreach @ttylist;
+		lnxhc_exception_var_list("var_short_list",
+					 \@ttylist, ", ", 2);
+	}
+}
+
+&main();
+__DATA__
+__END__

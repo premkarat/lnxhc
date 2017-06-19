@@ -1,0 +1,22 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "security/terminal"
+
+[sysinfo etc_securetty]
+file = /etc/securetty
+user = root
+
+[sysinfo ps_ef]
+program = /bin/ps -ef
+
+[param secure_ttys]
+default = ttyS0 ttyS1 ttysclp0 sclp_line0 hvc0 hvc1 hvc2 hvc3 hvc4 hvc5 hvc6 hvc7
+
+[param insecure_ttys]
+default =
+
+[exception secure_disabled]
+severity = medium
+
+[exception insecure_enabled]
+severity = medium

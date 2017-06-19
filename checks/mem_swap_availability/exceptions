@@ -1,0 +1,66 @@
+[summary no_swap_space]
+System does not have a swap space
+
+[explanation no_swap_space]
+For systems having memory constraints it is important to have swap space. If
+swap space is not available in a huge workload scenario it might lead to
+out-of-memory situations as also a system crash.
+
+Available swap space can be verified either by displaying /proc/swaps or
+"swapon -s" command.
+
+[solution no_swap_space]
+Linux has two forms of swap space: the swap partition and the swap file.
+The swap partition is an independent section of the hard disk used solely for
+swapping, no other files can reside there. The swap file is a special file in
+the filesystem that resides amongst your system and data files.
+
+To add swap partition:
+
+1. Ensure that the partition is marked as a swap partition
+
+   #fdisk -l <device>
+
+   System field should be Linux swap / Solaris
+
+2. Once a partition is marked as swap, you need to prepare it using the mkswap
+   (make swap) command as root:
+
+   #mkswap <device>
+
+3. If no errors are seen, swap space is ready to use. To activate it
+   immediately, type:
+
+   #swapon <device>
+
+   Creation of swap partition can be verified by running "swapon -s" command.
+
+To mount the swap space automatically at boot time, you must add an entry to the
+/etc/fstab file
+
+#<device>       none    swap    sw      0       0
+
+To add swap file:
+
+1. To create a swapfile, use the dd command to create an empty file. To create a
+   1GB file, type:
+
+   #dd if=/dev/zero of=/<swapfile> bs=1048576 count=1024
+
+   swapfile is name of the swapfile and count is size of the file, here it is
+   1GB.
+
+2. Prepare the swap file
+
+   #mkswap <swapfile>
+
+3. Mount the swapfile
+
+   #swapon /<swapfile>
+
+The /etc/fstab entry for a swap file would look like this:
+
+/<swapfile>       none    swap    sw      0       0
+
+[reference no_swap_space]
+See the man pages of the "mkswap" and "swapon" command.

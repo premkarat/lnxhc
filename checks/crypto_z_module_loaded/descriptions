@@ -1,0 +1,29 @@
+[title]
+Confirm that the System z cryptography kernel module is loaded
+
+[description]
+Loading the System z cryptography kernel module (named 'z90crypt or
+'zcrypt_pcixcc' or 'zcrypt_cex2a') is required to exploit cryptographic
+adapters. This check verifies that the kernel module is loaded.
+
+The System z cryptography kernel module is a mandatory prerequisite for
+cryptographic operations in the following contexts:
+
+ * the secure key openCryptoki (PKCS#11) software stack (see also checks
+   crypto_opencryptoki_skc and crypto_opencryptoki_skc_32bit)
+ * the Common Cryptographic Architecture (CCA) software stack (see also check
+   crypto_cca_stack)
+
+In addition the module is a prerequisite for accelerating and off-loading RSA
+operations in the following contexts:
+
+ * the OpenSSL software stack (see also checks crypto_openssl_stack and
+   crypto_openssl_stack_32bit)
+ * the clear key openCryptoki (PKCS#11) software stack (see also checks
+   crypto_opencryptoki_ckc and crypto_opencryptoki_ckc_32bit)
+
+In these contexts RSA operations will be computed in software if the
+cryptographic kernel module is not available.
+
+Finally, loading the kernel module is also required to implement true random
+number generation based on cryptographic adapter hardware.

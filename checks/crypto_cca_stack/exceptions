@@ -1,0 +1,60 @@
+[summary rpms_not_installed]
+Required RPMs are not installed (&rpm_summ;)
+
+[explanation rpms_not_installed]
+Required RPMs are not installed. The Linux system cannot exploit the cryptographic hardware. Some applications or libraries will emulate cryptographic operations in software instead, but this emulation will decrease the system performance exceedingly.
+
+The following RPMs are required but not installed:
+&rpm;
+
+To  verify whether the required RPMs are installed, issue:
+  #rpm -qa | grep "<RPMname>"
+
+where <RPMname> is the name of a required RPM
+
+Examples:
+
+In case of a single RPM that contains the string 'avahi', issue:
+  #rpm -qa | grep "avahi"
+In case of a list of RPMs that contain a string 'avahi' and 'postfix', issue:
+  #rpm -qa | grep "avahi\|postfix"
+
+[solution rpms_not_installed]
+Install the required RPMs using the following command or by using the specific options available from your distribution.
+
+  #rpm -ivh <RPMname> [<RPMname> ...]
+where <RPMname> is the name of the required RPM
+
+You can download CCA RPMs from
+http://www.ibm.com/security/cryptocards/pciecc/ordersoftware.shtml
+
+[reference rpms_not_installed]
+See the man page of the 'rpm' command.
+
+
+[summary crypto_coprocessors_not_available]
+Required Cryptographic Coprocessor is not available
+
+[explanation crypto_coprocessors_not_available]
+The required Cryptographic Coprocessor is not available. Secure key cryptographic functions and true random number generation are not supported.
+
+To  verify whether the required Cryptographic Coprocessor is available, issue:
+  #lszcrypt
+and look for the following line in the output:
+
+#card<nn>: CEX?C
+where the question mark (?) denotes the series of the Cryptographic Coprocessor, for example 2 or 3.
+
+[solution crypto_coprocessors_not_available]
+If the Cryptogtaphic Coprocessor is not attached to the Linux system, follow the procedure described in the 'Technical Guide' related to your System z.
+For example, for a System z server z196, refer to the 'IBM zEnterprise 196 Technical Guide'.
+
+If the Cryptographic Coprocessor is attached but not online, you can use the 'chzcrypt' tool to set Coprocessors online.
+See the 'Generic cryptographic device driver' chapter in 'Device Drivers, Features, and Commands' .
+
+[reference crypto_coprocessors_not_available]
+You can obtain Technical Guides from
+http://www.redbooks.ibm.com
+
+You can obtain the 'Device Drivers, Features, and Commands' publication from
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html

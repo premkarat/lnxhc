@@ -1,0 +1,937 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc_check_definitions 5 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.SH NAME
+lnxhc_check_definitions \- Define health check metadata
+.
+.
+.SH DESCRIPTION
+The
+.B definitions
+file of a health check contains metadata needed by the
+\*[lhc] to correctly handle the check. Data is
+stored in lines of text which are grouped into named sections. Text encoding
+is UTF-8. Empty lines and lines starting with a hash sign ("#") are ignored.
+.
+.
+.SS "Example definitions file"
+.RS 4
+.CL [check]
+.CL author=\[dq]Peter Oberparleiter <peter.oberparleiter@de.ibm.com>\[dq]
+.CL component=\[dq]filesystem\[dq]
+.CL
+.CL [param warn_limit]
+.CL default=70
+.CL
+.CL [param critical_limit]
+.CL default=90
+.CL
+.CL [param mount_points]
+.CL default=\[dq]\[dq]
+.CL
+.CL [exception warn_limit]
+.CL severity=low
+.CL
+.CL [exception critical_limit]
+.CL severity=high
+.CL
+.CL [sysinfo df]
+.CL program=df
+.RE
+.
+.
+.SH "FILE FORMAT"
+Each line can contain data in one of the following formats:
+.PP
+.RS 4
+.IP \(bu 2
+.B Section heading
+
+A section heading line consists of one or more identifiers, separated
+by blanks and enclosed in square brackets ("[ ]"). Identifiers may consist of
+lowercase-letters a-z, digits 0-9, and the underscore sign.
+
+.B Example:
+.br
+.CL [check]
+.PP
+.
+.IP \(bu 2
+.B Keyword-value assignment
+
+A keyword-value assignment line consists of an identifier, followed by the
+equal sign ("="), followed by a value string which can be enclosed in
+single ("'") or double ('"') quotation marks to preserve white spaces.
+
+.B Example:
+.br
+.CL state=active
+.PP
+.
+.IP \(bu 2
+.B Statement
+
+A statement line contains a single identifier.
+
+.B Example:
+.br
+.CL external
+.PP
+.RE
+.
+.
+.SH SECTIONS
+Valid sections for a definitions file are:
+.PP
+.RS 4
+.IP \(bu 2
+.CL [check]
+
+This mandatory section contains definitions that affect the health check as a
+whole.
+.PP
+.
+.IP \(bu 2
+.CL [deps]
+
+This optional section defines dependencies that a system must fulfill so that
+the health check can run.
+.PP
+.
+.IP \(bu 2
+.CL [param \fIidentifier\fP]
+
+This mandatory section specifies default values for parameters. For each
+parameter of a health check, one section must occur.
+.PP
+.
+.IP \(bu 2
+.CL [exception \fIidentifier\fP]
+
+This mandatory section specifies exception settings. Each exception that a
+health check can report requires one such section.
+.PP
+.
+.IP \(bu 2
+.CL [sysinfo \fIidentifier\fP]
+
+This mandatory section specifies a piece of system information required by the
+health check program. Each sysinfo item that the health check needs requires
+one such section.
+.PP
+.RE
+.
+.
+.SH "CHECK SECTION"
+.KY author = email_address
+.RS
+Specify the health check author e-mail address in the format defined by
+RFC 5322.
+.PP
+.B Example:
+.br
+.CL author = \[dq]User <user@host>\[dq]
+.PP
+This keyword is mandatory. Specify several authors by specifying the keyword
+multiple times.
+.PP
+.RE
+.
+.KY component = component_name
+.RS
+Specify the name of the component that is being checked. You can use spacing
+and capitalization freely in a component, but be consistent. Consistency
+ensures that health checks can be, for example, sorted by component.
+.PP
+You can additionally specify a sub-component, for example if the
+property being checked is not the same for all parts or instances of the main
+component. By convention, sub-components are separated from the main component
+using a slash character, "/". As a guideline, avoid specifying more than one
+sub-component, and use only nouns as a component or sub-component.
+.PP
+.B Example:
+.br
+.CL network/bonding
+.PP
+This keyword is mandatory. It may only occur once.
+.PP
+.RE
+.
+.KY extrafile = filename
+.RS
+Specify additional files to be installed as part of the health check.
+Specify file paths relative to the health check directory.
+.PP
+Use this keyword if you provide additional files, such as helper scripts,
+which are required for the check program to function correctly. Specify one
+"extrafile" line for each provided file. Such files must be stored in the
+health check directory or one of its subdirectories.
+.PP
+This keyword is optional. If it is omitted, no additional files will be
+installed. This keyword may occur multiple times.
+.PP
+.RE
+.
+.KY repeat = interval
+.RS
+Specify the default interval after which the health check is run again. The
+.I interval
+value can be composed of one or more of the following parts in arbitrary order:
+.PP
+.PD 0
+.RS 4
+.IP \(bu 2
+"Xd" = X days
+.IP \(bu 2
+"Xh" = X hours
+.IP \(bu 2
+"Xm" = X minutes
+.IP \(bu 2
+"Xs" or "X" = X seconds
+.RE
+.PD
+.PP
+Where X is a decimal number greater than zero.
+.PP
+.B Example:
+.br
+.CL repeat=\[dq]1d 12h\[dq]
+.PP
+This keyword is optional. If it is omitted, the health check is not repeated
+per default. This keyword may only be present once.
+.PP
+.NT The \*[lhc] currently does not evaluate the repeat interval.
+.PP
+.RE
+.
+.KY state =active|inactive
+.RS
+Specify the default activation state of this health check. If "active", the
+health check should be able to run in a default configuration. If "inactive",
+the health check will not run unless the user explicitly enables it.
+.PP
+Set the default activation state to "inactive" only if a health check requires
+user interaction before it can run, for example if
+.PP
+.RS 4
+.IP \(bu 2
+A health check requires extra configuration steps,such as setting a parameter.
+.IP \(bu 2
+A health check applies to a software package which is not part of a default
+system installation.
+.IP \(bu 2
+A health check relies on data that is provided externally.
+.PP
+.RE
+This keyword is optional. If omitted, the health check is active by default.
+This keyword may only be present once.
+.PP
+.RE
+.
+.KY multihost =0|1
+.RS
+Specify whether a health check requires data from multiple hosts. Use
+multihost=0 to create a health check that uses data from a single host.
+Use multihost=1 if you want to create a health check that analyzes data from
+multiple hosts. An example would be a health check that analyzes the disk
+storage settings for multiple hosts to ensure that each host is assigned the
+same amount of disk storage.
+.PP
+This keyword is optional. If omitted, a value of 0 is assumed. This keyword
+may only occur once.
+.PP
+.RE
+.
+.KY multitime =0|1
+.RS
+Specify whether a health check requires data from multiple points in time.
+Use multitime=0 if your health check program analyzes data for a single point
+in time only. Use multitime=1 if your health check program analyzes data
+from multiple points in time. An example would be a health check that compares
+the configuration values of a system to those at installation time and reports
+unexpected changes.
+.PP
+This keyword is optional. If omitted, a value of 0 is used. This keyword
+may only occur once.
+.PP
+.RE
+.
+.
+.SH "DEPS SECTION"
+Lines in the deps section specify health check requirements.
+.PP
+The following example indicates that the check requires an x86 platform to run:
+.PP
+.RS
+.CL sys_platform=i386
+.RE
+.PP
+Each line consists of one or more statements which represent a comparison
+of a system variable (sysvar) in the following form:
+.PP
+.RS
+.I sysvar " operation " value
+.RE
+.PP
+.
+.
+.SS "System variables"
+System variables are set by the \*[lhc] and contain system specifications.
+The following variables are available (more variables may become
+available):
+.PP
+.B sys_os
+.RS
+Operating system name as reported by the "uname -o" command.
+.PP
+.B Example:
+.br
+"GNU/Linux"
+.RE
+.PP
+.
+.B sys_linux_version
+.RS
+Linux kernel version as reported by the "uname -r" command.
+.PP
+.B Example:
+.br
+"2.6.37"
+.RE
+.PP
+.
+.B sys_platform
+.RS
+Hardware platform name as reported by the "uname -i" command.
+.PP
+.B Example:
+.br
+"i386"
+.RE
+.PP
+.
+.B sys_distro
+.RS
+Name of the Linux distribution:
+.RS
+.IP "RHEL" 8
+Red Hat Enterprise Linux
+.IP "SLES" 8
+SUSE Linux Enterprise Server
+.IP "Ubuntu" 8
+Ubuntu
+.IP "Debian" 8
+Debian
+.IP "Fedora" 8
+Fedora
+.PP
+.RE
+.RE
+.PP
+.
+.B sys_rhel_version
+.RS
+Version and update number of an RHEL system, concatenated by a dot.
+.PP
+.B Example:
+.br
+"6.1" for "RHEL 6 Update 1".
+.RE
+.PP
+.
+.B sys_sles_version
+.RS
+Version and service pack number of a SLES system, concatenated by a dot.
+.PP
+.B Example:
+.br
+"11.1" for SLES 11 Service Pack 1.
+.RE
+.PP
+.
+.B sys_ubuntu_version
+.RS
+Version number of the Ubuntu release, e.g., "10.04".
+.RE
+.PP
+.
+.B sys_debian_version
+.RS
+Version and update number of the Debian release, e.g., "6.0.2".
+.RE
+.PP
+.
+.B sys_fedora_version
+.RS
+Version of the Fedora release, e.g., "19".
+.RE
+.PP
+.
+.
+.B sys_hypervisor
+.RS
+The hypervisor name:
+.IP "ZVM" 8
+IBM System z z/VM hypervisor
+.IP "ZLPAR" 8
+IBM System z LPAR hypervisor
+.PP
+.RE
+.
+.B sys_zvm_version
+.RS
+z/VM hypervisor version, e.g. "5.4.0".
+.RE
+.PP
+.
+If a system variable does not apply to a system, its value is an empty string.
+To view the values of system variables, use the following command:
+.PP
+.RS
+.CL lnxhc devel \-\-show\-sysvar
+.RE
+.
+.
+.SS Operations
+The following operations can be used to determine if the value of a system
+variable meets the requirements for a health check:
+.PP
+.IP "=" 8
+True if the system variable is equal to the value string (case sensitive
+string comparison).
+.
+.IP "!=" 8
+True if the system variable is not equal to the value string (case sensitive string comparison).
+.
+.IP "<" 8
+True if the comparison of the system variable and the value string indicates
+that the variable is lower than the value string.
+.
+.IP "<=" 8
+True if the comparison of the system variable and the value string indicates
+that the variable is lower or equal to the value string.
+.
+.IP ">" 8
+True if the comparison of the system variable and the value string indicates
+that the variable is greater than the value string.
+.
+.IP ">=" 8
+True if the comparison of the system variable and the value string indicates
+that the variable is greater or equal than the value string.
+.
+.IP "=~" 8
+True if the system variable matches the Perl regular expression specified by
+the value string.
+.
+.PP
+Comparison of values follows the following logic:
+.RS 4
+.IP \(bu 2
+If both variable and value are integer numbers, compare them numerically
+otherwise compare them lexically.
+.IP \(bu 2
+If either variable or value contains an underscore, dot, comma, or dash sign,
+assume that these characters split the respective string into hierarchical
+components and compare each component correspondingly.
+.PP
+.RE
+The following examples will result to true:
+.PP
+2.6.2 < 2.6.12
+.PP
+3,2-1 > 1_2.3
+.PP
+1.10 > 1.2
+.PP
+.
+.
+.SS "Combination of statements"
+You can combine multiple statements with logical operators "and" or "or.
+Statements can also be grouped using parentheses "(" and ")". To negate a
+statement, precede it with an exclamation mark "!".
+.PP
+.B Example:
+.br
+In this example statement the distribution is either not RHEL or if it is
+RHEL then it must be version 6 or later:
+.PP
+.CL !sys_distro=RHEL or (sys_distro=RHEL and sys_rhel_version>=6.0)
+.
+.
+.SH "PARAM SECTION"
+A parameter section defines the default value for a parameter. It is introduced
+by the following line in the definitions file:
+.PP
+.RS
+.CL [param \fIidentifier\fP]
+.RE
+.PP
+where
+.I identifier
+specifies the name of the parameter. Parameter sections are mandatory.
+.PP
+The following keywords are valid in a parameter section:
+.PP
+.KY default = string
+.RS
+Specify the default value for a parameter. The default value is used when
+no other value is specified by the user.
+.PP
+This keyword is optional. If omitted, an empty string is used. This keyword
+may only be occur once.
+.RE
+.PP
+.
+.
+.SH "EXCEPTION SECTION"
+An exception section defines settings for an exception. It is
+introduced by the following line in the definitions file:
+.PP
+.RS
+.CL [exception \fIidentifier\fP]
+.RE
+.PP
+where
+.I identifier
+specifies the name of the exception. There must be one
+exception section for each exception that a check program can report.
+.PP
+The following keywords are valid in an exception section:
+.PP
+.KY severity =low|medium|high
+.RS
+Specify the severity of this exception. The severity indicates how significant
+the impact of a problem is and how urgently it needs to be solved. Note that
+users can override exception severities, for example if the component that is
+being checked plays a critical role in their installation.
+.PP
+Guidelines for choosing a default severity:
+.PP
+.RS 4
+.IP \(bu 2
+A
+.B low
+severity exception indicates a problem that does not impact the system
+immediately, but that should be investigated eventually. This includes problems
+that result in a low performance impact or have a low chance of causing
+an outage in the future.
+.PP
+.
+.IP \(bu 2
+A
+.B medium
+severity exception indicates a problem that may have an impact on the
+system in the near future. This includes problems that result in a medium
+performance impact or have a medium chance of causing an outage in the
+future.
+.PP
+.
+.IP \(bu 2
+A
+.B high severity
+exception indicates a problem that has or will very soon have
+an impact on the system. This includes problems that result in a high
+performance impact or which are already causing an outage or have a high chance
+of causing an outage in the very near future.
+.PP
+.RE
+The severity keyword is mandatory. It may only occur once.
+.PP
+.RE
+.
+.KY state =active|inactive
+.RS
+Specify the default activation state of this exception. Only active exceptions
+are reported to the user. Unless an exception is only applicable to a
+particular environment, set the default exception state to "active".
+.PP
+This keyword is optional. If omitted, the exception is active by default.
+This keyword may only occur once.
+.RE
+.PP
+.
+.
+.SH "SYSINFO SECTION"
+A sysinfo section defines one system information (sysinfo) item.  It is
+introduced by the following line in the definitions file:
+.PP
+.RS
+.CL [sysinfo \fIidentifier\fP]
+.RE
+.PP
+where
+.I identifier
+specifies the name of the sysinfo item. This name is an arbitrary name
+chosen by the health check author. The corresponding health check program
+will be able to access the associated input data using this name. Apart from
+this, the \*[lhc] does not make use of this name.
+.PP
+System information can be, for example, the output of a tool or the contents
+of a configuration file that is needed by a health check program to identify
+problems.
+.PP
+you need to specify the system information your health check programs require
+using sysinfo items. The \*[lhc] then collects the system information for you.
+.PP
+There are different sysinfo item types:
+.RS 4
+.PD 0
+.IP \(bu 2
+file
+.IP \(bu 2
+program
+.IP \(bu 2
+record
+.IP \(bu 2
+reference
+.IP \(bu 2
+external
+.RE
+.PD
+.PP
+The main keyword in a sysinfo item section determines the sysinfo item type.
+The type specifies the list of valid keywords:
+.PP
+.
+.
+.SS "File sysinfo item"
+Specifies that the \*[lhc] should read a file. The file contents are then made
+available to the health check program.
+.PP
+Main keyword:
+.PD 0
+.RS 4
+.IP \(bu 2
+.CL file
+.RE
+.PD
+.PP
+Valid keywords:
+.PD 0
+.RS 4
+.IP \(bu 2
+.CL user
+.RE
+.PD
+.PP
+.
+.
+.SS "Program sysinfo item"
+Specifies that the \*[lhc] should run a program. The program output is then
+made available to the health check program.
+.PP
+Main keyword:
+.PD 0
+.RS 4
+.IP \(bu 2
+.CL program
+.RE
+.PD
+.PP
+Valid keywords:
+.PD 0
+.RS 4
+.IP \(bu 2
+.CL user
+.
+.IP \(bu 2
+.CL ignorerc
+.
+.IP \(bu 2
+.CL extrafile
+.
+.RE
+.PD
+.PP
+.NT sysinfo programs are called with the locale set to \[dq]C\[dq], regardless of the current locale setting.
+.
+.
+.SS "Record sysinfo item"
+Specifies that the \*[lhc] should run a "start" program, wait a certain amount
+of time and then run a "stop" program. The "stop" program output is then made
+available to the health check program.
+.PP
+Main keyword:
+.PD 0
+.RS 4
+.IP \(bu 2
+.CL start
+.RE
+.PD
+.PP
+Valid keywords:
+.PD 0
+.RS 4
+.IP \(bu 2
+.CL stop
+.
+.IP \(bu 2
+.CL duration
+.
+.IP \(bu 2
+.CL user
+.
+.IP \(bu 2
+.CL extrafile
+.RE
+.PD
+.PP
+.NT sysinfo programs are called with the locale set to \[dq]C\[dq], regardless of the actual locale setting.
+.
+.
+.SS "Reference sysinfo item"
+Specifies that a health check program is using the sysinfo item definition of
+another check.
+.PP
+Main keyword:
+.PD 0
+.RS 4
+.IP \(bu 2
+.CL ref
+.RE
+.PD
+.PP
+.
+.
+.SS "External sysinfo item"
+Specifies that a health check program is using data from an external source.
+The \*[lhc] cannot obtain this information itself. Instead it needs to be
+collected by an outside source and then imported into the lnxhc tool using
+the lnxhc sysinfo \-\-add\-data command (see the
+.MP lnxhc-sysinfo 1
+man page).
+.PP
+Main keyword:
+.PD 0
+.RS 4
+.IP \(bu 2
+.CL external
+.RE
+.PD
+.PP
+.
+.
+.SS "Sysinfo section keywords"
+.KY file = full_file_path
+.RS
+Specify the absolute path to a file to be read.
+.PP
+This keyword is mandatory in a file sysinfo-item section. It may not appear
+more than once in a section.
+.PP
+.RE
+.
+.KY user = user_id
+.RS
+Specify the user ID that has access permissions to obtain the data of this
+sysinfo item.
+.PP
+If this keyword is specified and the \*[lhc] is run as a different user,
+an attempt is made to temporarily change the user ID using the sudo
+mechanism. See also
+.MP sudo 8 .
+.PP
+This keyword is optional in the file, program and record sysinfo item
+sections. It may occur only once in a section.
+.PP
+.RE
+.
+.KY program = command_line
+.RS
+Specify the command line of a program, including path information and
+parameters.
+.PP
+If the command is specified with an absolute path, that path
+is used to locate the program. If the command is specified
+without any path information, the system search path is used to
+locate the program. Alternatively, the command can be
+specified relative to the check directory which is represented
+by variable LNXHC_CHECK_DIR. Such a path must not contain "..". See also
+.MP lnxhc_sysinfo_program 7 .
+.PP
+This keyword is mandatory in a program sysinfo-item section. It may occur
+only once in a section.
+.PP
+.RE
+.
+.KY ignorerc =0|1
+.RS
+Specify that the exit code of the program specified by the "program" keyword
+should be ignored.
+.PP
+If a value of 0 is specified, or if this keyword is not present, lnxhc
+will mark a sysinfo program item as failed if the exit code of the program
+is non-zero. If a value of 1 is specified, lnxhc will mark such a sysinfo item
+as successful and provide the corresponding exit code to the check program
+using environment variable LNXHC_SYSINFO_PROG_RC_<item_id>.
+.PP
+This keyword is optional in a program sysinfo-item section. It may occur
+only once in a section.
+.PP
+.RE
+.
+.KY extrafile = filename
+.RS
+Specify additional files to be installed as part of the health check. Filename
+paths must be specified relative to the health check directory.
+.PP
+Use this keyword to provide additional files, such as helper scripts, that
+are required by the sysinfo program to function correctly. Add
+one "extrafile" line for each provided file. Extra files must be stored in
+the health check directory or one of its subdirectories.
+.PP
+This keyword is optional. If it is omitted, no additional files will be
+installed for this sysinfo item. This keyword may occur multiple times.
+.PP
+.RE
+.
+.KY start = command_line
+.RS
+Specify the command line of the start program of a record sysinfo item,
+including path information and parameters.
+.PP
+If the command is specified with an absolute path, that path
+is used to locate the program. If the command is specified
+without any path information, the system search path is used to
+locate the program. Alternatively, the command can be
+specified relative to the check directory which is represented
+by variable LNXHC_CHECK_DIR. Such a path must not contain "..". See also
+.MP lnxhc_sysinfo_program 7 .
+.PP
+This keyword is mandatory in a record sysinfo item section. It may occur
+only once in a section.
+.PP
+.RE
+.
+.KY stop = command_line
+.RS
+Specify the command line of the stop program of a record sysinfo item,
+including path information and parameters.
+.PP
+If the command is specified with an absolute path, that path
+is used to locate the program. If the command is specified
+without any path information, the system search path is used to
+locate the program. Alternatively, the command can be
+specified relative to the check directory which is represented
+by variable LNXHC_CHECK_DIR. Such a path must not contain "..". See also
+.MP lnxhc_sysinfo_program 7 .
+.PP
+This keyword is mandatory in a record sysinfo item section. It may occur
+only once in a section.
+.PP
+.RE
+.
+.KY duration = interval
+.RS
+Specify the time interval after which the stop program is called.
+.PP
+The format of the interval specification is the same as that of the "repeat"
+keyword in a check section (see above).
+.PP
+This keyword is mandatory in a record sysinfo-item section. It may occur only
+once in a section.
+.PP
+.RE
+.
+.KY ref = check_id . sysinfo_id
+.RS
+Specify a sysinfo item of another health check. When the \*[lhc] collects data
+for this sysinfo item, it will perform the same actions as it would when
+collecting data for health check
+.I check_id
+and sysinfo item
+.IR sysinfo_id .
+.PP
+Note that no other connection is created between the health check in which a
+reference sysinfo-item is defined and the referenced health check - running
+one of these checks does not automatically imply running the other one.
+.PP
+This keyword is mandatory in a reference sysinfo item section. It may occur
+only once in a section.
+.PP
+.RE
+.KY external
+.RS
+Specify that data for this sysinfo item cannot be collected by the \*[lhc].
+Instead it needs to be collected by an outside source and then imported into
+the lnxhc tool using the lnxhc sysinfo --add-data command. See also
+.MP lnxhc-sysinfo 1 .
+.PP
+This keyword is mandatory in an external sysinfo item section. It may occur
+only once in a section.
+.PP
+.RE
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_writing_checks 7 ,
+.MP lnxhc_sysinfo_program 7

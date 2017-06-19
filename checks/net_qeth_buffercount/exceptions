@@ -1,0 +1,39 @@
+[summary inefficient_buffercount]
+These network interfaces do not have the expected number of buffers:
+&summ_interface;
+
+[explanation inefficient_buffercount]
+The number of buffers of one or more network interfaces diverts from the specified rule. The most suitable number of buffers for a particular interface depends on the available memory. To allow for memory constraints, many Linux distributions use a small number of buffers by default. On Linux instances with ample memory and a high traffic volume, this can lead to performance degradation, as incoming packets are dropped and have to be resent by the originator.
+
+For the current main memory, &mem; GB, interfaces should have &rec_bc; buffers.
+
+The following interfaces have a different number of buffers:
+
+&interface_bc;
+
+To find out if there are problems with the affected interfaces, check the output of the "'ifconfig" command for errors and dropped packets.
+
+Use the "lsqeth" command to confirm the current setting for the number of buffers. In the default command output, the buffer count is shown as the value for the "buffer_count" attribute. With the -p option, the output is in table format and the buffer count is shown in the "cnt" column.
+
+[solution inefficient_buffercount]
+For each affected interface, change the number of buffers to &rec_bc;.
+
+To temporarily change the number of buffers on a running Linux instance, run a command of this form:
+
+Offline the interface (Before offline make sure you are not running any critical task using this interface)
+## echo 0 > /sys/devices/qeth/<device_bus_id>/online
+Change the buffer count
+## echo &rec_bc; > /sys/devices/qeth/<device_bus_id>/buffer_count
+Online the interface
+## echo 1 > /sys/devices/qeth/<device_bus_id>/online
+
+where <device_bus_id> is the bus ID of the qeth group device that corresponds to the interface. In the "lsqeth" output, this is the first of the three listed bus IDs.
+
+How to make this setting persistent across reboots depends on your distribution. Some distributions set the number through scripts located below /etc/sysconfig, other distributions use udev rules. For details, see the documentation that is provided with your distribution.
+
+The suggested buffer size is derived from a general best-practice rule that is expressed by the "recommended_buffercount" check parameter, and that works well in many setups. If your current settings work to your satisfaction and you do not want to change them, you can adapt the "recommended_buffercount" parameter to your needs or omit this check to suppress further warnings in the future.
+
+[reference inefficient_buffercount]
+For more information, see the section about inbound buffers in the qeth chapter of "Device Drivers, Features, and Commands". You  can  obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html

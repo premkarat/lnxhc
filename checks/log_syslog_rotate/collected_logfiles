@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+# Copyright IBM Corp. 2012
+#
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+# Defining variables
+my $var_log = "/var/log";
+
+# Getting files under /var/log/* including subdirectories
+sub syslog_file($) {
+	my $var_file = shift();
+	my @var_log_list = glob("$var_file/*");
+	if (@var_log_list) {
+		# Finding files under /var/log/* including subdirectories
+		my @sub_dirs;
+		foreach my $file(@var_log_list) {
+
+			# Checking directories and pushing into an array
+			# Skipping the files which are got rotated i.e
+			# files containing '-' or '.' and immediate digit
+			# or timestamp
+			# Example :
+			# /var/log/YaST2/volume_info-1
+			# /var/log/YaST2/y2log-1.gz
+			# /var/log/wtmp-20120317.gz
+			# /var/log/YaST2/y2log-5
+
+			if (-d $file) {
+				push(@sub_dirs, $file);
+			} elsif ($file =~ /\w+[\-\.]\d+/) {
+				next;
+			} else {
+				my $list_size = -s $file;
+				print "Files:$file:$list_size\n";
+			}
+		}
+
+		# Checking any subdirectories under /var/log/*
+		if (@sub_dirs) {
+			foreach my $list(@sub_dirs) {
+				&syslog_file($list);
+			}
+		}
+	}
+}
+
+&syslog_file($var_log);

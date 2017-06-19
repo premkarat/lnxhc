@@ -1,0 +1,45 @@
+#!/usr/bin/perl
+#
+# proc_priv_dump
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+# Author(s): Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/load_sysctl/;
+
+# Path to the file containing data for sysinfo item 'sysctl'.
+my $sysinfo_sysctl = $ENV{"LNXHC_SYSINFO_sysctl"};
+
+
+sub main()
+{
+	my $sysctl = load_sysctl($sysinfo_sysctl);
+		die "Failed to read sysinfo: $sysinfo_sysctl: $!\n" unless $sysctl;
+
+	if ($sysctl->{'fs.suid_dumpable'} == 1) {
+		lnxhc_exception("debug_mode");
+	}
+
+	if ($sysctl->{'fs.suid_dumpable'} == 2) {
+		lnxhc_exception("suidsafe_mode");
+	}
+
+	exit(0);
+}
+
+&main();
+__DATA__
+__END__

@@ -1,0 +1,142 @@
+#!/usr/bin/perl
+#
+# zfcp_hba_recovery_failed
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Manik Bajpai <manibajp@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_HBA_NOT_USABLE = "hba_not_usable";
+
+# Path to the file containing data for sysinfo item 'read_zfcp_hba_sysfs_attribs'.
+my $sysinfo_read_zfcp_hba_sysfs_attribs =
+	$ENV{"LNXHC_SYSINFO_read_zfcp_hba_sysfs_attribs"};
+
+#
+# Subroutine to parse the sysinfo output, and return the hash of type:
+# "filename" -> "file contents".
+#
+sub parse_sysfs_data($)
+{
+	my ($siname) = @_;
+	my %data_hash;
+
+	open(my $si_fh, "<", $siname) ||
+		die("Could not read file: $siname: $!\n");
+	while (my $line = <$si_fh>) {
+		my $fname;
+		my $fdata;
+
+		chomp($line);
+		($fname, $fdata) = split('\0', $line);
+		if (!exists($data_hash{$fname})) {
+			$data_hash{$fname} = $fdata;
+			next;
+		}
+		$data_hash{$fname} = $data_hash{$fname}."\n"."$fdata";
+	}
+	close($si_fh);
+	return \%data_hash;
+}
+
+#
+# Subroutine to find all the failed hbas
+#
+sub get_all_hbas()
+{
+	my %all_hbas;
+	my $next_hba;
+	my $next_file;
+	my $parsed_data;
+	my @online_hbas;
+	my $regex = '\/([0-9a-f]+\.[0-9a-f]+\.[0-9a-f]+)\/(.*)';
+
+	$parsed_data = parse_sysfs_data("$sysinfo_read_zfcp_hba_sysfs_attribs");
+
+	#1. If there is no FCP Device available, this is a
+	#   dependency failure.
+	if (!%$parsed_data) {
+		lnxhc_fail_dep("No FCP Device found.\n ");
+		goto END_OF_FUNCTION;
+	}
+
+	#2. Find all the online device, FIRST.
+	while (my ($filename, $dataline) = each(%$parsed_data)) {
+		next if ($filename !~ m{$regex});
+		my ($next_hba, $next_file) = ($1, $2);
+		next if ($next_file ne "online");
+		push(@online_hbas, $next_hba) if ($dataline eq "1");
+	}
+
+	#3. If no device is ONLINE raise failed_dep exception
+	if (!@online_hbas) {
+		lnxhc_fail_dep("No FCP Device found online.\n ");
+		goto END_OF_FUNCTION;
+	}
+	while (my ($filename, $dataline) = each(%$parsed_data)) {
+		next if ($filename !~ m{$regex});
+		my ($next_hba, $next_file) = ($1, $2);
+		next if ($next_file ne "failed");
+		next if not(grep { $_ eq $next_hba } @online_hbas);
+		$all_hbas{$next_hba} = $dataline;
+	}
+END_OF_FUNCTION:
+	return \%all_hbas;
+}
+
+#
+# Code for the health check. - Entry point
+#
+sub main()
+{
+	my $all_hbas;
+	my @failed_fcp_devices;
+	my $key;
+
+	#1. Scan all the hba directories in sysfs
+
+	$all_hbas = get_all_hbas();
+	foreach $key (sort { $a cmp $b } keys %$all_hbas) {
+		push(@failed_fcp_devices, $key)
+			if ($$all_hbas{$key} eq "1");
+	}
+
+	#2. If there are any failed, raised the appropriate exception.
+
+	if (@failed_fcp_devices) {
+		lnxhc_exception($LNXHC_EXCEPTION_HBA_NOT_USABLE);
+		lnxhc_exception_var_list("failed_fcp_devices",
+			\@failed_fcp_devices, ", ", 3);
+		foreach my $fcp_device (@failed_fcp_devices) {
+			lnxhc_exception_var(
+				"failed_fcp_devices_table",
+				sprintf("|#   %s", ($fcp_device))
+			);
+		}
+	}
+	return;
+}
+&main();
+__DATA__
+__END__

@@ -1,0 +1,11 @@
+[title]
+Demo check written in Python to evaluate available free memory.
+
+[description]
+This is a demo program that educates to program checks in Python language. In this demo, we evaluate available free memory for a low memory threshold.
+
+[param low_mem_threshold]
+Specifies low memory threshold value for this check. Available free memory in your Linux instance is compared against it.
+
+[param high_mem_threshold]
+Specified high memory threshold value for this check. Available free memory in your Linux instance is compared against it.

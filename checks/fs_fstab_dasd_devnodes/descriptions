@@ -1,0 +1,7 @@
+[title]
+Identify standard DASD device nodes in the fstab file
+
+[description]
+The DASD device driver creates standard device nodes for DASDs that are based on the order in which DASDs are set online.
+When you add or remove disks, the device name of a disk might change across a reboot.
+To preserve the mapping between standard device nodes and the associated physical disk space across reboot, use device nodes that are based on unique properties of a DASD and so identify a particular device.

@@ -1,0 +1,8 @@
+[title]
+Confirm that the dump-on-panic function is enabled
+
+[description]
+With the dump-on-panic function enabled, a dump is automatically
+created if a kernel panic occurs.  Without this function you have
+to create a dump yourself.  Dumps can only be created if dump tools
+and possibly dump devices are in place.

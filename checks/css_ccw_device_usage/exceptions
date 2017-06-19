@@ -1,0 +1,38 @@
+[summary many_unused_devices]
+Of &total_devices; I/O devices, &offline_devices; (&ratio;%) are unused
+
+[explanation many_unused_devices]
+The number of unused (offline) I/O devices, &offline_devices; (&ratio;%) of
+a total of &total_devices;, exceeds the specified threshold.
+
+During the boot process, Linux senses and analyzes all available I/O devices,
+including unused devices. Therefore, unused devices unnecessarily consume
+memory and CPU time. Similarly, memory and CPU resources are wasted for unused
+I/O devices when new I/O devices or I/O paths become available or when
+existing I/O devices or I/O paths become unavailable.
+
+Use the "lscss" command to investigate which I/O devices are unused.
+For unused devices the "Use" column is blank; for online devices this column
+contains the value "yes".
+
+[solution many_unused_devices]
+Use the "cio_ignore" feature to exclude I/O devices that you do not need from
+being sensed and analyzed. Be sure not to inadvertently exclude
+required devices.
+
+To exclude devices, you can use the "cio_ignore" kernel parameter or a command
+like this:
+#echo "add <device_bus_id>" > /proc/cio_ignore
+where <device_bus_id> is the bus ID of an I/O device to be excluded.
+
+If your distribution includes the "cio_ignore" command, you can also use this
+command to exclude I/O devices from being sensed and analyzed.
+
+[reference many_unused_devices]
+For more information about the "cio_ignore" feature, see the section about
+the "cio_ignore" kernel parameter in "Device Drivers, Features, and Commands".
+You can  obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+Also see the "lscss" and "cio_ignore" man pages.

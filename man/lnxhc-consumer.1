@@ -1,0 +1,501 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc-consumer 1 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.
+.SH NAME
+lnxhc-consumer \- Display, configure and manage check result consumers
+.
+.
+.SH SYNOPSIS
+Display actions:
+.PP
+.nh
+.na
+.B lnxhc consumer
+.OS list l
+.OS info i
+.OS show s
+.RS 15
+.
+.OS show\-property "" property_key
+.RE
+.ad
+.hy
+.PP
+Configuration actions:
+.PP
+.nh
+.na
+.B lnxhc consumer
+.OS state S consumer_name =active|inactive
+.RS 15
+.
+.OS param p consumer_name . parameter_id = value
+.br
+.
+.OS set "" property_key = value
+.OS defaults d
+.br
+.OS report R consumer_name
+.RE
+.ad
+.hy
+.PP
+Management actions:
+.PP
+.nh
+.na
+.B lnxhc consumer
+.OS install "" directory_name
+.OS "uninstall
+.ad
+.hy
+.PP
+Options:
+.PP
+.nh
+.na
+.B lnxhc consumer
+.OS profile "" profile_name
+.OS system
+.RS 15
+.
+.OS match\-all
+.RI [ SELECTION ]
+.RE
+.ad
+.hy
+.
+.NT You must specify exactly one action. See ACTIONS.
+.
+.
+.SH DESCRIPTION
+The
+.B consumer
+subcommand provides functions related to the management of
+consumer plug-ins and associated data. A consumer is a program that processes
+the result of a health check run. Examples for such
+processing are showing a report or sending an e-mail when a problem is
+identified.
+.PP
+The \*[lhc] distinguishes between two consumer types:
+.TP
+.B Reports
+A report consumer shows the result of a health check run on the terminal from
+which the lnxhc command was started.
+.
+.TP
+.B Handlers
+A handler consumer processes health check results in an arbitrary way, for
+example by sending exception messages via e-mail or by logging them to the
+syslog facility.
+.RE
+.PP
+Consumer data falls into one of the following two categories:
+.RS 4
+.IP \(bu 2
+Static data, such as name or description
+.IP \(bu 2
+Configuration data, such as activation state or parameter values
+.RE
+.PP
+You can use the
+.B display actions
+to view both static and configuration data,
+and the
+.B configuration actions
+to modify configuration data.
+.PP
+The \*[lhc] maintains per-user databases and a system-wide database of
+installed consumers. You can use the
+.B management actions
+to add or remove consumers from this database.
+.PP
+The functions of this subcommand apply to the consumers in the database.
+You can also instruct the \*[lhc] to work with consumers which
+are not installed (see next section).
+.
+.
+.SH SELECTION
+You can use the
+.I SELECTION
+argument of the "consumer" subcommand to select the list of consumers to which
+an action applies.
+In the absence of a selection, the action applies to all installed consumers.
+
+This argument can take one or more of the following formats:
+.TP
+.I consumer_name
+Select the consumer which is specified by
+.IR consumer_name .
+.
+.TP
+.I pattern
+Select all consumers with a name that matches
+.IR pattern .
+Pattern may contain "*" for any number of arbitrary characters
+and "?" for a single arbitrary character.
+.
+.TP
+.IR property_key = value
+Select all consumers where the value of the property specified by
+.I property_key
+matches
+.IR value .
+.RS
+.NT You must specify \fIproperty_key\fP without the leading consumer_name.
+.RE
+.
+.TP
+.IR property_key != value
+Select all consumers where the value of the property specified by
+.I property_key
+does not match
+.IR value .
+.RS
+.NT You must specify \fIproperty_key\fP without the leading consumer_name.
+.RE
+.
+.TP
+.I directory_name
+Select the consumer which is found in directory
+.IR directory_name .
+.RE
+.PP
+You can specify more than one of these selection criteria. In this case
+the \*[lhc] selects all consumers which match
+.B any
+of the criteria.
+You can specify the option
+.B \-\-match\-all
+to change this behavior to only select consumers which match
+.B all
+of the criteria.
+.
+.
+.SH ACTIONS
+.OD defaults d SELECTION
+Reset all configuration values to default values.
+
+This action resets the configuration values of all selected consumers
+to their default values which are provided by the consumer authors.
+
+You must provide a selection for this action.
+.PP
+.
+.OD info i SELECTION
+Show basic consumer information.
+
+This action displays basic information about a consumer.
+This includes the consumer title and description, and the list of defined
+parameters.
+
+You must provide a selection for this action.
+.PP
+.
+.OD install "" directory_name
+Add consumer from directory
+.I directory_name
+to the database.
+
+This action installs a new consumer into the database.
+The \*[lhc] copies the files associated with
+this consumer to the user data directory and makes the consumer available to
+the installing user.
+
+To install a consumer for system-wide use, specify the
+.B \-\-system
+option together with this action. In this case, the \*[lhc]
+copies the files associated with this consumer to the system-wide consumer
+directory (see
+.MP lnxhcrc 5 ).
+.RS
+.NT You require sufficient write access for the system-wide database installation directory.
+.RE
+.PP
+.
+.OD list l "" [ SELECTION ]
+List consumers.
+
+This action shows a list of consumers including their name, the consumer
+type as well as the current consumer activation state.
+
+You can specify a selection for this action. If you do not provide a selection,
+the list includes all installed consumers.
+.PP
+.
+.OD "" p consumer_name . parameter_id = value
+.OD "" p parameter_id = value " " " SELECTION"
+.OD param "" consumer_name . parameter_id = value
+.OD param "" parameter_id = value " " " SELECTION"
+Change the value of a consumer parameter.
+
+This action changes the value of a consumer parameter.
+
+In the first format, you identify the parameter by concatenating the
+.I consumer_name
+and
+.I parameter_id
+using a dot as separator. In the second format, you specify the
+.I parameter_id
+directly and select one or more consumers by using a
+.IR SELECTION .
+
+If you change the parameter value it is not checked for correctness. An
+incorrect value might cause the corresponding consumer to end with a runtime
+error.
+
+You must provide a selection for the second format of this action.
+.PP
+.
+.OD report R consumer_name
+Set
+.I consumer_name
+as active report consumer.
+
+This option selects
+.I consumer_name
+as the active consumer that will be used to report health check output.
+.PP
+.
+.OD set "" property_key = value
+.OD set "" property_key = "value SELECTION"
+Change the value of a consumer property.
+
+This action changes the value of a consumer property.
+You identify the property by specifying its
+.I property_key
+(see the
+.MP lnxhc_properties 7
+man page).
+
+In the first format, you specify the full
+.IR property_key ,
+including the consumer name.
+The key may contain "*" for any number of arbitrary characters and "?" for a
+single arbitrary character.
+In the second format, you specify the
+.IR property_key
+without the consumer name (resulting in a leading dot) and select one or more
+consumers by using a
+.IR SELECTION .
+
+.B Example:
+.br
+.CL # lnxhc consumer \-\-set .state=inactive basic_report
+
+You must provide a selection for the second format of this action.
+
+.RS
+.NT There are properties which you cannot modify.
+.RE
+.PP
+.
+.OD show s SELECTION
+Show detailed consumer information.
+
+This action displays detailed information about a consumer. In addition to
+the information shown by the
+.B \-\-info
+action this includes the complete metadata defined by a consumer.
+
+You must provide a selection for this action.
+.PP
+.
+.OD show\-property "" property_key
+.OD show\-property "" "property_key SELECTION"
+Show the value of a consumer property.
+
+This action displays the value of a consumer property. You identify the
+property by specifying its
+.I property_key
+(see the
+.MP lnxhc_properties 7
+man page).
+
+In the first format, you specify the full
+.IR property_key ,
+including the consumer name.
+The key may contain "*" for any number of arbitrary characters and "?" for a
+single arbitrary character.
+In the second format, you specify the
+.IR property_key
+without the consumer name (resulting in a leading dot) and select one or more
+consumers by using a
+.IR SELECTION .
+
+.B Example:
+.br
+.CL # lnxhc consumer \-\-show-property .state '*'
+
+You must provide a selection for the second format of this action.
+.PP
+.
+.OD "" S consumer_name =active|inactive
+.OD "" S "" active|inactive " SELECTION"
+.OD state "" consumer_name =active|inactive
+.OD state "" "" active|inactive " SELECTION"
+Change the activation state of a consumer.
+
+This action changes the activation state of a consumer.
+The \*[lhc] runs consumers only when they are active.
+
+In the first format, you identify the consumer by specifying its
+.IR consumer_name .
+In the second format, you select one or more consumers by using a
+.IR SELECTION .
+
+You must provide a selection for the second format of this action.
+.PP
+.
+.OD uninstall "" SELECTION
+Remove a consumer from the database.
+
+This action removes an installed consumer from the \*[lhc]
+database. As a result, the files and directories associated with this
+consumer are deleted and the consumer is no longer available.
+
+To remove a system-wide consumer, specify the
+.B \-\-system
+option together with this action.
+
+You must provide a selection for this action.
+
+.RS
+.NT You require sufficient write access for the system-wide database installation directory.
+.RE
+.
+.
+.SH OPTIONS
+.OD match\-all
+Select only consumers which match all selection criteria.
+
+This option instructs the \*[lhc] to select only those consumers
+which match
+.B all
+specified selection criteria. Without this option, the selection
+includes all consumers which match
+.B any
+of the specified criteria.
+
+.B Example:
+.br
+.CL # lnxhc consumer \-\-list type=report state=inactive \-\-match-all
+.P
+.
+.OD profile "" profile_name
+Use configuration values from a specific profile.
+
+This option instructs the \*[lhc] to use the profile with the
+specified
+.I profile_name
+as source or target for actions that query or modify configuration data.
+Without this option, actions apply to configuration data of the active profile.
+.P
+.
+.OD system
+Use the system-wide database for management actions.
+
+This option instructs the \*[lhc] to perform consumer management
+actions
+.B \-\-install
+and
+.B \-\-uninstall
+on the system-wide database. Without this option, management actions
+apply to the per-user database only.
+.
+.
+.SH EXAMPLES
+.B List all report consumers:
+.RS 4
+.CL # lnxhc consumer \-\-list type=report
+.RE
+.PP
+.B Show basic information for consumer \[dq]basic_report\[dq]:
+.RS 4
+.CL # lnxhc consumer \-\-info basic_report
+.RE
+.PP
+.B Show detailed information for consumer in directory \[dq]my_consumer\[dq]:
+.RS 4
+.CL # lnxhc consumer \-\-show ./my_consumer
+.RE
+.PP
+.B Activate consumer \[dq]basic_report\[dq]:
+.RS 4
+.CL # lnxhc consumer \-\-state active basic_report
+.RE
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_properties 7 ,
+.MP lnxhc_writing_consumers 7

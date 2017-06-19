@@ -1,0 +1,105 @@
+Peter Oberparleiter <peter.oberparleiter@de.ibm.com> (IBM Corp.)
+- Initial framework code and documentation
+- css_ccw_chpid_status (was css_ccw_chpid) implementation
+- fs_usage (was fs_disk_usage) implementation
+- minimal report (was minimal_report) implementation
+- renamed checks, components and exceptions to meet stricter naming
+  guidelines
+- crypto_z_module_loaded implementation
+- color output in consumers
+- added an option to skip sudo processing when collecting sysinfo
+- added an option to generate a sudoers file excerpt
+- added options to more easily inspect and modify check input data
+- added options to more easily change report consumers
+- renamed consumers to remove redundancy in command lines
+
+Nageswara R Sastry <nasastry@in.ibm.com> (IBM Corp.)
+- crypto_openssl_ibmca_config implementation
+- storage_dasd_nopav_zvm (was dasd_zvm_nopav) implementation
+- css_ccw_device_availability (was css_ccw_availability) implementation
+- fs_inode_usage implementation
+- css_ccw_device_usage (was css_ccw_unused_devices) implementation
+- css_ccw_blacklist (was css_ccw_ignored_online) implementation
+- css_ccw_driver_association (was css_ccw_no_driver) implementation
+- net_bond_qeth_ineffective (was net_bond_dev_chpid) implementation
+- net_hsi_outbound_errors (was net_hsi_tx_errors) implementation
+- net_inbound_errors (was net_inbound_packets) implementation
+- net_qeth_buffercount implementation
+- storage_dasd_cdl_part implementation
+- storage_dasd_eckd_blksize implementation
+- zvm_priv_class (was vm_priv_class) implementation
+- net_bonding_single_dev implementation
+- storage_dasd_pav_aliases (was storage_dasd_aliases) implementation
+- crypto_openssl_stack implementation
+- crypto_cca_stack implementation
+- crypto_opencryptoki_ckc (was crypto_ckc_opencryptoki) implementation
+- crypto_opencryptoki_skc (was crypto_skc_opencryptoki) implementation
+- crypto_openssl_stack_32bit (was crypto_32bit_openssl_stack) implementation
+- crypto_opencryptoki_ckc_32bit (was crypto_32bit_ckc_opencryptoki)
+  implementation
+- crypto_opencryptoki_skc_32bit (was crypto_32bit_skc_opencryptoki)
+  implementation
+- fc_remote_port_state implementation
+- scsi_dev_state implementation
+- storage_mp_service_active implementation
+- zfcp_hba_npiv_active implementation
+- zfcp_lun_recovery_failed implementation
+
+Rajesh K Pirati <rapirati@in.ibm.com> (IBM Corp.)
+- proc_mem_oom_triggered (was mm_oom_killer_triggered) implementation
+- sec_users_uid_zero (was sec_non_root_uid_zero) implementation
+- net_services_insecure (was sec_services_insecure) implementation
+- init-runlevel implementation
+- fs_boot_zipl_bootmap (was boot_zipl_update_required) implementation
+- storage_mp_ineffective (was storage_invalid_multipath) implementation
+- storage_mp_path_state (was storage_multipath_failed_path) implementation
+- fs_tmp_cleanup (was fs_tmp_dir_cleanup) implementation
+- LNXHC::Check::Base::check_dir_list_param implementation
+- log_syslog_rotate (was sys_logrotate_syslog) implementation
+- fs_fstab_dasd_devnodes (was fs_fstab_dasd) implementation
+
+Hendrik Brueckner <brueckner@linux.vnet.ibm.com> (IBM Corp.)
+- LNXHC::Check::Base implementation
+- LNXHC::Check::Util implementation
+- LNXHC::Consumer::Base implementation
+- crypto_cpacf (was crypto_cpacf_availability, crypto_cpacf_usage)
+  implementation
+- ras_dump_on_panic implementation
+- fw_cpi (was sys_fw_cpi) implementation
+- tty_idle_terminals (was sys_idle_ttys) implementation
+- tty_idle_users (was sys_idle_users) implementation
+- fw_callhome (was sys_sysctl_call_home) implementation
+- ras_panic_on_oops (was sys_sysctl_panic) implementation
+- cpu_capacity (was sys_sysinfo_cpu_cap) implementation
+- tty_console_getty (was sys_tty_console_getty) implementation
+- tty_devnodes (was sys_tty_devnodes) implementation
+- tty_hvc_iucv (was sys_tty_hvc_iucv) implementation
+- sec_tty_root_login (was sys_tty_securetty) implementation
+- tty_usage (was sys_tty_usage) implementation
+- net_services_insecure: adapt to LNXHC::Check::Base
+  and use load_chkconfig()
+- tty_idle_terminals: reuse functions from tty_idle_users
+
+Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com> (IBM Corp.)
+- proc_priv_dump (was sys_sysctl_privilege_dump) implementation
+- fs_mount_option_ro (was fs_partition_mount) implementation
+- fs_fstab_fsck_order (was fs_fsck_order) implementation
+- mem_swap_availability (was mm_swap_space) implementation
+- tty_console_log_level (was sys_sysctl_log_level) implementation
+- proc_load_avg (was sys_load_avg) implementation
+- ras_dump_kdump_on_panic (was ras_kdump_on_panic) implementation
+- net_dns_settings implementation
+- mem_usage (was mm_ram_usage) implementation
+- proc_mem_usage (was mm_hog_processes) implementation
+- proc_cpu_usage (was sys_cpu_hog_processes) implementation
+
+Gowri Shankar <gowrishankar.m@linux.vnet.ibm.com> (IBM Corp.)
+- python check framework implementation
+- pythondemo implementation
+
+Manik Bajpai <manibajp@in.ibm.com> (IBM Corp.)
+- storage_mp_zfcp_redundancy implementation
+- zfcp_hba_recovery_failed implementation
+- zfcp_hba_shared_chpids implementation
+- zfcp_lun_configured_available implementation
+- zfcp_target_port_recovery_failed implementation

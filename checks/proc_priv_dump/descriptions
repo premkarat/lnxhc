@@ -1,0 +1,7 @@
+[title]
+Ensure that privilege dump is switched off
+
+[description]
+With the privilege dump set to non-zero value (1 or 2), a core-dump of
+set-user-id or otherwise protected/tainted binaries is created. For security
+reasons it is important to disable it by default.

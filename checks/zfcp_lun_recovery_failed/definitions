@@ -1,0 +1,13 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "zfcp/lun"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo lun_data]
+program = "$LNXHC_CHECK_DIR/lun_data"
+extrafile = "lun_data"
+
+[exception lun_not_usable]
+severity = high

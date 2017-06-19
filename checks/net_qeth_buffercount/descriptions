@@ -1,0 +1,33 @@
+[title]
+Identify qeth interfaces that do not have an optimal number of buffers
+
+[description]
+The most suitable number of buffers for a particular interface depends on the available memory. To allow for memory constraints, many Linux distributions use a small number of buffers by default. On Linux instances with ample memory and a high traffic volume, this can lead to performance degradation, as incoming packets are dropped and have to be resent by the originator.  This check uses a set of rules that correlate memory size and number of buffers to evaluate the settings for each qeth interface.
+
+[param recommended_buffercount]
+The rule set used to evaluate the interface settings. The rule set comprises a set of comma-separated rules. Each rule specifies a particular memory size or implies a range of memory sizes and the number of buffers to be used. The rules are evaluated from left to right. The first rule that applies to the available memory defines the number of buffers demanded by the check.
+
+Each rule has the form:
+#<operator><memsize>:<buffer_count>
+
+Where:
+- <operator> is one of these comparison operators:
+  - == (equal)
+  - <= (equal or smaller)
+  - >= (equal or greater)
+  - < (smaller)
+  - > (greater)
+
+- <memsize> specifies an amount of memory. Valid values are numbers followed
+  by one of the units KB (for kilobyte), MB (for megabyte), or GB
+  (for gigabyte). Note that this number is compared against the amount of
+  available memory which may be lower than the total memory assigned to
+  a Linux system due to kernel internal overhead.
+
+- <buffer_count> is the number of buffers to be used for the specified memory
+  size. Valid values are 16, 32, 64 and 128.
+
+Example:
+#<=500MB:16,<=1GB:32,<=2GB:64,>2GB:128
+
+The rule set of the example demands 16 buffers if the memory is 500 MB or less, 32 buffers if the memory is more than 500 MB but not more than 1 GB, 64 buffers if the memory is more than 1 GB but not more than 2 GB, and 128 buffers if the memory is more than 2 GB.

@@ -1,0 +1,46 @@
+[summary single_chpid]
+These bonding interfaces aggregate qeth interfaces with the same CHPID: &bond_devices;
+
+[explanation single_chpid]
+A bonding interface is a logical interface that aggregates multiple slave interfaces. One or more bonding interfaces aggregate qeth slave interfaces that are configured with the same CHPID. Slave interfaces that use the same CHPID neither provide path redundancy nor increased bandwidth, and so do not help to increase availability or boost performance. The following bonding interfaces aggregate slave interfaces that are configured with the same CHPID:
+
+&bond_slaves;
+
+Perform these steps to verify that a bonding interface aggregates slave interfaces that are configured with the same CHPID:
+
+1. Issue a command of this form to obtain the slave list for a bonding device, bond<n>:
+
+   ## cat /proc/net/bonding/bond<n>
+
+   where <n> is an index number that identifies the bonding interface.
+
+2. Use the "lsqeth" command and find the CHPID for each slave interface in the "CHPID" column of the command output.
+
+[solution single_chpid]
+Reassign slave interfaces such that each slave interface of a bonding interface is configured with a different CHPID.
+
+For example, change the configuration script of a slave interface to persistently assign it to a different bonding interface. Interface configuration scripts are usually found in the /etc branch of the Linux file system and called ifcfg-<ifname>, where <ifname> is the interface name.  The exact location depends on your distribution.
+
+In the script locate a line:
+#MASTER=bond<n>
+where bond<n> is the name of the bonding interface. Change this name to reassign the slave interface to a different bonding interface. The new assignment takes effect after Linux is booted.
+
+You can use the "ifenslave" command to temporarily reassign slave interfaces on a running Linux instance.
+
+Issue a command of this form to detach an interface from a bonding interface:
+## ifenslave -d <bonding_interface> <network_interface>
+Issue a command of this form to attach an interface to a bonding interface:
+## ifenslave <bonding_interface> <network_interface>
+
+[reference single_chpid]
+- For more information about the relevant commands, see the "ifenslave" and
+  "lsqeth" man pages.
+
+- For information about the parameters of the "bonding" kernel module, issue
+
+  ## modinfo bonding
+
+- For general information about bonding, see the Linux Foundation
+  "Bonding How-to" at
+
+  http://www.linuxfoundation.org/collaborate/workgroups/networking/bonding

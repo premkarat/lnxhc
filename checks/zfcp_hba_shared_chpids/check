@@ -1,0 +1,268 @@
+#!/usr/bin/perl
+#
+# zfcp_hba_shared_chpids
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Manik Bajpai <manibajp@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_SINGLE_CHPID = "single_chpid";
+
+# Value of parameter 'check_offline'.
+my $param_check_offline = $ENV{"LNXHC_PARAM_check_offline"};
+
+# Path to the file containing data for sysinfo item 'lscss'.
+my $sysinfo_lscss = $ENV{"LNXHC_SYSINFO_lscss"};
+
+#
+# adjacent_ids - return non-zero if IDs (e.g. CHPID, bus-ID) are adjacent
+# @id_a: First ID
+# @id_b: Second ID
+#
+sub adjacent_ids($$)
+{
+	my ($id_a, $id_b) = @_;
+	my $prefix_a;
+	my $prefix_b;
+	my $num_a;
+	my $num_b;
+
+	# Parse first ID
+	if ($id_a =~ /^(.*)\.([[:xdigit:]]+)$/i) {
+		$prefix_a = $1;
+		$num_a    = hex($2);
+	} else {
+		$prefix_a = "";
+		$num_a    = hex($id_a);
+	}
+
+	# Parse second ID
+	if ($id_b =~ /^(.*)\.([[:xdigit:]]+)$/i) {
+		$prefix_b = $1;
+		$num_b    = hex($2);
+	} else {
+		$prefix_b = "";
+		$num_b    = hex($id_b);
+	}
+
+	# Compare
+	if ($prefix_a eq $prefix_b && $num_b == ($num_a + 1)) {
+		return 1;
+	}
+
+	return 0;
+}
+
+#
+# merge_list - merge list of IDs
+# @list: reference to list which should be merged
+# @max: optional maximum number of entries of the resulting list
+sub merge_list($;$)
+{
+	my ($list, $max) = @_;
+	my $current;
+	my $first;
+	my $last;
+	my @result;
+
+	foreach $current (sort(@$list)) {
+		$current =~ s/^([[:xdigit:]]+\.)*//i;
+		if (!defined($first)) {
+			$first = $current;
+			$last  = $current;
+			next;
+		}
+
+		# Find series of adjacent IDs
+		if (adjacent_ids($last, $current)) {
+			$last = $current;
+			next;
+		}
+
+		# Add entries
+		if ($first eq $last) {
+			push(@result, $first);
+		} else {
+			push(@result, "$first-$last");
+		}
+
+		$first = $current;
+		$last  = $current;
+
+		if (defined($max) && scalar(@result) >= $max) {
+			push(@result, "...");
+			$first = undef;
+			$last  = undef;
+			last;
+		}
+	}
+
+	# Add final entries
+	if (defined($first) && defined($last)) {
+		if ($first eq $last) {
+			push(@result, $first);
+		} else {
+			push(@result, "$first-$last");
+		}
+	}
+	return \@result;
+}
+
+#
+# Parse the lscss output, and search the CHPIDs of all FCP Devices
+#
+sub search_chpids($)
+{
+	my ($check_offline) = @_;
+	my %chpidhash;
+	my $fh;
+	my $hd       = qr/[[:xdigit:]]/;
+	my $id       = qr/$hd+.$hd+.$hd+/;
+	my $byte     = qr/$hd{2}/;
+	my $word     = qr/$hd{8}/;
+	my $compart1 = qr{^($id)\s+$id\s+1732/0[34]};
+	my $compart2 = qr{($byte)\s+$byte\s+$byte\s+($word)\s+($word)};
+	my $regex0   = qr{$compart1.*$compart2};
+	my $regex1   = qr{$compart1.*yes\s+$compart2};
+	my $re;
+	my $place;
+	my @idarray;
+	my $busid;
+	my $num;
+
+	open($fh, "<", $sysinfo_lscss)
+		or die("Could not read file: $!\n");
+	$re = ($check_offline == "1") ? $regex0 : $regex1;
+	while (my $line = <$fh>) {
+		next if ($line !~ m{$re});
+		$num = hex($2);
+		next if (!$num);
+		$place = 0;
+		$busid = $1;
+		while ($num) {
+			last if (!$num);
+			if ((0x1 << 7) & $num) {
+				last;
+			}
+			$place = $place + 1;
+			$num   = $num << 1;
+		}
+		my $str = $3.$4;
+		@idarray = ($str =~ m/../g);
+		$chpidhash{$busid} = $idarray[$place];
+	}
+	return \%chpidhash;
+}
+
+#
+# Search all the FCP Devices which share the same CHPID.
+#
+sub get_vulnerable_hbas($)
+{
+	my ($chpid_hash) = @_;
+	my %checked;
+	my $busid;
+	my $chpid;
+	my $ibus;
+	my $ichp;
+	my %ihash = %$chpid_hash;
+	my $list;
+	my %result_hash;
+	my @result_list;
+
+	while (($busid, $chpid) = each(%$chpid_hash)) {
+		my @busids;
+		next if ($checked{$chpid});
+		while (($ibus, $ichp) = each(%ihash)) {
+			push(@busids, $ibus) if ($chpid eq $ichp);
+		}
+		$checked{$chpid} = 1;
+		if (@busids > 1) {
+			$list = merge_list(\@busids);
+			push(@result_list, @$list);
+			$result_hash{$chpid} = $list;
+		}
+	}
+	@result_list = sort(@result_list);
+	return \%result_hash, \@result_list;
+}
+
+sub main
+{
+	my $chpids;
+	my $shared_hbas;
+	my $str;
+	my $shared_hbas_info;
+
+	#1. Ensuring parameter values are not empty, and has one of
+	#   the correct values, viz "0" or "1".
+	check_empty_param("check_offline");
+	if (
+		not($param_check_offline eq "0" ||
+			$param_check_offline eq "1")
+		)
+	{
+		lnxhc_param_error(
+			"Wrong value for "."parameter \'check_offline\' ".
+				"\"$param_check_offline\"\n");
+	}
+
+	#2. Scan all the FCP Devices, online or not
+	#   depending upon the parameter value (default=0)
+	$chpids = search_chpids($param_check_offline);
+
+	#3. If no FCP Device found, raise failed_dep exception
+	if (!%$chpids) {
+		lnxhc_fail_dep("No FCP Device found.\n ");
+	} else {
+		($shared_hbas, $shared_hbas_info) =
+			get_vulnerable_hbas($chpids);
+	}
+
+	#4. If there are any two FCP Devices sharing a CHPID then
+	#   raise the appropriate exception.
+	foreach my $chpid (sort { $a <=> $b } keys %$shared_hbas) {
+		my $hbas = $$shared_hbas{$chpid};
+
+		#4.1 If the table is to be printed, print 3 entries per line
+		#    Repeat the chpid in the first column.
+		while (@$hbas) {
+			$str = join(", ", splice(@$hbas, 0, 3));
+			lnxhc_exception_var("shared_hbas_table",
+				sprintf("|#  %s|# %s", ($chpid, $str)));
+		}
+
+	}
+
+	#4.2 Print the "summary" info.
+	if (%$shared_hbas) {
+		lnxhc_exception($LNXHC_EXCEPTION_SINGLE_CHPID);
+		lnxhc_exception_var_list("shared_hbas_info", $shared_hbas_info,
+			", ", 3);
+	}
+	exit(0);
+}
+&main();
+__DATA__
+__END__

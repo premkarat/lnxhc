@@ -1,0 +1,157 @@
+#!/usr/bin/perl
+#
+# crypto_openssl_stack
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_CRYPTO_ADAPTERS_NOT_ONLINE = "crypto_adapters_not_available";
+my $LNXHC_EXCEPTION_32BIT_RPMS_NOT_INSTALLED = "32bit_rpms_not_installed";
+my $LNXHC_EXCEPTION_IBMCA_NOT_CONFIGURED = "ibmca_not_configured";
+
+# Path to the file containing data for sysinfo item 'rpm_query_all'.
+my $sysinfo_rpm_query_all = $ENV{"LNXHC_SYSINFO_rpm_query_all"};
+
+# Path to the file containing data for sysinfo item 'proc_cpuinfo'
+my $sysinfo_proc_cpuinfo = $ENV{"LNXHC_SYSINFO_proc_cpuinfo"};
+
+# Path to the file containing data for sysinfo item 'dev_node'.
+my $sysinfo_dev_node = $ENV{"LNXHC_SYSINFO_dev_node"};
+
+# Path to the file containing data for sysinfo item 'hw_info'.
+my $sysinfo_hw_info = $ENV{"LNXHC_SYSINFO_hw_info"};
+
+# Path to the file containing data for sysinfo item 'openssl_engine_data'.
+my $sysinfo_openssl_engine_data = $ENV{"LNXHC_SYSINFO_openssl_engine_data"};
+
+# Return code for sysinfo item 'dev_node'
+my $rc_dev_node = $ENV{"LNXHC_SYSINFO_EXIT_CODE_dev_node"};
+
+# Return code for sysinfo item 'openssl_engine_data'
+my $rc_openssl_engine = $ENV{"LNXHC_SYSINFO_EXIT_CODE_openssl_engine_data"};
+
+# Linux distro
+my $linux_distro = $ENV{"LNXHC_SYS_sys_distro"};
+
+my $handle;
+
+# Defining the RPM names required.
+my $openssl_rpm = "openssl-32bit";
+my $ibmca_rpm = "openssl-ibmca-32bit";
+my $r_openssl_rpm = "openssl";
+my $r_ibmca_rpm = "openssl-ibmca";
+my $libica_rpm = "libica";
+
+# Checking for CPACF availability
+my $cpuinfo = load_proc_cpuinfo($sysinfo_proc_cpuinfo);
+die "Failed to read sysinfo: $sysinfo_proc_cpuinfo: $!\n" unless $cpuinfo;
+
+my @features = split /\s+/, $cpuinfo->{features};
+unless (grep { /\bmsa\b/ } @features) {
+	lnxhc_fail_dep("The CP Assist for Cryptographic Functions (CPACF) is ".
+		       "not available");
+}
+
+# Checking required RPMs installed or not
+open ($handle, "<", $sysinfo_rpm_query_all) or
+	die("Couldn't open file: $sysinfo_rpm_query_all: $!\n");
+
+my $s390x = "\.s390x";
+my $s390 = "\.s390";
+my @rpm_query_file = <$handle>;
+close ($handle);
+my (@openssl, @ibmca, @libica);
+if ($linux_distro eq "RHEL") {
+	@openssl = grep { /^$r_openssl_rpm-\d+\..*$s390$/ } @rpm_query_file;
+	@ibmca = grep { /^$r_ibmca_rpm-\d+\..*$s390$/ } @rpm_query_file;
+	@libica = grep { /^$libica_rpm-\d+\..*$s390$/ } @rpm_query_file;
+	$openssl_rpm = $r_openssl_rpm;
+	$ibmca_rpm = $r_ibmca_rpm;
+}
+if ($linux_distro eq "SLES") {
+	@openssl = grep { /^$openssl_rpm\d+\..*$s390x$/ } @rpm_query_file;
+	@ibmca = grep { /^$ibmca_rpm-\d+\..*$s390x$/ } @rpm_query_file;
+	@libica = grep { /^$libica_rpm-\d+[\._\d]*-32bit.*$s390x$/ } @rpm_query_file;
+}
+
+# Variable used for displaying which PRMs are missing.
+my @rpm_unavail;
+push @rpm_unavail, $openssl_rpm unless (@openssl);
+push @rpm_unavail, $ibmca_rpm unless (@ibmca);
+push @rpm_unavail, $libica_rpm unless (@libica);
+
+if (@rpm_unavail)  {
+	lnxhc_exception($LNXHC_EXCEPTION_32BIT_RPMS_NOT_INSTALLED);
+	lnxhc_exception_var_list("rpm", \@rpm_unavail, ", ", scalar(@rpm_unavail));
+	lnxhc_exception_var_list("rpm_summ", \@rpm_unavail, ", ");
+	# No need to check any further
+	exit(0);
+}
+
+if ($rc_openssl_engine == 0) {
+	# Verifying ibmca engine is configured with openssl or not
+	open ($handle, "<", $sysinfo_openssl_engine_data) or
+		 die("Couldn't open file: $sysinfo_openssl_engine_data: $!\n");
+	my @openssl_data = <$handle>;
+	close($handle);
+	# Looking for ibmca
+	my @ibmca_exists = grep { /\bibmca\b/ } @openssl_data;
+	if (!@ibmca_exists) {
+		lnxhc_exception($LNXHC_EXCEPTION_IBMCA_NOT_CONFIGURED);
+		# No need to check any further
+		exit(0);
+	}
+}
+
+if ($rc_dev_node == 0) {
+	# Checking required hardware available or not
+	my $handle;
+	open ($handle, "<", $sysinfo_hw_info) or
+		die("Couldn't open file: $sysinfo_hw_info: $!\n");
+
+	my ($hw_cop, $hw_acc);
+	while (<$handle>) {
+		next unless /^card\d+: CEX/;
+		if (/^card\d+: CEX\d+C/) {
+			$hw_cop = 1;
+		}
+		if (/^card\d+: CEX\d+A/) {
+			$hw_acc = 1;
+		}
+	}
+	close($handle);
+
+	my @hw_unavail;
+	# Pushing the name of the hardware, which is not available
+	push @hw_unavail, "Cryptographic Coprocessor" unless ($hw_cop);
+	push @hw_unavail, "Cryptographic Accelerator" unless ($hw_acc);
+	# Raise the exception when both the cards are not available
+	if (scalar(@hw_unavail) > 1) {
+		lnxhc_exception($LNXHC_EXCEPTION_CRYPTO_ADAPTERS_NOT_ONLINE);
+		lnxhc_exception_var_list("crypto_hw", \@hw_unavail, ", ");
+	}
+}
+
+exit(0);

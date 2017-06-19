@@ -1,0 +1,58 @@
+<!ELEMENT result (stats?,run+)>
+<!ATTLIST result version CDATA #REQUIRED>
+
+  <!ELEMENT stats (start_time,end_time,num_runs_scheduled,
+                   num_runs_success,num_runs_exceptions,
+                   num_runs_not_applicable,num_runs_failed_sysinfo,
+                   num_runs_failed_chkprog,num_runs_param_error,
+                   num_ex_reported,num_ex_low, num_ex_medium,
+                   num_ex_high,num_ex_inactive)>
+
+    <!ELEMENT start_time (#PCDATA)>
+    <!ELEMENT end_time (#PCDATA)>
+    <!ELEMENT num_runs_scheduled (#PCDATA)>
+    <!ELEMENT num_runs_success (#PCDATA)>
+    <!ELEMENT num_runs_exceptions (#PCDATA)>
+    <!ELEMENT num_runs_not_applicable (#PCDATA)>
+    <!ELEMENT num_runs_failed_sysinfo (#PCDATA)>
+    <!ELEMENT num_runs_failed_chkprog (#PCDATA)>
+    <!ELEMENT num_runs_param_error (#PCDATA)>
+    <!ELEMENT num_ex_reported (#PCDATA)>
+    <!ELEMENT num_ex_low (#PCDATA)>
+    <!ELEMENT num_ex_medium (#PCDATA)>
+    <!ELEMENT num_ex_high (#PCDATA)>
+    <!ELEMENT num_ex_inactive (#PCDATA)>
+
+  <!ELEMENT run (check_id,instance+,rc,multihost,multitime,
+                 start_time?,end_time?,prog_exit_code?,prog_info?,prog_err?,
+		 inactive_ex_id*,exception*)>
+  <!ATTLIST run id CDATA #REQUIRED>
+  <!ATTLIST run max_id CDATA #REQUIRED>
+
+    <!ELEMENT check_id (#PCDATA)>
+    <!ELEMENT instance (host+)>
+    <!ATTLIST instance id CDATA #REQUIRED>
+
+      <!ELEMENT host (dep*)>
+      <!ATTLIST host id CDATA #REQUIRED>
+
+        <!ELEMENT dep (#PCDATA)>
+        <!ATTLIST dep result CDATA #REQUIRED>
+
+    <!ELEMENT rc (#PCDATA)>
+    <!ELEMENT multihost (#PCDATA)>
+    <!ELEMENT multitime (#PCDATA)>
+    <!ELEMENT prog_exit_code (#PCDATA)>
+    <!ELEMENT prog_info (#PCDATA)>
+    <!ATTLIST prog_info encoding (none|base64) "none">
+    <!ELEMENT prog_err (#PCDATA)>
+    <!ATTLIST prog_err encoding (none|base64) "none">
+    <!ELEMENT inactive_ex_id (#PCDATA)>
+    <!ELEMENT exception (severity,summary,explanation,solution,reference)>
+    <!ATTLIST exception id CDATA #REQUIRED>
+
+      <!ELEMENT severity (#PCDATA)>
+      <!ELEMENT summary (#PCDATA)>
+      <!ELEMENT explanation (#PCDATA)>
+      <!ELEMENT solution (#PCDATA)>
+      <!ELEMENT reference (#PCDATA)>

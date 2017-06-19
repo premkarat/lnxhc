@@ -1,0 +1,20 @@
+[title]
+Identify network services that are known to be insecure
+
+[description]
+This check finds network services that are active but known to be insecure.
+Such services can compromise your data and system security. An example of an
+insecure network service is a network file system service that does not provide
+user authentication. Any user who can reach this service can access the data.
+Other network services might be considered insecure because they do not encrypt
+credentials and data. If network traffic from such services is intercepted,
+data might be disclosed to unauthorized parties and the system might become
+vulnerable to intrusion.
+
+Examples of insecure network services are ftp, rsh, rlogin, and telnet.
+
+[param insecure_services]
+A list of insecure network services to check for. In the list, services are
+separated by blanks. The default includes the most commonly used insecure
+network services Add any services that
+are installed on your system and that you consider insecure.

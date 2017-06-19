@@ -1,0 +1,47 @@
+[summary port_not_usable]
+The recovery of these target ports failed: &failed_ports_summ;
+
+[explanation port_not_usable]
+The target ports with the following device bus-IDs and worldwide port names
+(WWPN), are unable to recover from failures and cannot be used:
+
+|Device bus-ID|WWPN
+&failed_ports_table;
+
+To manually verify if the problem still exists, read the content of this
+file:
+
+## cat /sys/bus/ccw/drivers/zfcp/<device_bus_id>/<wwpn>/failed
+
+An output of "1" signifies that the problem  still existis. An output of "0"
+signifies that the problem does not exist.
+
+[solution port_not_usable]
+If the recovery failed, please perform these manual steps:
+
+1. Check for zfcp kernel messages and the FCP hardware.
+2. Verify that the WWPN is correct.
+3. Check the fibre channel fabric for errors related to the WWPN.
+4. Check the storage target for failed port login attempts.
+5. If the root cause is resolved, write "0" to the failed attribute.
+   Issue the following command at the shell prompt:
+   ## echo 0 > /sys/bus/ccw/drivers/zfcp/<device_bus_id>/<wwpn>/failed
+6. Wait for 5 seconds.
+7. Issue the following command to ensure that all udev events have been
+   processed:
+   ## udevadm settle
+8. Check the value of the failed attribute.
+   For example, issue:
+   ## cat /sys/bus/ccw/drivers/zfcp/<device_bus_id>/<wwpn>/failed
+   If the value is "1" the recovery failed again, because the root cause
+   resolution in steps 1-4 was not sufficient.
+
+[reference port_not_usable]
+For more information about the recovery of a failed target port, see "Device
+Drivers, Features, and Commands". You can obtain this publication from:
+
+http://www.ibm.com/developerworks/linux/linux390/distribution_hints.html
+
+For kernel messages see "Kernel Messages". You can obtain this publication from:
+
+http://pic.dhe.ibm.com/infocenter/lnxinfo/v3r0m0/topic/com.ibm.linux.l0kmsg.doc/l0km_plugin_top.html

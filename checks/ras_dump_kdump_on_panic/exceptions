@@ -1,0 +1,74 @@
+[summary no_kdump_crash]
+kdump is not configured
+
+[explanation no_kdump_crash]
+Your Linux instance does not have the crashkernel loaded. In case a kernel panic
+occurs it would not be able to automatically capture the dump for post-morterm
+analysis.
+
+[solution no_kdump_crash]
+1. If memory is not reserved for crashkernel, reserve it by passing the
+   crashkernel= kernel parameter.
+
+   If the crashkernel= kernel parameter is already specified, check for the
+   proper values of the crashkernel parameter. Refer to the appropriate
+   distribution's configuration settings.
+
+   #crashkernel=X@Y
+
+   X is the size of the crashkernel.
+
+   Y is the offset at which crashkernel will be loaded.
+
+   Once crashkernel= parameter is specified with right offset and size confirm
+   if memory is reserved for crashkernel either by issuing:
+
+   1. #cat /sys/kernel/kexec_crash_size
+
+      It should be a non-zero value.
+
+      or
+
+   2. #dmesg | head
+
+      It will indicate the memory reserved for crashkernel. In case memory
+      reservation fails it contains relevant error messages.
+
+2. Load the kdump kernel and initrd using the kexec-tools suite.
+
+Typically, this setup is done for you by your Linux distribution.
+
+[reference no_kdump_crash]
+Refer to http://www.dedoimedo.com/computers/kdump.html
+
+[summary no_kdump]
+Kdump is not operational
+
+[explanation no_kdump]
+Your Linux instance's kdump is not operational. In case a kernel panic occurs it
+would not be able to automatically capture the dump for post-morterm analysis.
+
+You can confirm the kdump status by issuing following command:
+
+For Redhat:
+
+#service kdump status
+
+For Suse:
+
+#service boot.kdump status
+
+[solution no_kdump]
+There is a possibility of kdump service being stopped. Restart the kdump
+service by issuing the following command:
+
+For Redhat:
+
+#service kdump restart
+
+For Suse:
+
+#service boot.kdump restart
+
+[reference no_kdump]
+Refer to http://www.dedoimedo.com/computers/kdump.html

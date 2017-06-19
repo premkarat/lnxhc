@@ -1,0 +1,118 @@
+#!/usr/bin/perl
+#
+# zfcp_hba_npiv_active
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2013
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_NO_NPIV = "no_npiv";
+
+# Path to the file containing data for sysinfo item 'lszfcp_a'.
+my $sysinfo_lszfcp_a = $ENV{"LNXHC_SYSINFO_lszfcp_a"};
+
+# Path to the file containing data for sysinfo item 'proc_sysinfo'.
+my $sysinfo_proc_sysinfo = $ENV{"LNXHC_SYSINFO_proc_sysinfo"};
+
+my $handle;
+my (%data_hash, %info_hash);
+
+# Checking the support from the system type
+
+my %system_z_types = (
+	9672 => {npiv => 0, desc => "IBM S/390 9672"},            # G5
+	2064 => {npiv => 0, desc => "IBM eServer zSeries 900"},
+	2066 => {npiv => 0, desc => "IBM eServer zSeries 800"},
+	2084 => {npiv => 0, desc => "IBM eServer zSeries 990"},
+	2086 => {npiv => 0, desc => "IBM eServer zSeries 890"},
+);
+my $sysinfo = load_proc_sysinfo($sysinfo_proc_sysinfo);
+die "Failed to read sysinfo: $sysinfo_proc_sysinfo: $!\n" unless $sysinfo;
+
+my $type = $sysinfo->{'Type'};
+if (exists($system_z_types{$type}) &&
+	!$system_z_types{$type}->{npiv})
+{
+	lnxhc_fail_dep("$LNXHC_CHECK_ID: NPIV is not available on "."your ".
+			$system_z_types{$type}->{desc});
+}
+
+if (-z $sysinfo_lszfcp_a) {
+	lnxhc_fail_dep("No zFCP setup available");
+}
+
+open($handle, "<", $sysinfo_lszfcp_a)
+	or die("Couldn't open file: $sysinfo_lszfcp_a: $!\n");
+
+my ($adap, $key, $val);
+while (my $line = <$handle>) {
+	chomp $line;
+	if ($line =~
+		/^([[:xdigit:]]{1,2}\.[[:xdigit:]]{1,2}\.[[:xdigit:]]{4})\s+/)
+	{
+		$adap = $1;
+	}
+
+	if ($line =~ /^([^=]+)=(.+)$/) {
+		($key, $val) = ($1, $2);
+		$key =~ s/^\s+|\s+$|\"//g;    # trim
+		$val =~ s/^\s+|\s+$|\"//g;    # trim
+	} else {
+		next;
+	}
+	$info_hash{$adap}{$key} = $val;
+}
+close($handle);
+
+if (%info_hash) {
+	my ($port_name, $perm_port_name, $online);
+	foreach my $busid (sort(keys(%info_hash))) {
+
+		# Reading required fields from sysinfo
+		$port_name      = $info_hash{$busid}{"port_name"};
+		$perm_port_name = $info_hash{$busid}{"permanent_port_name"};
+		$online         = $info_hash{$busid}{"online"};
+		# Check only for the online devices only
+		if (($port_name eq $perm_port_name) && ($online == 1)) {
+			$data_hash{$busid} = $port_name;
+		}
+	}
+}
+if (%data_hash) {
+	lnxhc_exception($LNXHC_EXCEPTION_NO_NPIV);
+	my @keys_list = sort(keys(%data_hash));
+	foreach my $adapter (@keys_list) {
+		lnxhc_exception_var(
+			"adapter",
+			sprintf(
+				"|#%s|#%s",
+				(
+					$adapter, $data_hash{$adapter}
+				)
+			)
+		);
+	}
+	lnxhc_exception_var_list("adapter_summ", \@keys_list, ", ");
+}
+exit(0);

@@ -1,0 +1,34 @@
+[summary not_usable]
+There are unusable SCSI devices &lun_summ;
+
+[explanation not_usable]
+Some SCSI devices have a state other then "running". This might indicate that
+the connection to a storage system is working but the storage system has a
+problem. The SCSI device is considered as being not operational and cannot be
+used for I/O.
+
+The following SCSI devices are unusable:
+&lun;
+
+Read the sysfs state attribute of each SCSI device to check the state:
+
+For example, issue:
+## cat /sys/bus/scsi/devices/<devname>/state
+where <devname> is the SCSI device name
+
+[solution not_usable]
+Attempt to manually set the device online again by echoing "running" into the
+sysfs state attribute.
+
+For example, issue:
+## echo "running" > /sys/bus/scsi/devices/<devname>/state
+where <devname> is the SCSI device name
+
+If the problem persists, the storage hardware might be damaged, and you should
+check the storage hardware using the documentation of your Storage Server.
+
+[reference not_usable]
+For more information about SCSI device state, see  "Device Drivers,
+Features, and Commands". You can  obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html

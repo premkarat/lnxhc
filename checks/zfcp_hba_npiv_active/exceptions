@@ -1,0 +1,55 @@
+[summary no_npiv]
+The following FCP devices are not configured with NPIV: &adapter_summ;
+
+[explanation no_npiv]
+System z FCP channels require a FICON Express adapter. FCP channels can be
+shared by multiple LPARs. Each port on the adapter is assigned a permanent
+64-bit WWPN by the manufacturer; this is used at Fabric Login (FLOGI).
+
+Without the NPIV feature, each operating system image that has an FCP port is
+identified to the fabric by the permanent WWPN of the port. In this case, all
+operating system images have the same access rights in the fabric. The
+permanent WWPN of the port determines:
+Zone membership for all images sharing the port
+Logical Unit Number (LUN) access rights for all images sharing the port
+
+With the NPIV feature, the Service Element (SE) creates new WWPNs for the FCP
+port at FLOGI. A unique WWPN is then assigned to each operating system image
+sharing the port. The generated NPIV WWPN is registered with the fabric switch
+and uniquely identifies each image for fabric zoning and LUN masking.
+
+NPIV support is available on System z9 servers and above, FICON Express 2
+adapter and above.
+
+The following FCP devices not configured with NPIV:
+|Adapter|port name
+&adapter;
+
+To manually check whether NPIV support is available, use the following
+commands.
+
+To check if your System z hardware supports NPIV, issue:
+
+## cat /proc/sysinfo
+
+The output "Type: <value>", describes the type of System z. For Example "2094" is the "System z type z9".
+
+To check whether the  connected port supports NPIV, issue:
+
+## lszfcp -a
+
+See the values for "port_name" and "permanent_port_name" at each port.
+If both values are the same NPIV is not enabled.
+If the values are different NPIV is enabled.
+
+[solution no_npiv]
+Enable NPIV on SE for the corresponding CHPIDs on LPAR and in the switch
+adjacent to the FCP device.
+If you are using the zoning or LUN masking ensure that the new NPIV enabled
+FCP devices are handled correctly.
+
+[reference no_npiv]
+For more information see "redp4125: Introducing N_Port Identifier
+Virtualization for IBM System z9". You can obtain this publication from:
+
+http://www.redbooks.ibm.com

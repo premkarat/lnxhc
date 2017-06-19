@@ -1,0 +1,92 @@
+#!/usr/bin/perl
+#
+# boot_runlevel_recommended
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+#
+# Global variables
+#
+
+# Exception IDs
+our $LNXHC_EXCEPTION_CURRENT_RUNLEVEL_DIFFERS = "current_runlevel_differs";
+our $LNXHC_EXCEPTION_DEFAULT_RUNLEVEL_DIFFERS = "default_runlevel_differs";
+
+# Value of parameter 'recommended_runlevel'.
+our $param_recommended_runlevel = $ENV{"LNXHC_PARAM_recommended_runlevel"};
+
+# Path to the file containing data for sysinfo item 'current_runlevel'.
+our $sysinfo_current_runlevel = $ENV{"LNXHC_SYSINFO_current_runlevel"};
+
+# Path to the file containing data for sysinfo item 'default_runlevel'.
+our $sysinfo_default_runlevel = $ENV{"LNXHC_SYSINFO_default_runlevel"};
+
+
+#
+# Code entry
+#
+
+if ($LNXHC_DEBUG) {
+	print("DEBUG: recommended_runlevel='$param_recommended_runlevel'\n");
+}
+# Defining the variables
+my $current_runlevel = "";
+my $default_runlevel = "";
+
+check_int_param("recommended_runlevel", 1, 5);
+
+open(HANDLE, "<", $sysinfo_current_runlevel) or
+	die("boot_runlevel_recommended: could not open ".
+	    "$sysinfo_current_runlevel\n");
+foreach my $running_level (<HANDLE>) {
+	# Filtering current runlevel
+	if ($running_level =~ /\s+(\d+)\s*$/){
+		$current_runlevel = $1;
+		last;
+	}
+}
+close(HANDLE);
+
+open(HANDLE, "<", $sysinfo_default_runlevel) or
+	die("boot_runlevel_recommended: could not open ".
+	    "$sysinfo_default_runlevel\n");
+foreach my $line (<HANDLE>) {
+	# Skip commented lines
+	next if ($line =~ /^\s*#/);
+	# Filtering default runlevel
+	if ($line =~ /[^:]+:(\d+):initdefault:$/) {
+		$default_runlevel = $1;
+		last;
+	}
+}
+close(HANDLE);
+# Comparing recommended input parameter with default and current runlevles
+if ($current_runlevel != $param_recommended_runlevel) {
+	lnxhc_exception($LNXHC_EXCEPTION_CURRENT_RUNLEVEL_DIFFERS);
+	lnxhc_exception_var("current_runlevel",$current_runlevel);
+}
+if ($default_runlevel != $param_recommended_runlevel) {
+	lnxhc_exception($LNXHC_EXCEPTION_DEFAULT_RUNLEVEL_DIFFERS);
+	lnxhc_exception_var("default_runlevel",$default_runlevel);
+}
+print "boot_runlevel_recommended: Default and Current runlevels are ".
+      $default_runlevel." and $current_runlevel\n";
+exit(0);

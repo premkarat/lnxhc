@@ -1,0 +1,174 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc_cons_descriptions 5 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.
+.SH NAME
+lnxhc_cons_descriptions \- Describe a consumer's purpose and parameters
+.
+.
+.SH DESCRIPTION
+The
+.B descriptions
+file of a check result consumer contains textual descriptions of the
+consumer and its parameters.
+.PP
+.
+.
+.SH "FILE FORMAT"
+Data is stored in lines of text which are grouped into named sections. Text
+encoding is UTF-8. Each line can contain data in one of the following formats:
+.PP
+.RS 4
+.IP \(bu 2
+.B Section heading
+
+A section heading is a line starting with an opening square
+bracket ("["), followed by one or more whitespace-separated identifiers,
+followed by a closing square bracket ("]"). Identifiers may consists of
+lowercase-letters a-z, digits 0-9 and the underscore sign.
+
+Example:
+.br
+.CL [description]
+.PP
+.
+.IP \(bu 2
+.B Text
+
+A text line contains a string of arbitrary characters. Characters may
+be escaped by prefixing them with the backslash character ("\\"). Escaped
+characters have no special meaning, e.g. an escaped opening square bracket ("[")
+at the start of a line does not indicate the start of a new section.
+.PP
+.RE
+.
+.
+.SH SECTIONS
+Valid sections for a descriptions file are:
+.PP
+.B [title]
+.RS
+This mandatory section contains a short text describing the consumer.
+.PP
+.B Example:
+.br
+.CL [title]
+.CL Show a textual health check report
+.PP
+.NT No formatting can be applied to the text in a title section.
+.RE
+.
+.B [description]
+.RS
+This mandatory section contains a detailed text describing the type of
+output that the consumer generates, or the type of processing that the
+consumer implements.
+.PP
+.RE
+.
+.BI [param  " identifier" ]
+.RS
+This mandatory section contains a short text describing the parameter
+specified by
+.IR identifier .
+For each parameter that a consumer defines one such section must be present.
+.PP
+.B Example:
+.br
+.CL [param show_info]
+.CL A number which can be 0 or 1. If set to 1, the report includes
+.CL informational check output.
+.PP
+.RE
+.RE
+.
+.
+.SH FORMATTING
+Text in a descriptions file can be enhanced with basic formatting elements,
+such as paragraphs, preformatted text, lists, and simple tables. See the
+.MP lnxhc_text_format 7
+man page for more information on available formatting elements.
+.
+.
+.SH LOCALIZATION
+The default language for a descriptions file is American English (en_US).
+Translated versions of the descriptions file may be added in a sub-directory
+of the consumer directory. This sub-directory must be named after the
+code of the language to which the translation applies (see man page of the
+.MP locale 1
+command).
+.PP
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1 ,
+.MP lnxhc_text_format 7 ,
+.MP lnxhc_writing_consumers 7

@@ -1,0 +1,49 @@
+lnxhc - Linux Health Checker
+
+ABOUT
+
+  The Linux Health Checker is a command line tool for Linux. Its purpose
+  is to identify potential problems before they impact your system's
+  availability or cause outages. It collects and compares the active
+  Linux settings and system status for a system with the values provided
+  by health-check authors or defined by you. It produces output in the
+  form of detailed messages, which provide information about potential
+  problems and the suggested actions to take.
+
+  The Linux Health Checker will run on any Linux platform which meets
+  the software requirements. It can be easily extended by writing new
+  health check plug-ins.
+
+  The Linux Health Checker is an open source project sponsored by IBM.
+  It is released under the Eclipse Public License v1.0
+
+GETTING STARTED
+
+  1. Ensure that your system meets the software requirements:
+     - Perl version 5.8 or later
+     - Basic Perl modules which should be part of a common Perl
+       installation
+
+  2. Install the lnxhc package. The latest version is available both
+     as RPM and source packages from the download page:
+
+       http://lnxhc.sourceforge.net/download.html
+
+     When using the source package, enter:
+
+       make all install
+
+  3. At a command line prompt, enter:
+
+       lnxhc run
+
+     Note that some health checks may require root privileges to obtain
+     required information. If run as another user, the Linux Health
+     Checker will use the sudo mechanism to obtain the necessary
+     privileges.
+
+  4. The resulting command output will contain summary information about
+     identified problems. To get detailed output, use the following
+     command:
+
+       lnxhc run --replay -V

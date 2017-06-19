@@ -1,0 +1,84 @@
+#!/usr/bin/perl
+#
+# storage_dasd_eckd_blksize
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_NON_4K = "unexpected_eckd_block_size";
+
+
+# Path to the file containing data for sysinfo item 'lsdasd'.
+my $sysinfo_lsdasd = $ENV{"LNXHC_SYSINFO_lsdasd"};
+
+my ($handle, @header, @data_array, %dasd_blk);
+
+# Opening the sysinfo item file
+open ($handle, "<", $sysinfo_lsdasd) or
+	die("Couldn't open file: $sysinfo_lsdasd: $!\n");
+
+while (<$handle>) {
+	chomp;
+
+	# Taking the header to get the proper index
+	@header = split /\s+/ if ($. == 1);
+
+	# Collecting the data
+	push(@data_array, $_) if ($. > 2 && /ECKD/);
+}
+close($handle);
+
+lnxhc_fail_dep("There are no ECKD DASDs") unless @data_array;
+
+# Calculating index for 'Name' and 'BlkSz'
+my ($name_index) = grep { $header[$_] eq "Name" } 0..$#header;
+my ($blk_size_index) = grep { $header[$_] eq "BlkSz" } 0..$#header;
+
+# Creating the data for exception when block size is other than 4096
+foreach my $data_line (@data_array) {
+	my @data = split /\s+/, $data_line;
+	next if (!defined($data[$blk_size_index]) || $data[$blk_size_index] eq "");
+	if ($data[$blk_size_index] != 4096) {
+		$dasd_blk{$data[$name_index]} = $data[$blk_size_index];
+	}
+}
+
+# Printing the data - summary and details
+if (%dasd_blk) {
+	my @summary = sort(keys(%dasd_blk));
+	lnxhc_exception($LNXHC_EXCEPTION_NON_4K);
+
+	lnxhc_exception_var_list("summary", \@summary, ", ");
+	lnxhc_exception_var("details", sprintf("#%-10s     %-6s",
+			"DASD", "Block Size"));
+
+	foreach my $dasd (sort(keys(%dasd_blk))) {
+		lnxhc_exception_var("details", sprintf("#%-10s     %-6s",
+			$dasd, $dasd_blk{$dasd}));
+	}
+}
+
+exit(0);

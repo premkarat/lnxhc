@@ -1,0 +1,24 @@
+[title]
+Check the privilege classes of the z/VM guest virtual machine on which the Linux instance runs
+
+[description]
+This check examines the z/VM privilege classes of the current z/VM guest virtual machine and compares them
+with the permitted privilege classes. The permitted privilege classes are provided by the permitted_privclass
+parameter.
+
+Higher privilege classes than the permitted ones might allow operations which can inadvertently or
+maliciously affect the security and availability of other z/VM guest virtual machines running in the same
+z/VM instance. Generally, higher privilege classes should be assigned sparingly and only to trusted z/VM user
+IDs.
+
+
+[param permitted_privclass]
+Privilege classes permitted for z/VM guest virtual machines.
+Valid values are lists of letters in the range A to Z and integers in the range 1 to 6.
+
+Example:
+#ABCD12
+
+[param check_for]
+Privilege classes to check: privilege classes effective at run-time (currently), privilege classes
+permanently defined in the user directory (directory), or both (currently, directory).

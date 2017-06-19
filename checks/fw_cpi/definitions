@@ -1,0 +1,20 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "firmware/cpi"
+
+[deps]
+sys_platform = s390 or sys_platform = s390x
+sys_hypervisor=ZLPAR
+
+[sysinfo system_name]
+file = "/sys/firmware/cpi/system_name"
+
+[sysinfo sysplex_name]
+file = "/sys/firmware/cpi/sysplex_name"
+
+[exception no_system_name]
+severity = medium
+
+[exception no_sysplex_name]
+severity = low
+state = inactive

@@ -1,0 +1,27 @@
+[summary limits_exceeded]
+These network interfaces exceeded the error or dropped packets threshold for inbound traffic: &summ_interface;
+
+[explanation limits_exceeded]
+One or more network interfaces exceeded the received (RX) error or dropped packets threshold. Problems with received packets lead to performance degradation as packets have to be resent by the originator.
+
+Insufficient main memory can cause both RX packet errors and packets being dropped. If increasing the available memory aggravates the RX dropped ratio, the problem might be that the maximum unprocessed packets, as defined by net.core.netdev_max_backlog, is reached. This occurs if input buffers are not processed fast enough.
+
+These network interfaces have exceeded the threshold for the RX error ratio or RX dropped ratio:
+
+&devices_rxerrors;
+
+You can use the "ifconfig" command to investigate the RX error and drop rate for your network interfaces.
+
+[solution limits_exceeded]
+Increase the maximum tolerated number of unprocessed packets per interface.
+
+To read the current value, issue:
+## sysctl net.core.netdev_max_backlog
+
+To set the maximum to a higher value, <value>, issue:
+## sysctl -w net.core.netdev_max_backlog=<value>
+
+If a higher maximum of unprocessed packets does not resolve the problem, increase the main memory (RAM). Follow the appropriate steps for your system hardware and Linux distribution.
+
+[reference limits_exceeded]
+See the "sysctl" and "ifconfig" man pages.

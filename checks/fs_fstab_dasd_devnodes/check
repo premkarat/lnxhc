@@ -1,0 +1,73 @@
+#!/usr/bin/perl
+#
+# fs_fstab_dasd_devnodes
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_VOLATILE_DEVNODES_USED = "volatile_devnodes_used";
+
+# Path to the file containing data for sysinfo item 'disk_type'.
+my $sysinfo_disk_type = $ENV{"LNXHC_SYSINFO_disk_type"};
+
+
+# Defining the variables
+my $handle;
+my %dev_name;
+
+# Getting fstab entries which contains kernel provided device names used
+open($handle, "<", $sysinfo_disk_type) or
+	die("fs_fstab_dasd_devnodes: could not open $sysinfo_disk_type: $!\n");
+
+while(<$handle>) {
+
+	# Checking the lines starting with '/'
+	if (/^\//) {
+		# Getting first two columns
+		my ($device_name, $mount_fs) = split;
+
+		# Checking fstab entries contains DASD names
+		if ($device_name =~ /^\/dev\/dasd/) {
+			# Creating hash for boot parameters with
+			# device names if any
+			$dev_name{$mount_fs} = $device_name;
+		}
+	}
+}
+
+# Reporting an exception if any device names used in '/etc/fstab'
+if (%dev_name) {
+	lnxhc_exception($LNXHC_EXCEPTION_VOLATILE_DEVNODES_USED);
+	lnxhc_exception_var("fs_exp", sprintf "#%-10s %+40s",
+		"Device_name", "Mount_point");
+
+	foreach my $name (sort(keys(%dev_name))) {
+		lnxhc_exception_var("fs_exp", sprintf "#%-10s %+40s",
+			$dev_name{$name}, $name);
+	}
+}
+
+exit(0);

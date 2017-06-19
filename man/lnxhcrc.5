@@ -1,0 +1,170 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhcrc 5 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.
+.SH NAME
+lnxhcrc \- Linux Health Checker configuration file
+.
+.
+.SH DESCRIPTION
+The
+.B lnxhcrc
+file contains configuration information for the \*[lhc] tool (see
+.MP lnxhc 1 ).
+.PP
+The system-wide configuration file is located at
+.BR /etc/lnxhcrc .
+To change settings for a single user, place a customized copy of this file
+at location
+.BR ~/.lnxhc/lnxhcrc .
+.PP
+Lines in the configuration file can either be:
+.RS 4
+.IP \(bu 2
+Empty lines or lines consisting only of white space characters. The \*[lhc]
+ignores these lines.
+.IP \(bu 2
+Comment lines which start with a hash sign ("#"). The \*[lhc] treats these like
+empty lines and ignores them.
+.IP \(bu 2
+Directives in the form
+.BR key = value .
+You can find the list of valid directives and their description in section
+DIRECTIVES.
+.RE
+.
+.SS "Example configuration file"
+.RS 4
+.CL #
+.CL # Example \*[lhc] configuration file
+.CL #
+.CL
+.CL # Database directories
+.CL db_path = /usr/lib/lnxhc
+.CL db_path = /usr/local/lib/lnxhc
+.CL
+.CL # Database caching flag
+.CL db_caching = 1
+.RE
+.
+.
+.SH DIRECTIVES
+You can use configuration file directives to change the configuration of the
+\*[lhc]. All directives are optional.
+.PP
+.KY db_path = directory
+.RS
+Use
+.I directory
+as database directory.
+.PP
+Specifies a directory which the \*[lhc] searches for installed checks,
+consumers, and profiles. You can repeat this line to specify multiple
+directories. The \*[lhc] installs new checks, consumers, and profiles in the
+first specified directory.
+.PP
+The default database directories are
+.RS
+.B /usr/lib/lnxhc
+.RE
+and
+.RS
+.BR /usr/local/lib/lnxhc .
+.RE
+.PP
+.RE
+.
+.KY db_caching =1|0
+.RS
+Enable or disable database caching.
+.PP
+Specify 0 to disable database caching or 1 to enable it. When database
+caching is enabled, the \*[lhc] tries to minimize the overhead of running the
+lnxhc tool by reading the full contents of each database directory only
+when a change has occurred.
+.PP
+The default value for this setting is 1.
+.PP
+.RE
+.
+.
+.SH FILES
+.TP
+/etc/lnxhcrc
+System-wide configuration file.
+.TP
+~/.lnxhc/lnxhcrc
+Per-user configuration file. If this file is present, the system-wide
+configuration file is not read.
+.
+.
+.SH "SEE ALSO"
+.MP lnxhc 1

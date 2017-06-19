@@ -1,0 +1,9 @@
+[title]
+Check whether each disk is accessible via two or
+more host ports and two or more target ports (WWPNs)
+
+[description]
+If all paths to a disk go through a single host or a single target port,
+this host port or target port is a single point of failure for the
+access to that device. Each disk in a multipath setup needs to be
+checked for a single point of failure.

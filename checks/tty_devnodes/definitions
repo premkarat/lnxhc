@@ -1,0 +1,9 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "terminal"
+
+[sysinfo ls_tty]
+ref = tty_usage.ls_tty
+
+[exception tty_has_multiple_nodes]
+severity = medium

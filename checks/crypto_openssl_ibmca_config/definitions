@@ -1,0 +1,30 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "crypto/openssl"
+state = inactive
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo rpm_ql_openssl_ibmca]
+program = "rpm -ql openssl-ibmca | grep libibmca.so"
+ignorerc = 1
+
+[sysinfo rpm_ql_openssl]
+program = "rpm -ql openssl | grep openssl.cnf | uniq"
+ignorerc = 1
+
+[sysinfo rpm_qa_openssl]
+program = "rpm -q openssl"
+ignorerc = 1
+
+[sysinfo rpm_qa_openssl_ibmca]
+program = "rpm -q openssl-ibmca"
+ignorerc = 1
+
+[sysinfo rpm_qa_libica]
+program = "rpm -qa 'libica*'"
+ignorerc = 1
+
+[exception so_file_path_not_correct]
+severity = high

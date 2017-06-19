@@ -1,0 +1,13 @@
+[check]
+author = "Manik Bajpai <manibajp@in.ibm.com>"
+component = "zfcp/hba"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+
+[sysinfo read_zfcp_hba_sysfs_attribs]
+program = "$LNXHC_CHECK_DIR/read_sysfs /sys/bus/ccw/drivers/zfcp/[[:xdigit:]]*/*"
+extrafile = read_sysfs
+
+[exception hba_not_usable]
+severity = high

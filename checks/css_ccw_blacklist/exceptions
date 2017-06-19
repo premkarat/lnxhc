@@ -1,0 +1,44 @@
+[summary online_devices_ignored]
+The following I/O devices are in use although they are on the exclusion list: &sum_online_ignored;
+
+[explanation online_devices_ignored]
+Some of the I/O devices on the exclusion list are in use (online). The exclusion
+list should only contain devices that are not required by the Linux instance.
+
+If any device that is on the current exclusion list becomes unavailable and
+reappears after some time, it is ignored and remains unavailable to Linux.
+If a device is added to the cio_ignore parameter in the boot configuration,
+it will also be unavailable after rebooting Linux.
+
+The I/O devices with the following bus IDs are both in use and
+on the exclusion list:
+
+&online_ignored;
+
+To display the current exclusion list issue:
+#cat /proc/cio_ignore
+
+Use the "lscss" command to investigate which I/O devices are in use. For unused
+devices the "Use" column is blank; for online devices this column contains the
+value "yes".
+
+[solution online_devices_ignored]
+Verify that all I/O devices on the exclusion list are not needed by your
+Linux instance and are excluded intentionally.
+
+Remove any I/O devices from the exclusion list that are on the list by mistake.
+For example, use the "cio_ignore" command if your distribution provides it.
+Alternatively, you can issue a command like this:
+#echo free <device_bus_id> > /proc/cio_ignore
+
+Be sure not to add required devices to the "cio_ignore" kernel parameter in the
+boot configuration.
+
+[reference online_devices_ignored]
+For more information about the I/O device exclusion list, see the section about
+the cio_ignore kernel parameter in "Device Drivers, Features, and Commands".
+You  can  obtain this publication from
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+Also see the "lscss" and "cio_ignore" man pages.

@@ -1,0 +1,20 @@
+[check]
+author = "Hendrik Brueckner <brueckner@linux.vnet.ibm.com>"
+component = "terminal"
+repeat = "12h"
+
+[param idle_time]
+default = "1d"
+
+[param users]
+default = "root"
+
+[param tty]
+default = ""
+
+[sysinfo lsidleusers]
+program = "$LNXHC_CHECK_DIR/lsidleusers"
+extrafile = "lsidleusers"
+
+[exception idle_users]
+severity = low

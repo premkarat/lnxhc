@@ -1,0 +1,19 @@
+[title]
+Ensure processes do not hog memory
+
+[description]
+This check ensures that processes do not end up hogging memory. If certain
+processes start hogging memory other processes would be deprived of memory and
+applications might slow down and system might even become unresponsive.
+
+[param processes]
+A list of processes separated by comma (,) that are expected to consume high
+memory and which need not be reported by this check. If the list is empty, all
+the processes consuming high memory are reported.
+
+Example:
+#firefox, apache2
+
+[param mem_usage]
+Per process memory usage at which to raise a high-severity exception.
+Valid values are integers in the range 1 to 100.

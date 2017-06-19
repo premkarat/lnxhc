@@ -1,0 +1,6 @@
+[title]
+Identify unusable SCSI devices
+
+[description]
+SCSI devices that cannot be used might be damaged or simply need to be set
+back online.

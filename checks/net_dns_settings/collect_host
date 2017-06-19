@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+
+my ($handle, @ip);
+
+open($handle, "<", "/etc/resolv.conf") or
+	die("Could not open /etc/resolv.conf");
+
+while(<$handle>) {
+	chomp;
+	next if /^(?:\s*#|\s*$)/;
+	if (/^nameserver\s+(.*)/) {
+		push(@ip, $1);
+	}
+}
+close($handle);
+
+my @res;
+foreach my $i(@ip) {
+	my $ptr = `host -W 5 $i $i`;
+	push (@res, $i) if ($ptr !~ /(?:^Using domain server:)/);
+}
+
+if (!@ip) {
+	print "No nameserver\n";
+} elsif (@res) {
+	print join(", ", @res);
+} else {
+	print "Success\n";
+}

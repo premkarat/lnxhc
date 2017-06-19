@@ -1,0 +1,49 @@
+[summary debug_mode]
+Privilege dump debug mode is on
+
+[explanation debug_mode]
+With privilege dump set to 1 all processes dump core when possible. The core
+dump is owned by the file system user ID of the dumping process and no security
+is applied. This is intended for system debugging situations only.
+
+[solution debug_mode]
+If system is not being used for debugging purpose, disable the setting in the
+/etc/sysctl.conf file:
+
+#fs.suid_dumpable = 0
+
+This setting becomes active the next time the Linux instance is booted.
+
+To temporarily disable privilege dump on a running Linux instance, issue the
+following command:
+
+#sysctl -w fs.suid_dumpable=0
+
+[reference debug_mode]
+See the man pages of the "sysctl" command and of the "sysctl.conf"
+configuration file.
+
+[summary suidsafe_mode]
+Privilege dump suid safe mode is on
+
+[explanation suidsafe_mode]
+With privilege dump set to 2 any binary would be dumped and readable by root
+only hence limiting security. This mode is appropriate when administrators are
+attempting to debug problems in a normal environment.
+
+[solution suidsafe_mode]
+If system is not being used for debugging purpose, disable the setting in the
+/etc/sysctl.conf file:
+
+#fs.suid_dumpable = 0
+
+This setting becomes active the next time the Linux instance is booted.
+
+To temporarily disable privilege dump on a running Linux instance, issue the
+following command:
+
+#sysctl -w fs.suid_dumpable=0
+
+[reference suidsafe_mode]
+See the man pages of the "sysctl" command and of the "sysctl.conf"
+configuration file.

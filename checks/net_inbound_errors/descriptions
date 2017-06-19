@@ -1,0 +1,18 @@
+[title]
+Check the inbound network traffic for an excessive error or drop ratio
+
+[description]
+This check examines network interfaces for a high received (RX) error ratio or
+high ratio of dropped RX packets. Problems with received packets lead to
+performance degradation as packets have to be resent by the originator.
+High RX error and drop ratios can be caused by insufficient memory.
+
+[param rxerror_ratio]
+Threshold for the percentage of RX errors by total RX packets. If the ratio of
+RX errors exceeds this threshold for a network interface, an exception message
+is issued. Valid values are integers in the range 1 to 100.
+
+[param rxdrop_ratio]
+Threshold for the percentage of dropped RX packets by total RX packets. If the
+ratio of dropped RX packets exceeds this threshold for a network interface, an
+exception message is issued. Valid values are integers in the range 1 to 100.

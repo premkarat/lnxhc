@@ -1,0 +1,27 @@
+[summary cpacf_not_enabled]
+CPACF is not enabled
+
+[explanation cpacf_not_enabled]
+The CP Assist for Cryptographic Functions (CPACF) feature is not enabled.
+As a result, hardware-based acceleration of cryptographic operations is not
+available in the OpenSSL stack, the clear key openCryptoki stack and in the
+Linux kernel. The following health checks will be not applicable:
+
+ * crypto_openssl_stack and crypto_openssl_stack_32bit
+ * crypto_opencryptoki_ckc and crypto_opencryptoki_ckc_32bit
+
+In addition the usage of protected key cryptography is not available to
+CCA based secure key cryptography stacks (see health checks crypto_cca_stack,
+crypto_opencryptoki_skc, and crypto_opencryptoki_skc_32bit).
+
+To establish whether CPACF has been enabled on your hardware, issue:
+## cat /proc/cpuinfo
+If CPACF has been enabled, the listed features include "msa".
+
+[solution cpacf_not_enabled]
+CPACF is activated using a no-charge enablement feature, FC 3863.
+
+Contact your System z support team for further assistance.
+
+[reference cpacf_not_enabled]
+None.

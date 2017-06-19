@@ -1,0 +1,21 @@
+[summary idle_ttys]
+These terminals are idle: &short_list;
+
+[explanation idle_ttys]
+One or more terminals are occupied by users who do not work with
+the system.  These terminals are not available for logins by other
+users, for example, in emergencies.
+
+On these terminals, the specified idle time, &param_idle_time;, has been
+exceeded:
+
+&long_list;
+
+You can run the "w" command to display user IDs and their idle times.
+
+
+[solution idle_ttys]
+Log off the idle user IDs on their terminal.
+
+[reference idle_ttys]
+See the man page of the "w" command.

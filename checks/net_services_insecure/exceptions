@@ -1,0 +1,35 @@
+[summary insecure_services]
+One or more active network services are known to be insecure: (&insecure_services_summary;)
+
+[explanation insecure_services]
+Insecure network services can, potentially, compromise your data and system
+security. Insecure services might lack user authentication or transmit
+credentials and data without encryption.
+
+The following insecure network services are active on your system:
+
+&insecure_services_list;
+
+[solution insecure_services]
+Secure your system, for example, by taking one or more of the following actions:
+
+- Disable any insecure network services that are not required. For example,
+  to disable telnet issue:
+
+  ## chkconfig telnet off
+
+- Instead of the insecure network services, use network services that provide
+  SSL/TLS encryption features. For example, use SSH File Transfer Protocol
+  (SFTP) or FTP-SSL instead of FTP.
+
+- Set up a firewall to prevent unauthorized parties from accessing the insecure
+  network services.
+
+- Make sure the services are only available on secured network connections.
+
+To prevent exception messages about services that you are aware of and do not
+consider a threat, remove these services from the "insecure_services" parameter.
+
+[reference insecure_services]
+- For information about disabling services, see the "chkconfig" man page
+- For information about changing check parameters, see the "lnxhc" man page.

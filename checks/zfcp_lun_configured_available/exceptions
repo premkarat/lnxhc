@@ -1,0 +1,145 @@
+[summary lun_unavailable]
+One or more LUNs configured at the boot time for persistence,
+are not available
+
+[explanation lun_unavailable]
+There are certain zfcp-attached SCSI devices configured for
+availability across reboots, which are not available. These
+devices are:
+
+|Device bus-ID|WWPN|LUN
+&missing_disk_table;
+
+Possible reasons that the LUNs are not available can be:
+1. A problem in the configuration
+2. A loss of connectivity
+3. Unsupported syntax in the persistent configuration used
+
+In order to manually verify the problem, perform the following steps:
+
+On SUSE Linux Enterprise System:
+1. Check the corresponding "udev" rules.
+2. Read the content of the files in "51-zfcp-<device_bus_id>.rules" in
+   the "/etc/udev/rules.d/" directory.
+
+The structure of the content of the udev rule (wrapped for readability)
+is demonstrated below:
+
+#ACTION=="add", KERNEL=="rport-*", ATTR{port_name}=="<wwpn>",
+#    SUBSYSTEMS=="ccw", KERNELS=="<device_bus_id>",
+#    ATTR{[ccw/<device_bus_id>]<wwpn>/unit_add}="<fcp_lun>"
+
+Example for the device bus-ID=0.0.3c00 (wrapped for readability)
+#/etc/udev/rules.d/51-zfcp-0.0.3c00.rules:
+#...
+#ACTION=="add", KERNEL=="rport-*",
+#    ATTR{port_name}=="0x500507630503c1ae", SUBSYSTEMS=="ccw",
+#    KERNELS=="0.0.3c00", ATTR{[ccw/0.0.3c00]0x500507630503c1ae/
+#    unit_add}="0x4020406000000000"
+#ACTION=="add", KERNEL=="rport-*",
+#    ATTR{port_name}=="0x500507630503c1ae", SUBSYSTEMS=="ccw",
+#    KERNELS=="0.0.3c00", ATTR{[ccw/0.0.3c00]0x500507630503c1ae/
+#    unit_add}="0x4020407000000000"
+#ACTION=="add", KERNEL=="rport-*",
+#    ATTR{port_name}=="0x500507630503c1ae", SUBSYSTEMS=="ccw",
+#    KERNELS=="0.0.3c00", ATTR{[ccw/0.0.3c00]0x500507630503c1ae/
+#    unit_add}="0x402040b600000000"
+#ACTION=="add", KERNEL=="rport-*",
+#    ATTR{port_name}=="0x500507630503c1ae", SUBSYSTEMS=="ccw",
+#    KERNELS=="0.0.3c00", ATTR{[ccw/0.0.3c00]0x500507630503c1ae/
+#    unit_add}="0x402040d600000000"
+
+Example for the device bus-ID=0.0.3d18 (wrapped for readability)
+#/etc/udev/rules.d/51-zfcp-0.0.3d18.rules:
+#...
+#ACTION=="add", KERNEL=="rport-*",
+#    ATTR{port_name}=="0x500507630508c1ae", SUBSYSTEMS=="ccw",
+#    KERNELS=="0.0.3d18", ATTR{[ccw/0.0.3d18]0x500507630508c1ae/
+#    unit_add}="0x4020406000000000"
+#ACTION=="add", KERNEL=="rport-*",
+#    ATTR{port_name}=="0x500507630508c1ae", SUBSYSTEMS=="ccw",
+#    KERNELS=="0.0.3d18", ATTR{[ccw/0.0.3d18]0x500507630508c1ae/
+#    unit_add}="0x4020407000000000"
+#ACTION=="add", KERNEL=="rport-*",
+#    ATTR{port_name}=="0x500507630508c1ae", SUBSYSTEMS=="ccw",
+#    KERNELS=="0.0.3d18", ATTR{[ccw/0.0.3d18]0x500507630508c1ae/
+#    unit_add}="0x402040b600000000"
+#ACTION=="add", KERNEL=="rport-*",
+#    ATTR{port_name}=="0x500507630508c1ae", SUBSYSTEMS=="ccw",
+#    KERNELS=="0.0.3d18", ATTR{[ccw/0.0.3d18]0x500507630508c1ae/
+#    unit_add}="0x402040d600000000"
+
+Note: In case you want to use the auto LUN scan feature (available since
+SLES11P2) but the LUNs are not available as expected, SLES11 requires the
+kernel parameter
+
+#zfcp.allow_lun_scan=1
+
+However, note that this check would not monitor the auto LUN scan feature.
+
+See also:
+
+http://www.novell.com/support/kb/doc.php?id=7012700
+
+On Red Hat Enterprise Linux:
+
+For zfcp-attached SCSI devices not required to mount the root filesystem,
+for example data volumes, or tape drives, or tape libraries, check the output
+of this command:
+
+## cat /etc/zfcp.conf
+
+The structure of the output is demonstrated below:
+
+#<device_bus_id> <wwpn>  <fcp_lun>
+
+For Example:
+#0.0.3c00 0x500507630503c1ae  0x4020406000000000
+#0.0.3c00 0x500507630503c1ae  0x4020407000000000
+#0.0.3d18 0x500507630508c1ae  0x4020406000000000
+#0.0.3d18 0x500507630508c1ae  0x4020407000000000
+
+For zfcp-attached SCSI disks required to mount the root filesystem, and
+only those, rd_ZFCP entries are used with Red Hat Enterprise Linux 6 as
+part of the kernel parameters, for example via the "zipl.conf". To find
+out the list of disks meant to be persistent, see the content of
+"/proc/cmdline". The output, which is a single line but wrapped around
+for readability, looks like:
+
+#root=/dev/mapper/vg_devel1-lv_root rd_ZFCP=0.0.3c00,0x500507630503c1ae,
+#       0x402040b600000000 rd_ZFCP=0.0.3c00,0x500507630503c1ae,
+#       0x402040d600000000 rd_ZFCP=0.0.3d18,0x500507630508c1ae,
+#       0x402040b600000000 rd_ZFCP=0.0.3d18,0x500507630508c1ae,
+#       0x402040d600000000 rd_LVM_LV=vg_devel1/lv_root rd_NO_LUKS
+#       rd_NO_MD rd_NO_DM LANG=en_US.UTF-8 SYSFONT=latarcyrheb-sun16
+#       KEYTABLE=us cio_ignore=all,!0.0.0009
+
+On either system, SUSE Linux Enterprise System or Red Hat Enterprise
+Linux, check the output of the command "lszfcp -D" and look for the first
+column of the output.
+
+#0.0.3c00/0x500507630503c1ae/0x4020406000000000
+#0.0.3c00/0x500507630503c1ae/0x4020407000000000
+#0.0.3c00/0x500507630503c1ae/0x402040d600000000
+#0.0.3d18/0x500507630508c1ae/0x4020406000000000
+#0.0.3d18/0x500507630508c1ae/0x402040b600000000
+#0.0.3d18/0x500507630508c1ae/0x402040d600000000
+
+The list shows all available zfcp-attached SCSI devices.
+Comparing this list with the persistent configuration in the above example, the
+SCSI devices with the parameters
+<device_bus_id/wwpn/lun>=<0.0.3d18/0x500507630508c1ae/0x4020407000000000>
+and <0.0.3c00/0x500507630503c1ae/0x402040b600000000> are not available.
+
+[solution lun_unavailable]
+If a LUN is configured but not available, check if the correct WWPN or
+LUN was used. If that is the case, check the storage area network (SAN)
+zoning and storage server definitions and state.  Review the "syslog"
+messages, and the command history for troubleshooting.
+
+[reference lun_unavailable]
+For more information about the configuration of FCP LUNs and
+troubleshooting, see "Device Drivers, Features, and Commands".
+You can obtain this publication from:
+
+http://www.ibm.com/developerworks/linux/linux390/distribution_hints.html

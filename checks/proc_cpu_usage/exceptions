@@ -1,0 +1,20 @@
+[summary process_hogs_cpu]
+One or more processes are hogging cpu time
+
+[explanation process_hogs_cpu]
+If processes end up hogging cpu time then other processes could be deprived of
+cpu time which in turn may cause applications to slow down and the system might
+become unresponsive.
+
+List of processes hogging cpu time:
+
+&hogging_procs;
+
+[solution process_hogs_cpu]
+To terminate the process that hogs cpu time and which is not required issue the
+following command:
+
+#kill -9 <pidofprocess>
+
+[reference process_hogs_cpu]
+Refer to the man pages of "top" and "kill" command.

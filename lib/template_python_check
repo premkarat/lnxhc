@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+#
+# &check_id;
+#   Health check program for the Linux Health Checker
+#
+# TODO: specify copyright
+#
+# Author(s): &check_author;
+#
+# TODO: specify license. Note: the parts of this file that were generated
+#       by lnxhc are not copyrighted and can be distributed under any license.
+#
+
+# Import global modules
+import os
+import sys
+
+# Import local modules
+checklib = os.path.join(os.environ['LNXHC_LIBDIR'], 'python')
+sys.path.insert(0, checklib)
+from check.base import *
+from check.error import *
+
+class &check_id;(LnxhcCheck):
+	"""
+	Implementation of &check_id; Check
+	"""
+	def run(self):
+		"""
+		Runs check instructions
+		"""
+		# Additional information for logging, verbosity or
+		# debugging purpose can be done as below.
+		&check_id;.info("Check &check_id; in progress")
+		&check_id;.verbose("To log additional information")
+		&check_id;.debug("To log debug information")
+
+		# Check parameter(s) can be accessed as below.
+&python_param_def_list;
+		# Check sysinfo(s) can be accessed as below.
+&python_si_def_list;
+		# Exception definitions for &check_id; check are below
+&python_ex_def_list;
+		# Sample exception reporting.
+		# TODO: call this only if an exception was identified.
+		#
+&python_ex_report_list;
+		# TODO:
+		# 1. Check parameters for correct values (get_param()).
+		# 2. Access sysinfo data (filenames available in sysinfo()).
+		# 3. Perform analysis.
+		# 4. If an exception is found, create LnxhcException object and
+		#    pass it to LNXHC framework using self.cause()
+		#
+		# See 'man lnxhc_check_program' for more information.
+		#
+
+		return
+
+#
+# Code execution starts here
+#
+def main():
+	# Create LNXHC check class instance
+	lnxhc = &check_id;()
+	lnxhc.setup()
+
+	# Run check with information obtained through sysinfo
+	try:
+		lnxhc.run()
+	except LnxhcCheckDependency as e:
+		&check_id;.fail_dep(e)
+	except (LnxhcBaseError, LnxhcCheckError, LnxhcParamError,
+		LnxhcSysinfoError) as e:
+		&check_id;.error(e)
+
+	# LNXHC framework takes over control now.
+	return
+
+#
+# Code entry
+#
+if __name__ == "__main__":
+	main()
+	sys.exit(0)

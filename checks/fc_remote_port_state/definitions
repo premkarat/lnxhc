@@ -1,0 +1,14 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "fibre channel/remote port"
+
+[sysinfo remote_ports_data]
+program = "$LNXHC_CHECK_DIR/remote_ports_data /sys/class/fc_remote_ports/*"
+extrafile = "remote_ports_data"
+
+[exception rports_not_usable]
+severity = high
+
+[param ignore_bus_id]
+# Add Bus IDs with comma ',' separated, for example: 0.0.1234
+default = ""

@@ -1,0 +1,7 @@
+[title]
+Ensure that panic-on-oops is switched on
+
+[description]
+If the Linux instance experiences a kernel oops, the instance
+can no longer be trusted to work correctly. The panic-on-oops
+setting ensures that the Linux instance is stopped if this occurs.

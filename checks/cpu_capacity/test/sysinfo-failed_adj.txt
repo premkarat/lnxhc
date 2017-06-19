@@ -1,0 +1,69 @@
+Manufacturer:         IBM             
+Type:                 2817
+Model:                703              M32             
+Sequence Code:        00000000000EAA14
+Plant:                02  
+Model Capacity:       703              00000408
+Model Perm. Capacity: 703              00000408
+Model Temp. Capacity: 703              00000408
+Capacity Adj. Ind.:   90 
+Capacity Ch. Reason:  0
+
+CPUs Total:           34
+CPUs Configured:      3
+CPUs Standby:         0
+CPUs Reserved:        31
+Capability:           696
+Adjustment 02-way:    61900
+Adjustment 03-way:    60280
+Adjustment 04-way:    59080
+Adjustment 05-way:    57740
+Adjustment 06-way:    56900
+Adjustment 07-way:    56040
+Adjustment 08-way:    55120
+Adjustment 09-way:    53950
+Adjustment 10-way:    52980
+Adjustment 11-way:    52000
+Adjustment 12-way:    51080
+Adjustment 13-way:    50380
+Adjustment 14-way:    49600
+Adjustment 15-way:    48760
+Adjustment 16-way:    47860
+Adjustment 17-way:    47310
+Adjustment 18-way:    46860
+Adjustment 19-way:    46300
+Adjustment 20-way:    46020
+Adjustment 21-way:    45520
+Adjustment 22-way:    45260
+Adjustment 23-way:    44960
+Adjustment 24-way:    44690
+Adjustment 25-way:    44390
+Adjustment 26-way:    44140
+Adjustment 27-way:    43860
+Adjustment 28-way:    43460
+Adjustment 29-way:    43200
+Adjustment 30-way:    42900
+Adjustment 31-way:    42620
+Adjustment 32-way:    42360
+Adjustment 33-way:    42060
+Adjustment 34-way:    41800
+Secondary Capability: 696
+
+LPAR Number:          47
+LPAR Characteristics: Shared 
+LPAR Name:            R17LP45 
+LPAR Adjustment:      1000
+LPAR CPUs Total:      3
+LPAR CPUs Configured: 3
+LPAR CPUs Standby:    0
+LPAR CPUs Reserved:   0
+LPAR CPUs Dedicated:  0
+LPAR CPUs Shared:     3
+
+VM00 Name:            R1745006
+VM00 Control Program: z/VM    6.1.0   
+VM00 Adjustment:      214
+VM00 CPUs Total:      3
+VM00 CPUs Configured: 3
+VM00 CPUs Standby:    0
+VM00 CPUs Reserved:   0

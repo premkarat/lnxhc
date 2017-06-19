@@ -1,0 +1,66 @@
+[summary temp_dir_miss]
+Temporary files in these directories are not cleared: &tmp_dir_summ;
+
+[explanation temp_dir_miss]
+In some directories, temporary files are not deleted at regular intervals. Accumulating temporary files can fill up file systems and cause the Linux instance to run out of disk space.
+Temporary files in these directories are not cleared at regular intervals:
+
+&tmp_dir_list;
+Read the value of the "TMP_DIRS_TO_CLEAR" variable in "/etc/sysconfig/cron" to find out which directories are listed for regular clearing.
+
+[solution temp_dir_miss]
+Add any directories to be cleared at regular intervals to the "TMP_DIRS_TO_CLEAR" variable in "/etc/sysconfig/cron".
+If this check reports a directory that should not be cleared, remove it from the "temp_dir" health check parameter.
+
+[reference temp_dir_miss]
+See the "lnxhc-check" man page for information about changing check parameters.
+
+[summary max_days_not_set]
+Temporary files are not deleted at regular intervals
+
+[explanation max_days_not_set]
+Temporary files are not deleted at regular intervals because the "MAX_DAYS_IN_TMP" variable is not set or empty.
+Accumulating temporary files can fill up file systems and cause the Linux instance to run out of disk space.
+Check the value of the "MAX_DAYS_IN_TMP" variable in "/etc/sysconfig/cron".
+
+[solution max_days_not_set]
+Set a time interval in days with the "MAX_DAYS_IN_TMP" variable in "/etc/sysconfig/cron". All temporary files that are not accessed for more than the specified number of days are deleted.
+
+[reference max_days_not_set]
+
+[summary no_cron_job]
+The cron service for deleting temporary files at regular intervals is switched off.
+
+[explanation no_cron_job]
+The cron service for deleting temporary files at regular intervals is switched off. Accumulating temporary files can fill up file systems and cause the Linux instance to run out of disk space.
+
+Typical Linux installations provide cron jobs to automatically delete temporary files. To automatically run these jobs, the cron service must be switched on.
+
+Use the "chkconfig" command to confirm that the cron service is active.
+For example, run:
+## chkconfig --list |grep cron
+
+[solution no_cron_job]
+To switch on the cron service, use the "chkconfig" command. The name of the cron service depends on your Linux distribution.
+
+For example, issue:
+## chkconfig cron on
+
+[reference no_cron_job]
+See the "chkconfig" and the cron service man pages.
+
+[summary tmp_watch]
+The program that deletes temporary files is not installed.
+
+[explanation tmp_watch]
+The "tmpwatch" program, which deletes temporary files at regular intervals, is not installed. Accumulating temporary files can fill up file systems and cause the Linux instance to run out of disk space.
+
+To verify if "tmpwatch" is installed, for example, issue:
+## rpm -qi tmpwatch
+
+[solution tmp_watch]
+Install the "tmpwatch" package, for example, issue:
+## rpm -ihv tmpwatch-<version>.rpm
+
+[reference tmp_watch]
+See the "rpm" and "tmpwatch" man pages.

@@ -1,0 +1,32 @@
+[check]
+author = "Rajesh K Pirati <rapirati@in.ibm.com>"
+component = "filesystem/temp"
+
+[deps]
+(sys_distro=RHEL and sys_rhel_version>=5.0) or (sys_distro=SLES and sys_sles_version>=10)
+
+[sysinfo cron_status]
+program = "/sbin/chkconfig --list"
+
+[sysinfo rhel_tmpwatch]
+program = "cat /etc/cron.daily/tmpwatch"
+ignorerc=1
+
+[sysinfo suse_sysconf_cron]
+program = "cat /etc/sysconfig/cron"
+ignorerc=1
+
+[param temp_dir]
+default = "/tmp"
+
+[exception temp_dir_miss]
+severity = low
+
+[exception max_days_not_set]
+severity = low
+
+[exception no_cron_job]
+severity = low
+
+[exception tmp_watch]
+severity = low

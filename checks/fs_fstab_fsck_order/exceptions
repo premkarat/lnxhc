@@ -1,0 +1,75 @@
+[summary root_not_checked]
+Root filesystem is not checked by filesystem check (fsck)
+
+[explanation root_not_checked]
+Root filesystem needs to be checked first before any filesystem. If root
+filesystem is not checked for consistency it might corrupt the filesystem
+and Linux instance might fail to start up.
+
+[solution root_not_checked]
+Replace 6th field (fs_passno) of /etc/fstab entry from 0 to 1.
+
+For example:
+
+If the current setting is
+
+#/dev/disk/by-path/ccw-0.0.eb7e-part1 / ext3 defaults   0  0
+
+edit /etc/fstab to reflect the below change
+
+#/dev/disk/by-path/ccw-0.0.eb7e-part1 / ext3 defaults   0  1
+
+[reference root_not_checked]
+See the man page of the "fstab" file and "fsck" command.
+
+[summary root_low_prio_check]
+Root filesystem is checked with low priority by filesystem check (fsck)
+
+[explanation root_low_prio_check]
+Root filesystem needs to be checked first before any other filesystem.
+Root filesystem contains important system related data so it needs to
+be checked prior to other filesystems.
+
+[solution root_low_prio_check]
+Replace 6th field (fs_passno) of /etc/fstab entry from 2 to 1.
+
+For example:
+
+If the current setting is
+
+#/dev/disk/by-path/ccw-0.0.eb7e-part1 / ext3 defaults   0  2
+
+edit /etc/fstab to reflect the below change
+
+#/dev/disk/by-path/ccw-0.0.eb7e-part1 / ext3 defaults   0  1
+
+[reference root_low_prio_check]
+See the man page of the "fstab" file and "fsck" command.
+
+[summary filesystem_not_checked]
+These filesystems are not checked by filesystem check (fsck): &filesystem_list_summary;
+
+[explanation filesystem_not_checked]
+Several filesystems are not checked for file consistency during boot time.
+If the filesystems are not checked for consistency it might corrupt the
+filesystem and also system might fail to come up.
+
+These filesystems are not checked:
+
+#&filesystem_not_checked;
+
+[solution filesystem_not_checked]
+Replace the 6th field (fs_passno) of /etc/fstab entry from 0 to 2
+
+For example:
+
+If the current setting is
+
+#/dev/disk/by-path/ccw-0.0.eb7e-part2 /mnt ext3 defaults   0  0
+
+edit /etc/fstab to reflect the below change
+
+#/dev/disk/by-path/ccw-0.0.eb7e-part2 /mnt ext3 defaults   0  2
+
+[reference filesystem_not_checked]
+See the man page of the "fstab" file and "fsck" command.

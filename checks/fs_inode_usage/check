@@ -1,0 +1,164 @@
+#!/usr/bin/perl
+#
+# fs_inode_usage
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Nageswara R Sastry <nasastry@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_WARN_LIMIT = "warn_limit";
+my $LNXHC_EXCEPTION_CRITICAL_LIMIT = "critical_limit";
+
+# Value of parameter 'warn_limit'.
+my $param_warn_limit = $ENV{"LNXHC_PARAM_warn_limit"};
+
+# Value of parameter 'critical_limit'.
+my $param_critical_limit = $ENV{"LNXHC_PARAM_critical_limit"};
+
+# Value of parameter 'mount_points'.
+my $param_mount_points = $ENV{"LNXHC_PARAM_mount_points"};
+
+# Path to the file containing data for sysinfo item 'df_output'.
+my $sysinfo_df_output = $ENV{"LNXHC_SYSINFO_df_output"};
+
+
+#
+# Code entry
+#
+
+my (%mount_points, @checked_list);
+
+if ($LNXHC_DEBUG) {
+	print("DEBUG: critical_limit='$param_critical_limit'\n");
+	print("DEBUG: warn_limit='$param_warn_limit'\n");
+	print("DEBUG: mount_points='$param_mount_points'\n");
+}
+
+# Check parameters
+check_int_param("critical_limit", 0, 100);
+check_int_param("warn_limit", 0, 100);
+
+%mount_points = %{parse_list_param("mount_points", ':')};
+
+
+# Parse df output
+my @warn_exceeded;
+my @critical_exceeded;
+my $handle;
+my $last_line;
+my $line;
+
+open($handle, "<$sysinfo_df_output") or
+	die("Could not open $sysinfo_df_output");
+while (<$handle>) {
+	my ($device, $usage, $directory);
+	chomp();
+
+	# Skip header line
+	next if ($. == 1);
+
+	# Need to save last line
+	$last_line = $line;
+	$line = $_;
+
+	if (/^\s/) {
+		# This is the second line of a two-line entry:
+		# /dev/mapper/vg_disk-lv_root
+		#                      1048576  126370  922206   13% /
+		if (!/^\s+\d+\s+\d+\s+\d+\s+(\S+)\s+(.*)$/ ||
+		    !defined($last_line)) {
+			die("Unrecognized line in df output data: '$_'!\n");
+		}
+		($device, $usage, $directory) = ($last_line, $1, $2);
+	} elsif (/^(\S.*)\s+\d+\s+\d+\s+\d+\s+(\S+)\s+(.*)$/) {
+		# /dev/dasda1            7098728   2664592   4073532  40% /
+		($device, $usage, $directory) = ($1, $2, $3);
+	} else {
+		# This is the first line of a two-line entry
+		next;
+	}
+	$device =~ s/\s*$//;
+
+	# Usage can be "-" if total is 0
+	next if ($usage !~ s/(\d+)%/$1/);
+
+	# Should this directory be checked?
+	if (%mount_points) {
+		if ($mount_points{$directory}) {
+			# Save mount points that have been checked.
+			push @checked_list, $directory;
+		} else {
+			# Mount point not in the user-specified list,
+			# so ignore it and proceed with the next entry
+			print("[skipped] $directory $usage%\n");
+			next;
+		}
+	}
+
+	# Check usage
+	if ($usage >= $param_critical_limit) {
+		push(@critical_exceeded, "$directory $usage%");
+	} elsif ($usage >= $param_warn_limit) {
+		push(@warn_exceeded, "$directory $usage%");
+	}
+
+	# Informational output
+	print("[checked] $directory $usage%\n");
+
+}
+close($handle);
+
+# Report information about unchecked user-specified mount points
+if (%mount_points) {
+	# Remove all checked mount points
+	delete @mount_points{@checked_list};
+	foreach (sort keys %mount_points) {
+		print("[not checked] $_\n");
+	}
+}
+
+# Report exception variable values
+foreach (@warn_exceeded) {
+	lnxhc_exception_var("warn_exceeded_list", "#$_");
+}
+foreach (@critical_exceeded) {
+	lnxhc_exception_var("critical_exceeded_list","#$_");
+}
+
+# Summary list should be short
+lnxhc_exception_var_list("warn_exceeded_list_summary",
+			 \@warn_exceeded, ', ');
+lnxhc_exception_var_list("critical_exceeded_list_summary",
+			 \@critical_exceeded, ', ');
+
+# Report exceptions if necessary
+if (@critical_exceeded) {
+	lnxhc_exception($LNXHC_EXCEPTION_CRITICAL_LIMIT);
+}
+if (@warn_exceeded) {
+	lnxhc_exception($LNXHC_EXCEPTION_WARN_LIMIT);
+}
+
+
+exit(0);

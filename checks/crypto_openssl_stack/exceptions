@@ -1,0 +1,93 @@
+[summary rpms_not_installed]
+Required RPMs are not installed (&rpm_summ;)
+
+[explanation rpms_not_installed]
+Required RPMs are not installed. The Linux system cannot exploit the cryptographic hardware. Some applications or libraries will emulate cryptographic operations in software instead, but this emulation will decrease the system performance exceedingly.
+
+The following RPMs are required but not installed:
+&rpm;
+
+To  verify whether the required RPMs are installed, issue:
+  #rpm -qa | grep "<RPMname>"
+
+where <RPMname> is the name of a required RPM
+
+Examples:
+
+In case of a single RPM that contains the string 'avahi', issue:
+  #rpm -qa | grep "avahi"
+In case of a list of RPMs that contain a string 'avahi' and 'postfix', issue:
+  #rpm -qa | grep "avahi\|postfix"
+
+[solution rpms_not_installed]
+Install the required RPMs by using the following command or by using the specific options available from your distribution.
+
+  #rpm -ivh <RPMname> [<RPMname> ...]
+where <RPMname> is the name of the required RPM
+
+[reference rpms_not_installed]
+See the man page of the 'rpm' command.
+
+
+[summary crypto_adapters_not_available]
+Required cryptographic adapters are not available (&crypto_hw;)
+
+[explanation crypto_adapters_not_available]
+Required cryptographic adapters are not available. The Linux system  will emulate cryptographic operations by software. This emulation will decrease the system performance exceedingly.
+
+The following cryptographic adapters are required but not available:
+&crypto_hw;
+
+To  verify whether a required cryptographic adapter is available, issue:
+  #lszcrypt
+and look for the following line in the output:
+
+#card<nn>: CEXxy
+#where
+#x denotes the series of the cryptographic adapter, such as 2 or 3
+#y denotes the type of the cryptographic adapter: 'C' for Coprocessor, and 'A' for Accelerator.
+
+[solution crypto_adapters_not_available]
+If the cryptographic adapter is not attached to the Linux system,  follow the procedure described in the 'Technical Guide' related to your System z.
+For example, for a System z server z196, refer to the 'IBM zEnterprise 196 Technical Guide'.
+
+If the cryptographic adapter is attached but not online, you can use the 'chzcrypt' tool to set coprocessors online.
+See the 'Generic cryptographic device driver' chapter in 'Device Drivers, Features, and Commands'.
+
+[reference crypto_adapters_not_available]
+You can obtain Technical Guides from
+http://www.redbooks.ibm.com
+
+You can obtain the 'Device Drivers, Features, and Commands' publication from
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+
+[summary ibmca_not_configured]
+OpenSSL is not configured with the 'ibmca' engine
+
+[explanation ibmca_not_configured]
+OpenSSL is not configured with the 'ibmca' engine. The System z cryptographic hardware cannot be exploited. The cryptographic operations like encryption, or decryption will be emulated by software. This emulation will decrease the system performance exceedingly.
+
+To verify the OpenSSL configuration, issue:
+  # openssl engine -c
+
+If OpenSSL is configured with the 'ibmca' engine, details related to 'ibmca' will be displayed.
+
+[solution ibmca_not_configured]
+Configure the openssl.cnf file with the 'ibmca' engine.
+To know where the openssl.cnf file is located, issue:
+  # rpm -ql openssl | grep openssl.cnf
+
+You will see a different path for each distribution.
+If you  see two entries for the same file, one is for the 32-bit RPM.
+
+To retrieve the required data for enabling the 'ibmca' engine, issue:
+  # rpm -ql openssl-ibmca
+
+A list of openssl-ibmca files is displayed.
+
+Open the sample configuration file 'openssl.cnf.sample-s390x' and verify if the 'libibmca.so' path is correct.
+Copy the contents of the sample file into the 'openssl.cnf' file.
+
+[reference ibmca_not_configured]
+See the man page of the 'openssl' and 'rpm' commands and the README file of the openssl-ibmca package.

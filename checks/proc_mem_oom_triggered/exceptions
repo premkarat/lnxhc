@@ -1,0 +1,33 @@
+[summary processes_killed]
+The OOM killer killed one or more processes (&process_list_summary;)
+
+[explanation processes_killed]
+Because of a severe shortage of available memory, the out-of-memory killer (OOM killer)
+recovered memory by killing some processes. These processes were affected:
+
+&processes_pid_list;
+
+To find out more about the OOM occurrences, check /var/log/messages or the dmesg output
+for entries that begin with "Out of memory".
+
+An algorithm assigns a priority to each process. Processes with high priority get killed first
+when an OOM condition occurs.
+
+The priority is expressed as a number in /proc/<pid>/score, where <pid> is the process ID.
+To investigate the priorities, use the ps command to list your processes with the process IDs,
+and then read the priorities for processes of interest.
+
+[solution processes_killed]
+Restart any important processes that were killed.
+
+To prevent OOM conditions in the future, consider adding more memory or swap space.
+Also, ensure that there are no memory leaks in the applications you are running.
+
+You can influence the priority for a process by writing a value in the range -17 to 15 to
+/proc/<pid>/oom_adj, where <pid> is the process ID. The lower this value, the lower becomes
+the priority in /proc/<pid>/score. For -17 the OOM killer is disabled for the process.
+
+[reference processes_killed]
+For more details, see the section about the procfs and OOM in
+"Red Hat Enterprise Linux 6 Deployment Guide".
+You can obtain this publication from http://redhat.com/docs.

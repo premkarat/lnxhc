@@ -1,0 +1,14 @@
+[title]
+Check whether N_Port ID Virtualization (NPIV) is active for all eligible FCP devices
+
+[description]
+This check identifies the FCP devices for which N_Port ID Virtualization is
+possible but not active.  To use NPIV, the FCP devices must be attached to a
+switch. The switch must support NPIV and the System z type must be z9 or
+later.
+
+With NPIV a single FCP port can register multiple worldwide port names (WWPN)
+with a fabric name server. Each registered WWPN is assigned a unique N_Port ID.
+NPIV requires more storage area network (SAN) resources because of the
+additional virtual WWPNs. Linux can save resources by only seeing a limited
+set of SCSI devices.

@@ -1,0 +1,21 @@
+<!ELEMENT sysinfo (instance*)>
+<!ATTLIST sysinfo version CDATA #REQUIRED>
+
+  <!ELEMENT instance (host*)>
+  <!ATTLIST instance id CDATA #REQUIRED>
+
+    <!ELEMENT host (sysvar*,item*)>
+    <!ATTLIST host id CDATA #REQUIRED>
+
+      <!ELEMENT sysvar (#PCDATA)>
+      <!ATTLIST sysvar key CDATA #REQUIRED>
+      <!ELEMENT item (exit_code,start_time,end_time,data?,err_data?)>
+      <!ATTLIST item id CDATA #REQUIRED>
+
+        <!ELEMENT exit_code (#PCDATA)>
+        <!ELEMENT start_time (#PCDATA)>
+        <!ELEMENT end_time (#PCDATA)>
+        <!ELEMENT data (#PCDATA)>
+        <!ATTLIST data encoding (none|base64) "none">
+        <!ELEMENT err_data (#PCDATA)>
+        <!ATTLIST err_data encoding (none|base64) "none">

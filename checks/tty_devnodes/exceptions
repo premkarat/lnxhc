@@ -1,0 +1,37 @@
+[summary tty_has_multiple_nodes]
+One or more terminals map to multiple device nodes: &var_node_list;
+
+[explanation tty_has_multiple_nodes]
+Device nodes for terminals are automatically created, for example,
+by udev.  A device is identified by a major and minor device number
+that corresponds to the device driver and a device node through
+which programs can access the device.
+
+The following terminals are accessible through multiple device nodes:
+
+&var_node_table;
+
+The standard node is based on the device name used by the terminal
+device driver.  See /proc/tty/drivers for a mapping of standard nodes
+and terminal device drivers.
+
+Using different device nodes to access the same terminal device
+might cause login failures, for example, if a getty program is
+started on multiple device nodes at the same time.
+
+
+[solution tty_has_multiple_nodes]
+Only access the terminal through one device node.  Use the node that
+matches the name used by the device driver.
+
+Also check the installation and configuration of the Linux instance.
+For example, there can be static device nodes in addition to those
+created by udev.  Also see /etc/inittab or Upstart jobs to verify the
+configuration of getty programs.
+
+
+[reference tty_has_multiple_nodes]
+See "Device Drivers, Features, and Commands".
+You can find this publication at
+
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html

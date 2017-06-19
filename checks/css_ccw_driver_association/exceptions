@@ -1,0 +1,60 @@
+[summary no_driver]
+One or more I/O devices are not associated with a device driver: &devices_list;
+
+[explanation no_driver]
+One or more I/O devices cannot be used properly because they not associated
+with a device driver.
+
+Possible reasons for this problem are that the required device driver module
+has been unloaded, that an existing association between the device and the
+device driver has been removed, or that the device is not supported.
+
+The following I/O devices are not associated with a device driver:
+
+&all_devices;
+
+Each device has a device type and a control unit (CU) type. Each device driver
+provides a list of supported combinations of device type and CU type. Linux
+uses this information to associate devices with device drivers. The sysfs
+directories of devices with a device-driver association include a symbolic
+link "driver". This link points to the sysfs directory of the associated
+device driver.
+
+To verify that an I/O device with bus ID <device_bus_id> is not associated with
+a device driver, confirm that there is no symbolic link "driver" in the
+following sysfs directory:
+#/sys/bus/ccw/devices/<device_bus_id>
+
+[solution no_driver]
+1. If the kernel module of the required device driver has been unloaded,
+   load it again. For example, issue:
+
+   #modprobe <module_name>
+
+   where <module_name> is the name of the required device driver module.
+   You can use the "modinfo" command to find out which combinations of device
+   type and CU type are supported by a device driver module.
+
+2. Try to create the missing association of the I/O device with its
+   device driver. For example, issue:
+
+   #echo <device_bus_id> > /sys/bus/ccw/drivers/<module_name>/bind
+
+   Alternatively, try to create the association by issuing:
+
+   #echo <device_bus_id> > /sys/bus/ccw/drivers_probe
+
+3. Verify that the device is supported.
+
+4. If you cannot establish an association between the I/O device and a
+   device driver, contact your support organization.
+
+[reference no_driver]
+For information about supported devices, see:
+- The release notes of your distribution
+- The applicable version of "Device Drivers, Features, and Commands".
+  You can find this publication at
+
+  http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html
+
+For information about investigating kernel modules, see the "modinfo" man page.

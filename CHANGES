@@ -1,0 +1,2693 @@
+commit f8177b4cd23fee1c75bd8988c4e1292c481b7c43
+Author: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Date:   Wed Dec 18 10:39:54 2013 +0100
+
+    lnxhc: Update CONTRIBUTORS file
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 9d6ba8b148b0b27f43839605225fdc68441cc634
+Author: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Date:   Wed Dec 18 10:19:18 2013 +0100
+
+    checks: Make common helper script consistent
+    
+    Remove whitespace diff between common helper script.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 413ed10c142ae8f4cac11f0af4341f492f0fbab2
+Author: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Date:   Wed Dec 18 10:13:46 2013 +0100
+
+    checks: Remove unused variables
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit a00888c77f7238b618cb222d0b0310aa44d901a8
+Author: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Date:   Tue Dec 17 15:24:08 2013 +0100
+
+    checks: Remove unnecessary imports
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 123e9d055ac9c89c121a163c611400e6ca7fb2a5
+Author: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Date:   Tue Dec 17 15:17:33 2013 +0100
+
+    checks: Ensure consistent copyright statements
+    
+    Add missing copyright statements. Also fix copyright year in one
+    instance.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 4d12b3c104df2be96821c3e83dddf66b465a7e24
+Author: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Date:   Tue Dec 17 14:59:08 2013 +0100
+
+    checks: Remove spaces at end of line
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 93bd843574900fedad835b680ee4a285098bdfa0
+Author: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Date:   Tue Dec 17 12:23:05 2013 +0100
+
+    checks: Fix check components
+    
+    Fix inconsistent check components.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 2776f8e14c00e08fcad682629b9b641b1f844af1
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Dec 17 11:26:04 2013 +0100
+
+    checks: Fix spelling
+    
+    Fix some spelling.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit ab8221350a01868d03fc1f1d12b543cedd2779d5
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Mon Dec 16 10:30:35 2013 +0100
+
+    lnxhc: Fix misspellings using 'codespell' tool
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit a602fb9a5d112ac2acd1cee3c2a0fc7c3e994681
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Dec 13 12:52:44 2013 +0100
+
+    lnxhc: Fix locale handling
+    
+    System information is collected using the C locale to ensure that
+    locale settings do not affect the format of tool output. lnxhc
+    uses LANG=C for this purpose, but there are other environment variables
+    that influence the language of tool output. Using LC_ALL fixes this
+    problem.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 0663746b4e073b4a83f5930fe061f30d125a91e1
+Author: Manik Bajpai <manibajp@in.ibm.com>
+Date:   Mon Sep 23 08:36:13 2013 +0200
+
+    zfcp_lun_configured_available: Check configured LUNs for availability
+    
+    Ensure that all LUNs configured for persistence, which are accessible
+    through an FCP adapter, are available
+    
+    Users configure LUNs when they intend to use them for I/O. If a
+    configured LUN is not available, this indicates either a configuration
+    error or a loss of connectivity.
+    
+    Signed-off-by: Manik Bajpai <manibajp@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit b43d4a23dbb041d8bf0a30d927a911b098640b2e
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Mon Nov 11 17:21:50 2013 +0100
+
+    tty_devnodes, tty_usage: load data in a restricted compartment
+    
+    Use a restricted compartment to load and parse the ls-tty system
+    information.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit eb126a5d621e9881cb474de7d15617894823b2ec
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Wed Aug 7 10:55:39 2013 +0200
+
+    lnxhc: prevent data corruption in case of concurrent runs
+    
+    Data stored in one of lnxhc's databases might become unreadable
+    if two processes try to write to them at once. Fix this by using
+    locked access to the corresponding files.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit cb6b397ddb7e52dae8f5d7a4905460e2c8d96f5f
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Aug 6 09:10:57 2013 +0200
+
+    lnxhc: updated CONTRIBUTORS file
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit b84874bcca30f6ed6d9051fa641193c0e53b61be
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Aug 6 09:05:42 2013 +0200
+
+    lnxhc: add info message when changing active report consumer
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 73b5852de9f634c2f5e4af387b47aa63b1fc23ca
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Aug 6 09:00:22 2013 +0200
+
+    lnxhc: rename report consumers
+    
+    Remove the "_report" part of the report consumer names. The
+    consumer type (report or handler) is available via the consumer
+    definition, so there is no need to include it in the name.
+    This will also remove the redundancy in the following command line:
+    
+      lnxhc run --report basic_report
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 5470203306637cca28f63fd5fe6be725c942b326
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Jul 26 17:38:59 2013 +0200
+
+    lnxhc: implement lnxhc sysinfo --show-data
+    
+    Provide an option for displaying raw sysinfo data associated with
+    a sysinfo item.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit a54e54e6327b60237cdf77c48d98bc6ef6b7c7fc
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Jul 26 15:30:29 2013 +0200
+
+    lnxhc: implement 'lnxhc run --add-data'
+    
+    Provide a function to more easily inject data not collected by the
+    Linux Health Checker into a check run by providing option --add-data
+    to the "run" subcommand. Also update the add-data logic to also
+    work when no check ID is specified.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit f854d2ee876a422dc9618b92d90633e3cf4744d9
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Jul 26 10:38:21 2013 +0200
+
+    lnxhc: implement 'lnxhc cons --report'
+    
+    Provide an easy way to switch report consumers permanently.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 51e3fa7f2b9f11d8ad0d43a1d60fe2730761d2ab
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Jul 26 10:25:35 2013 +0200
+
+    lnxhc: implement 'lnxhc run --report'
+    
+    Provide a command line option for users to temporarily select a
+    specific report consumer for output generation.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 1389beaa414b21f376dc12a47943a3579df2c0d3
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Jul 26 09:50:55 2013 +0200
+
+    lnxhc: implement option --no-sudo
+    
+    Enable users to skip collection of sysinfo data that would require
+    calls to sudo for the 'lnxhc run' and 'lnxhc sysinfo --collect'
+    commands. This way, ineffective password prompts are prevented in
+    case a user ID is not enabled for sudo usage.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 392055703c0222e6eae5cf73f39ac1b5fcccb326
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Wed Jul 24 17:33:45 2013 +0200
+
+    lnxhc: implement lnxhc check --show-sudoers
+    
+    Implement a check action to display a list of statements that can
+    be added to the /etc/sudoers file to allow a non-root user to collect
+    system information requiring elevated privileges without password
+    prompt.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 5c903e6ca9dce58b444e10882b61aab96541a67e
+Author: Manik Bajpai <manibajp@in.ibm.com>
+Date:   Wed Dec 18 14:40:55 2013 +0100
+
+    zfcp_target_port_recovery_failed: Check for failed target port recovery
+    
+    A failed target port recovery indicates a problem in the FCP
+    channel, the fibre channel fabric or link, or in the storage server. As
+    a result, none of the LUNs attached through this port are available.
+    This health check detects the failure when the recovery of the failed
+    target port was initiated by the zfcp device driver, and the recovery failed.
+    
+    Signed-off-by: Manik Bajpai <manibajp@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 02e5fc79852d7396711287fec2e911f4b6172570
+Author: Manik Bajpai <manibajp@in.ibm.com>
+Date:   Wed Dec 18 14:40:42 2013 +0100
+
+    zfcp_hba_shared_chpids: Identify FCP devices that share CHPIDs
+    
+    A single FCP channel can be represented inside Linux by more than one CCW
+    device. Such a configuration is possible but does not provide an increase
+    in availability or I/O performance. Also extra FCP CCW devices waste FCP
+    channel resources especially in an N_Port ID Virtualization (NPIV) setup.
+    It can cause hardware limitations such as maximum number of open ports or
+    open LUNs to be be reached faster.
+    
+    Signed-off-by: Manik Bajpai <manibajp@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 8145dc836493e4107ac429e7e0800595729a198d
+Author: Manik Bajpai <manibajp@in.ibm.com>
+Date:   Wed Dec 18 14:40:25 2013 +0100
+
+    zfcp_hba_recovery_failed: Check if FCP device recovery failed
+    
+    A failed FCP device recovery indicates a problem in the same. As a
+    result, none of the resources attached through this FCP device are
+    available. This health check detects the failure, when the recovery
+    of the failed FCP device was initiated, and failed.
+    
+    Signed-off-by: Manik Bajpai <manibajp@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit bda46f4f7875536f17e9ff060853f0cf4f2badc0
+Author: Manik Bajpai <manibajp@in.ibm.com>
+Date:   Wed Dec 18 14:39:57 2013 +0100
+
+    storage_mp_zfcp_redundancy: Check for redundant zfcp paths
+    
+    Check whether each disk is accessible via two or more host ports and two or
+    more target ports (WWPNs).
+    
+    If all paths to a disk go through a single host or a single target port, this
+    host port or target port is a single point of failure for the access to that
+    device. Each disk in a multipath setup needs to be checked for a single point
+    of failure.
+    
+    Signed-off-by: Manik Bajpai <manibajp@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit b00f608a9a4dce9fc88f79d65a1246e961f9ccbe
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Jul 18 14:25:02 2013 +0200
+
+    lnxhc: Add support for Fedora distribution ID
+    
+    Introduce new system variables for Fedora.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit fbe97e00474a49de23ba920711d0124e394dc2ad
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Mon Jul 1 11:54:57 2013 +0530
+
+    zfcp_hba_npiv_active: Check if NPIV is active for FCP devices
+    
+    This check identifies the FCP devices for which N_Port ID Virtualization is
+    possible but not active.  To use NPIV, the FCP devices must be attached to a
+    switch. The switch must support NPIV and the System z type must be z9 or
+    later.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 5b24922e674d64fe27a091a722e2aa195a8ccc77
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Mon Jul 1 11:53:07 2013 +0530
+
+    storage_mp_service_active: Check for active multipath service
+    
+    Ensure that the multipath service is started automatically when the system
+    starts and multipath service is running when the multipath targets exists.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit f8f6a6718f147cc57c25038513187dd68ba8e2e4
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Jun 27 14:23:14 2013 +0200
+
+    genvcl.sh: adapt parsing of tag information due to git cat-file -p changes
+    
+    The output format of "git cat-file -p <tag>" displays the time in seconds
+    since epoch and no longer as a formatted date string.
+    
+    Adapt the do_create_changes_file() function to also handle the
+    "second-since-epoch" input and display a formatted date for the changelog
+    rpm section.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 500e7f5ad68d5213b0c9c8100846d2ee79df158d
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu May 23 10:52:56 2013 +0530
+
+    zfcp_lun_recovery_failed: Identify if recovery of a zFCP LUN failed
+    
+    A failed zFCP LUN recovery indicates a problem in the storage device.
+    As a result, the device is not available for I/O.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 33592d6b86f26966be2d36b78d281ba1a54a6237
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu May 23 10:49:20 2013 +0530
+
+    scsi_dev_state: Ensure correct state of SCSI device
+    
+    The state of a SCSI device as visible in Linux can indicate that
+    the connection to a storage system is working but the storage
+    system has a problem. In that case the SCSI device is considered
+    not-operational and cannot be used for I/O
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit d22e8b26464b08f4115a53ecf76030f1b5ea8de9
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu May 23 10:47:01 2013 +0530
+
+    fc_remote_port_state: Identifies unusable Fibre Channel remote ports
+    
+    The fc_remote_port_state check examines sysfs information to identify
+    Fibre Channel (FC) remote ports for which port_state indicates
+    that they cannot be used.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 5c9590322a54aa58abb27ad31e3cef2f11a94727
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed May 22 10:36:09 2013 +0530
+
+    sec_users_uid_zero: do not display usernames added by other services
+    
+    Omit usernames added from other network services like LDAP.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit d94869eb445f1a9fcc19d090d9ef289787d740c7
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Wed Mar 20 19:47:46 2013 +0100
+
+    net_dns_settings: incorrect formatting of ip address in exception message
+    
+    When the health check reports multiple IP addresses of invalid
+    nameservers, the formatting directive '#' is only applied to the
+    first address. As a result, subsequent IP addresses are interpreted
+    as entries in numbered lists, leading to output such as:
+    
+        1.2.3.4
+    
+        5. 6.7.8
+    
+        9. 10.11.12
+    
+    Fix this by supplying the '#' directive before each IP address.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit d1a5720f600ce88e72a4980b5efae3da8f9b8ad5
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Wed Mar 20 19:43:20 2013 +0100
+
+    net_dns_settings: fix ip not showing in exception message
+    
+    When multiple incorrect nameserver entries are identified, the full
+    exception message won't show the last one because of a newline
+    character that is being passed to the exceptions file. Fix this by
+    removing newline characters from input data before processing.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 629ecc3cfb9c82d28527922b96e63133dd1a2674
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Wed Feb 27 14:46:15 2013 +0100
+
+    lnxhc: make columns check more robust
+    
+    Some terminals report a column size of 0. Use defaults in this case.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit e26eeb63edc099d084aa6e4ed99463d5dae3bbef
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Feb 8 10:54:43 2013 +0100
+
+    CONTRIBUTORS: update entry
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit debfc1e3e0b6171e17e4add889c9fae319391c46
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Feb 8 10:47:56 2013 +0100
+
+    crypto_*: adjust default activation states
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit efc338131160aa5adfa763c276fbdb731bf6f7c2
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Feb 8 10:27:47 2013 +0100
+
+    log_syslog_rotate: fix formatting in exception
+    
+    Fix overlong lines on a standard terminal.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 7af4ebb2359fdeff6a77e7b4674e1a92bc18b5b5
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Feb 8 10:03:43 2013 +0100
+
+    crypto_z_module_loaded: update texts based on review comments
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 091afbe280a73e575b76175da87b65f661043b5e
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Feb 8 09:53:10 2013 +0100
+
+    checks: more non-functional fallout from check renaming
+    
+    Fix check names in comments and error messages.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 0550dfa2a7669f06560e808b846f12042dae1a58
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Feb 7 17:26:06 2013 +0100
+
+    tty_hvc_iucv: add missing dependency on z/VM
+    
+    IUCV is only available on z/VM.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 857f76241de04074d276d1fc487caf4b5abb74e1
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Feb 7 16:39:59 2013 +0100
+
+    crypto_*: enforce exception dependencies
+    
+    Modify crypto check programs to implement dependencies between
+    exceptions. This is needed to minimize the list of exceptions
+    reported on systems with no cryptographic hardware.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 4e704798e3b4995286208daca30d3de24b1af67a
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Feb 7 13:27:40 2013 +0100
+
+    crypto_z_module_loaded: implement check
+    
+    Implement a separate check for verifying that the crypto kernel module
+    is loaded. This is required to reduce the number of duplicated
+    exceptions in related crypto checks.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 007147ace5dcb72bb4b98d0524fef9bd65b24c2b
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Feb 7 10:58:16 2013 +0100
+
+    crypto_cpacf_usage: rename to crypto_cpacf
+    
+    Rename crypto_cpacf_usage to better reflect its new intention.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 81e1d9aed608b33e3485fc9da34471be9ecc90e7
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Feb 7 10:55:37 2013 +0100
+
+    crypto_cpacf_usage: check for cpacf enablement
+    
+    Change the intention of crypto_cpacf_usage. Previously it checked
+    whether the hardware supported CPACF. Now it checks if CPACF is
+    enabled. This change is required to reduce the number of crypto
+    exceptions on a system without crypto hardware.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit f86246289749829b37e7e1f18f240a7ae451f915
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Feb 1 14:49:51 2013 +0100
+
+    crypto_*: update exceptions
+    
+    Update exceptions based on review feedback.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 02dfdc4174123ed687d40761299f14746028062e
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Feb 1 13:29:37 2013 +0100
+
+    crypto_*: remove double escapes in sysinfo items
+    
+    After modifying unescape() to no longer remove escape characters,
+    some sysinfo item definitions must be adjusted because they rely
+    on the incorrect behavior (which was contrary to design and
+    documentation).
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit a46bfc32482f35e561ab2d7ceb226c63ec349d13
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Feb 1 11:24:05 2013 +0100
+
+    proc_load_avg: prevent misinterpretation of percentage
+    
+    The load percentage at the start of the line is interpreted as
+    an item in an ordered list. Escape the dot character to prevent this.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 7a2f7ef38380a67343f4efbe375849c08da041ba
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Feb 1 11:22:32 2013 +0100
+
+    lnxhc: fix unwanted removal of escape characters
+    
+    Escaped characters (\ + <x>) need to be passed through to the
+    formatting routine. Fix unquote() function no not remove escaping
+    characters.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 824cde558fa208481b23d76b90dfff4864574aa1
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Jan 31 15:47:22 2013 +0100
+
+    lnxhc: improve detection of changes in lnxhc database
+    
+    Changes to check contents are currently not always adequately
+    recognized, resulting in situations where data from an outdated
+    database cache is being used by the health checker. Fix this by
+    extending the up-to-date check to directory contents and
+    modification times.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit fae0a42fe23ee2a9e259dbeaeebcb06a4af249f1
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Jan 31 13:07:50 2013 +0100
+
+    zvm_priv_class: suppress redundant exception
+    
+    Suppress exception running_privileges_exceeded when
+    default_privileges_exceeded will be reported as well and the privilege
+    classes for current and directory match. In that case, one exception
+    for the directory class setting should be sufficient.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 92031a2b7c90353a25aa7484863fc2b77013a879
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Jan 31 11:37:46 2013 +0100
+
+    tty_usage: precise glob to list terminal devices
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 7dee6b66bb32f708fe6966ad198d0ae8c8a92cd6
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Jan 31 11:08:05 2013 +0100
+
+    tty_usage: improve check
+    
+    Implement major/minor checking of device nodes found under /dev
+    to ensure that no dead device nodes are reported as unused terminals.
+    Also don't ommit device ranges in exception description as this might
+    confuse users.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 30c8a52e5969a645a514423308b9deb1868d7724
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Wed Jan 30 16:52:49 2013 +0100
+
+    proc_cpu_usage: restrict exceptions to long-running processes
+    
+    Introduce a new parameter that can be used to specify how much
+    CPU time a process must have spent before an exception is reported.
+    This also removes the necessity to exclude 'lnxhc' as default
+    excluded process.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 50c0c55787c3d48f19a8949ca02fec8249c8c01f
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Wed Jan 30 10:38:53 2013 +0100
+
+    net_qeth_buffercount: exclude HiperSockets devices
+    
+    Exclude HiperSockets devices from this check since they have different
+    buffer_count requirements.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 90d96f28d34e2e7adcc5fccc82f85c3b640b90b3
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Wed Jan 30 10:08:50 2013 +0100
+
+    net_qeth_buffercount: adjust ruleset
+    
+    Adjust ruleset to account for the difference between assigned
+    memory and available memory.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 684fb720ae12f06042fceca0b51d96b05e5b7c08
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Wed Jan 30 10:04:43 2013 +0100
+
+    net_qeth_buffercount: improve parameter description
+    
+    Clarify that the memory values in the rule set parameter are compared
+    against the amount of available memory.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 96276a1a40e09889d3fea34670abe81e5d37365b
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Tue Jan 15 13:14:22 2013 +0530
+
+    crypto_openssl_stack_32bit: corrected filename in exceptions
+    
+    Corrected the filename from "openssl.cnf.sample-s390x" to
+    "openssl.cnf.sample-s390" in exceptions file.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit cdf058f74ece78d9c65c401e466f5e057a60171e
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Fri Jan 4 16:23:26 2013 +0530
+
+    crypto checks: minor spelling corrections
+    
+    Checks namely 'crypto_openssl_stack' and
+    'crypto_openssl_stack_32bit' needs correction.
+    
+    Corrected 'crypto_adpaters_not_available' to
+    'crypto_adapters_not_available'
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 768f943a0fc1f5b7fc8fd5af54f7d87475082110
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Fri Jan 4 10:44:57 2013 +0530
+
+    crypto checks: minor spelling corrections
+    
+    Corrected 'crypto_adpaters_not_available' to
+    'crypto_adapters_not_available'
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 8475326fe4caa5e4b149eb958562e6420b3edcfb
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Mon Dec 10 15:16:55 2012 +0530
+
+    Cryptography checks: changed exception name for correct ness
+    
+    Clear key checks, the exception name changed from
+    'crypto_adpaters_not_online' to 'crypto_adpaters_not_available'
+    for correctness.
+    
+    Secure key checks, the exception name changed from
+    'crypto_coprocessors_not_online' to 'crypto_coprocessors_not_available'
+    for correctness.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit db194da54ea509c3596893caa41561252faa43c2
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Fri Dec 7 13:36:38 2012 +0530
+
+    cryptography health checks: rpm name changes
+    
+    In some of the distributions opencryptoki-libs is the only
+    differentiator for 32-bit. So opencryptoki-libs will be verified for
+    checks 'crypto_opencryptoki_ckc_32bit and
+    crypto_opencryptoki_skc_32bit'
+    
+    Added 32 bit names of 'openssl and openssl-ibcma' for check
+    'crypto_openssl_stack_32bit' to cover all the possibilities.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 7d2a490eb3734ac4f70b52602c289a9ef843a90d
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu Dec 6 13:55:00 2012 +0530
+
+    Clear key checks: raise exception when both adapters are not
+    available
+    
+    No need to raise an exception when either of the cryptographic adapters
+    are available.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 6b941fb84901d5e6a73dbe87f88366e7c3e9e108
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu Dec 6 12:22:02 2012 +0530
+
+    crypto_opencryptoki_{ckc, skc, ckc_32bit, skc_32bit}: corrected rpm
+    name
+    
+    Corrected the 'opencryptoki' rpm name, and to fetch the same properly
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 531bdfcb97ce26c07a2313b3df6b2108d89f9273
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu Dec 6 12:08:29 2012 +0530
+
+    crypto_cca_stack: corrected severity of 'cpacf_not_available'
+    
+    Corrected the severity of the exception 'cpacf_not_available' from
+    'high' to 'medium'
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 03303ae794836a4d5dc4cc5e12be2a9daaf6fbe6
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Nov 16 16:02:30 2012 +0100
+
+    checks: fix fallout from check renaming
+    
+    Fix unresolved sysinfo references.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 10b00fff9d02df9dd8a754895f1253db767aacd5
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Nov 16 15:58:45 2012 +0100
+
+    lnxhc: use color coding for verbose output
+    
+    Apply color coding when presenting success/failure type informational
+    messages issued by the framework.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 9fca8b421933a975b46e8809fa94bdea0b5cde28
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Nov 16 14:29:44 2012 +0100
+
+    lnxhc: fix verbose output when running sudo commands
+    
+    The informational message that announces a user ID change when
+    collecting system information collides with the progress display
+    when running in verbose mode. Fix this by adding newlines when
+    necessary.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 8b20bea69dba3fbb895b8d07b12386b6dfd34338
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Nov 16 14:11:37 2012 +0100
+
+    consumer: rename USE_COLOR to LNXHC_USE_COLOR
+    
+    Rename the USE_COLOR variable to be consistent with other LNXHC_
+    variables.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 64e2e503ec79ff41899631f6639495a8852e3e25
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Nov 15 15:00:45 2012 +0100
+
+    basic_report: add parameter full_hostname
+    
+    Add a new parameter to consumer basic_report. This parameter influences
+    if full or shortened hostnames are shown.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 4b330cf496539a9a41af0862c39d935c528eb97c
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Nov 15 14:50:15 2012 +0100
+
+    basic_report: add color to output
+    
+    Add color coding to make list output more readable:
+    - success: green
+    - exceptions: red
+    - check did not run: blue
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 0f9c1f9f22a23523daea28efa6d72d488b5a95be
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Nov 15 14:31:58 2012 +0100
+
+    lnxhc: prepare for consumers with color output
+    
+    Prepare the framework for consumers that use ANSI color codes to
+    add color to the terminal output:
+    - add auto-detection mechanism for terminal color support
+    - add option --color to lnxhc
+    - add environment variable USE_COLOR
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 924d744396adf7a235b4be4c6251052afdf2f057
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Nov 9 09:56:24 2012 +0100
+
+    build/packaging: fix version replacement script
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit d408bdf4cbede13d1a6562de689061c1a39a7b14
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Nov 8 15:34:05 2012 +0100
+
+    build/packaging: consolidate scripts and add genvcl.sh
+    
+    The genvcl.sh script consolidates the scripts to display version
+    and generate change log information.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit ea4836c34134303cacf40d4cab88a25fdfd7a938
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Wed Nov 7 11:17:57 2012 +0100
+
+    lnxhc: remove whitespaces
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit fd816490e110b9e1eb7ea72b9879ae3e6b392a5f
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Tue Nov 6 12:59:13 2012 +0100
+
+    build/packaging: add version and change log information
+    
+    Extend the gencl.sh script to add changelog information using
+    the git log format.   The changelog is automatically created.
+    
+    Also create a lnxhc version file that is used by genvers.sh to
+    display version and release information without the lnxhc git
+    repository.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit f3f3a07bdd338a8a020dd9adae363f6905af5650
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Nov 6 12:30:22 2012 +0100
+
+    ras_dump_kdump_on_panic: fix regexp
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 926fbb289752d0cf8d5fb0f4996b9f5a2e78326d
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Nov 6 12:26:43 2012 +0100
+
+    README: add content to README file
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 14a71a9825b9ac485d15530b8da165b381884a65
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 17:45:33 2012 +0100
+
+    checks: make dependency statements consistent
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 2121acc749dbfb658efa41a46586965adf034360
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 16:49:39 2012 +0100
+
+    man: add naming guidelines
+    
+    Add guidelines for choosing health check, exception and component names.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit f6e44c874c75254a435972c03748e7c4e6b466c7
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 16:12:32 2012 +0100
+
+    man: Mention helper functions
+    
+    Add a note regarding the availability of helper functions for certain
+    programming languages to the man page on writing health check programs.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 17c4ad25c38adc54d4d6d157f97f618fabffa4d7
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 15:39:29 2012 +0100
+
+    ras_dump_kdump_on_panic: fix warning
+    
+    Fix the following warning:
+    
+        Use of uninitialized value in pattern match (m//) at
+        lnxhc/checks/ras_dump_kdump_on_panic/check line 71, <FILE2> line 1.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 9c8d019c8cde0aa1704d1feebbfb74dce302e422
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 15:35:39 2012 +0100
+
+    crypto_openssl_stack_32bit: fix warning
+    
+    Fix the following warning:
+    
+      "my" variable $linux_distro masks earlier declaration in same scope
+      at lnxhc/checks/crypto_openssl_stack_32bit/check line 59.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 85e640f66ceeddaebb3d1a8f9a3bd32142787982
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 15:33:06 2012 +0100
+
+    CONTRIBUTORS: apply check renaming
+    
+    Apply check name changes to CONTRIBUTORS file.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit ec577ca9ab742ffdd145b4fd8a70f0f22d6908de
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 15:23:21 2012 +0100
+
+    mem_swap_availability: tolerate swap entry
+    
+    Some distributions put "swap" as mount point for swap entries, despite
+    the man page for fs_tab stating that "none" should be used. Tolerate
+    this setting here to not produce useless output for swap entries.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 2f4b1fc31c2d224b2dc3750f29328d5aedaca41a
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 15:17:24 2012 +0100
+
+    proc_{mem,cpu}_usage: make parsing consistent
+    
+    Use consistent input data and parsing and exclude lnxhc from
+    output per default.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit b6bfc249a563b47a3395757c2322ab519c4cb2c2
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 14:53:52 2012 +0100
+
+    crypto_*: adjust default activation states
+    
+    Set default activation state of CCA and SKC crypto checks to
+    inactive to prevent unnecessary exceptions on default installations.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit abedf5b13052020c5f7d897710435723af8bb504
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 14:34:20 2012 +0100
+
+    lnxhc: fix statement parsing
+    
+    The parsing routine fails to stop at the first equals sign when
+    parsing statements in the definitions file. As a result, statements
+    such as the following are incorrectly rejected as malformed:
+    
+      program=LANG=C echo
+    
+    Fix this by stopping to parse the keyword portion at the first
+    occurrence of the equals sign.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 49b57ad25919da31b55213abb2c7ff7030faf3c5
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 14:28:40 2012 +0100
+
+    lnxhc: fix overzealous base64 encoding
+    
+    When writing XML sysinfo files, lnxhc considers \n and \t
+    non-printable characters, resulting in all data being
+    base64 encoded. Fix this by allowing \n and \t in unencoded
+    data.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 2bc9c6e0aeda818a7900fb0ab74057afbec7ec60
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 14:26:57 2012 +0100
+
+    checks: rename exceptions
+    
+    Implement stricter naming scheme: Third step: rename
+    exceptions.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 71b87b0e0cc6fa8d86300dbf37645532c345ecbd
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 11:17:28 2012 +0100
+
+    checks: rename components
+    
+    Implement stricter naming scheme: Second step: rename
+    components.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit c96363e56b864a547e930dd2cd8103234a340ed6
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Nov 5 11:04:02 2012 +0100
+
+    checks: rename checks
+    
+    Implement stricter naming scheme. First step: rename checks.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 873caefa24ce42181e5d3abeb1f8680f8f0c0975
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Oct 26 12:13:20 2012 +0200
+
+    build: correct variable use
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit d161640fd107729541661db30c559873e2149d84
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Oct 26 11:54:29 2012 +0200
+
+    build: install all documentation file and update rpm doc packaging
+    
+    Change the Makefile to install all documentation files, including
+    check examples, README, etc. files.  For RPM packaging, install
+    into the correct documentation directory, remove the %doc directive
+    and simply package the installed documentation files.
+    
+    Notes:  The %doc directives removes the installed documentation
+    	directory and uses the build directory as doc source.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit c03ae6718e654a4e5bfb04d4bac3c8ddc8214d41
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Oct 26 10:07:11 2012 +0200
+
+    Makefile: ensure that lnxhc doc dir is removed by make uninstall
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 9b95608fc830bbfa79913adae485ef19721c26f2
+Author: Gowrishankar M <gowrishankar.m@linux.vnet.ibm.com>
+Date:   Thu Oct 25 12:48:38 2012 +0200
+
+    pythondemo: add a demo check for python LNXHC
+    
+    Below patch adds an education demo to write LNXHC check in python.
+    This demo is installed in /usr/share/doc/lnxhc-<release> while
+    installing this package.
+    
+    Signed-off-by: Gowri Shankar <gowrishankar.m@linux.vnet.ibm.com>
+    Tested-by: Gowri Shankar <gowrishankar.m@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit e1aa389a60c841f24f456be65ec0434e986e3b53
+Author: Gowrishankar M <gowrishankar.m@linux.vnet.ibm.com>
+Date:   Thu Oct 25 12:45:04 2012 +0200
+
+    lnxhc: add framework to write checks in python
+    
+    Below patches add provision to write check in Python. There are two
+    classes that handle python provisions. Namely,
+      * LnxhcCheck     - Abstract class where LNXHC core framework is linked
+                         with checks in Python.
+      * LnxhcException - Class which carries LNXHC exception information.
+    
+    Most of the how-to information for Python handlers are abstracted in its
+    python check template.
+    
+    Signed-off-by: Gowri Shankar <gowrishankar.m@linux.vnet.ibm.com>
+    Tested-by: Gowri Shankar <gowrishankar.m@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 2e6a1a85a2e2d0bd241fba548a7ef2b0a83ee7de
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Oct 25 12:33:48 2012 +0200
+
+    minimal_report: fix bug when only one check is run
+    
+    Fix division by zero when only one check is run. Also fix empty
+    line when no exception is found.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 56612467128ef6c66248b465d053ca7102d5a061
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Oct 23 15:16:47 2012 +0200
+
+    minimal_report: add new minimal report consumer
+    
+    Add a minimal report consumer that prints a progress bar and lists
+    exception IDs.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 66c5d5fabac5121ccaf33e8f94f97d23f6d008e2
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Oct 23 15:07:26 2012 +0200
+
+    basic_report: add copyright statement
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit cd32fa5858be401c98ffbd8412a392e82a0fbda3
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Oct 23 14:59:20 2012 +0200
+
+    lnxhc: add missing section to consumer man page
+    
+    Man page lnxhc_cons_definitions is missing a description of keyword
+    state. Add it.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 9fe8aa052496781d926ace9815c6d4dec2794c34
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Oct 23 14:42:28 2012 +0200
+
+    lnxhc: improve consumer handling
+    
+    Run consumer programs with direct access to standard out. This allows
+    consumers to run pager programs. Also revert directory change after
+    running summary consumer.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit bd9d01490f29822579daa523872668c6bea22a39
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Oct 23 09:59:12 2012 +0200
+
+    lnxhc: fix warning when first running lnxhc run
+    
+    Running command "lnxhc run" for the first time or after removing
+    ~/.lnxhc produces the following warning:
+    
+      Use of uninitialized value $time_avg in multiplication (*) at
+      lnxhc/lib/LNXHC/Stats.pm line 253.
+    
+    The reason for this is an incorrectly initialized check statistics
+    data set. Remove the warning by using the correct initializer.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit bf886d5fcc4c842c052aee3258eb283b88bd019b
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Oct 18 16:39:29 2012 +0200
+
+    build, lib: Remove CVS/ and exclude .git/
+    
+    Remove CVS directory excludes and exclude the .git directory when
+    creating the lnxhc tarball.  Also fix use of "||" and "or" operators.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit c2fcc6ab00716f94d8e3f9fbff63fcbc185b0425
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Oct 18 11:32:42 2012 +0200
+
+    checks: Replace die() calls for parameter errors with lnxhc_parm_error()
+    
+    Refactor the parameter checking and use the lnxhc_parm_error() instead of
+    the die() function.  Also adjust coding and message style.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 25b8dca9025d3ec7310b7e8c95cedc95958cd822
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Oct 18 11:10:19 2012 +0200
+
+    LNXHC::Check::Base: Use lnxhc_param_error() in check parameter functions
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit b9f4ede53d1b9127459c2c9c0372c1792edb6da0
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Tue Oct 16 18:55:31 2012 +0200
+
+    lnxhc: Introduce result condition for failed check parameters
+    
+    Introduce a new result condition code, "PARAM ERROR", to summarize
+    check programs which failed due to invalid check parameters.
+    
+    To be accounted as such, check programs must use the lnxhc_param_error()
+    function or must exit with return code 65.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 2d4899a084587a35b0a7ff4ede16c0956d427a3e
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Mon Jul 30 16:57:42 2012 +0200
+
+    LNXHC::Check::Base: add the "lnxhc_param_error" function
+    
+    Use the "lnxhc_param_error" function to end the health check program
+    because of an invalid parameter value or combination.  The function
+    exists with return code "65".  Documentation for this return code
+    is also provided in the man pages.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 3fb8f7ab583d53e3a6fed814b7a592ad82e698fa
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Tue Oct 16 13:37:08 2012 +0530
+
+    checks: rename exception identifiers
+    
+    Rename exception identifiers to easily understand their cause
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 12f406185f4f2cc5a0741e8089065c2bb07edda3
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed Oct 10 12:16:44 2012 +0530
+
+    fs_fstab_dasd: resolved formatted issue
+    
+    Resolved little formatting issue in 'exceptions' file
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 1206bb0ad535c241f95ad217c23ed96d7c95a13e
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Thu Oct 4 13:50:48 2012 +0200
+
+    sys_cpu_hog_processes: fix formatting and improve wording
+    
+    Fix some minor issues with formatting and improve wording a bit.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 0f1f7fab358b875185fc374fe4b8e0ad5bc727ed
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Thu Oct 4 13:47:27 2012 +0200
+
+    sys_cpu_hog_processes: Check for processes hogging cpu
+    
+    sys_cpu_hog_processes check ensures that processes does not end up
+    hogging cpu as it might cause applications to slow down and system
+    might even become unresponsive and difficult to use.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit d6f2e7ee9e9b3dea29aed7e859c6b2c8054ee807
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Mon Sep 24 14:25:48 2012 +0200
+
+    sys_idle_{ttys,users}: Improve validation of idle_time check parameter
+    
+    There is only a minimal validation of the idle_time check parameter.
+    Valid values for the check parameter are documented, but the check
+    does not explicitly enforce them.   This commit introduces some
+    validation to enforce values to the specification.
+    Note that this validation expects the input data without leading and
+    trailing whitespaces.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit cff284f4fb62ca6d52e7ca66c0f23a3b9a10f19a
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Tue Sep 18 15:43:03 2012 +0200
+
+    sys_tty_securetty: /etc/securetty requires root authority
+    
+    On newer Linux distributions and according to security policies,
+    the /etc/securetty file might not be readable by regular users.
+    
+    Use root authority to access /etc/securetty.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 73fa7a3a4338b5ec9df7b7b517d889537da39498
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu Sep 13 10:45:05 2012 +0530
+
+    fs_tmp_dir_cleanup: Corrected the sysinfo items for RHEL distribution
+    
+    Changes done to match 'sysinfo' item names in 'definitions' file and
+    'check' program for RHEL distribution.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 02e552c2e4765fbf4a2ef0287a262c28d4439db7
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Mon Sep 10 15:23:43 2012 +0530
+
+    sys_logrotate_syslog: Modified for format issues
+    
+    Modified for format related issues.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 0cbab361679679e5e5c05b44a989d2787cfd0484
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Mon Sep 10 15:21:48 2012 +0530
+
+    sys_logrotate_syslog: Added 'deps' section
+    
+    Added 'deps' section in the 'definitions' file
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 7b859a5fd918e2e28eeee17513ef19ece8555621
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Aug 24 10:55:16 2012 +0200
+
+    mm_hog_processes: fix truncated command line
+    
+    Specify 'auxww' to get full command line args.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 7da0d5b6377f48416e1c072e45c0ac763e13e73a
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Aug 24 10:46:44 2012 +0200
+
+    mm_hog_processes: fix formatting and parsing issues
+    
+    Fix some issues with formatting and parsing.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 7120472111c1852c6ee0843054150c5f3428be32
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Fri Aug 24 10:43:54 2012 +0200
+
+    mm_hog_processes: Check for processes hogging memory
+    
+    mm_hog_processes check ensures that processes does not end up
+    hogging memory as it might cause applications to slow down and
+    system might even become unresponsive and difficult to use.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit a21512304a5a18efddcfcab503562f0df9b525d9
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Aug 24 10:38:42 2012 +0200
+
+    Revert "mm_hog_processes: Check for processes hogging memory"
+    
+    This reverts commit f0386ed967618aa0d22221f507ac06952bfa18e5 because
+    the commits mixes feature and bugfixes.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit d2e3cbe7d7848e317ec2dc8eb3b04ad7380103a7
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Fri Aug 24 10:34:46 2012 +0200
+
+    mm_hog_processes: Check for processes hogging memory
+    
+    mm_hog_processes check ensures that processes does not end up
+    hogging memory as it might cause applications to slow down and
+    system might even become unresponsive and difficult to use.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 5e55e4180b40a46bbae80739ea1cb971d72c37e8
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed Aug 22 16:53:18 2012 +0530
+
+    CONTRIBUTORS: Added Cryptographic checks implementation
+    
+    crypto_32bit_ckc_opencryptoki
+    crypto_32bit_skc_opencryptoki
+    crypto_ckc_opencryptoki
+    crypto_skc_opencryptoki
+    crypto_32bit_openssl_stack
+    crypto_cca_stack
+    crypto_openssl_stack
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 91410e3627adbd9dcb9066519446cb3e0f71c367
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed Aug 22 16:51:49 2012 +0530
+
+    crypto_skc_opencryptoki: SKC openCryptiki stack 64-bit
+    
+    To verify the availability of System z cryptographic hardware support for PKCS#11 secure key cryptographic operations
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit a78d2e3487091a36ae08a9cf18b00b66ec7732cc
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed Aug 22 16:51:14 2012 +0530
+
+    crypto_openssl_stack: OpenSSL 64-bit stack
+    
+    To verify the availability of System z cryptographic hardware support through an OpenSSL stack
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 2a675121bafa17f938220899d57c3936be991325
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed Aug 22 16:50:38 2012 +0530
+
+    crypto_ckc_opencryptoki: CKC openCryptiki stack 64-bit
+    
+    To verify the availability of System z cryptographic hardware support for PKCS#11 clear key cryptographic operations
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 03bc212efeab7116835d04ac9db4995ed4a471c5
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed Aug 22 16:49:30 2012 +0530
+
+    crypto_cca_stack: CCA stack
+    
+    To verify the availability of System z cryptographic hardware support through a Common Cryptographic Architecture (CCA) stack
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 93897952a9a8e0e10aeca2c3964b57c981b08484
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed Aug 22 16:48:56 2012 +0530
+
+    crypto_32bit_skc_opencryptoki: SKC openCryptiki stack 32-bit
+    
+    To verify the availability of System z cryptographic hardware support for PKCS#11 secure key cryptographic operations
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit f31d02366c53b4e95c923677b662aea1bc166161
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed Aug 22 16:48:12 2012 +0530
+
+    crypto_32bit_openssl_stack: OpenSSL 32-bit stack
+    
+    To verify the availability of System z cryptographic hardware support through an OpenSSL stack
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 6a84c000d934e6ebabb835174ef8906618eadc9c
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed Aug 22 16:47:24 2012 +0530
+
+    crypto_32bit_ckc_opencryptoki: CKC openCryptiki stack 32-bit
+    
+    To verify the availability of System z cryptographic hardware support for PKCS#11 clear key cryptographic operations
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 5c840e92b3f81c78f361a6dc02fd578acc51ed2f
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Wed Aug 1 10:36:21 2012 +0200
+
+    sys_tty_hvc_iucv: check number of required z/VM IUCV HVC terminal devices
+    
+    Compare the number of available z/VM IUCV HVC terminal devices with a
+    minimum value specified as check parameter.  Hence, administrators can
+    ensure to have at least a particular number of HVC terminal devices
+    available in case of emergencies.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit a514d78d5fff0df1a0100c4d6812679c7bde164a
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Tue Jul 31 09:43:07 2012 +0200
+
+    sys_tty_hvc_iucv: use alternate data sources and make check more robust
+    
+    Change the data source of the system information to collect z/VM IUCV HVC
+    terminal devices independent of the hvc_iucv device driver.  This helps
+    when HVC terminal devices are not bound to the driver anymore.
+    
+    Also revise the check logic and use a hash to uniquely count count the
+    HVC terminal devices to avoid duplicate entries.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 1af2b3cdeeee53eeaab1a6603ad476dfe49214ec
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Tue Jul 31 10:11:20 2012 +0200
+
+    sys_tty_{usage, devnodes}: rework ls-tty
+    
+    The tty_used data from ls-tty reports the rdev number of the terminal
+    devices as hash key.  This prevents finding out terminal devices that
+    use the same rdev but a different node name.  This commit reverses the
+    mapping and uses the node name as hash key mapped to the rdev number.
+    
+    The sys_tty_usage health check must be updated to access the "reversed"
+    data.
+    
+    The sys_tty_devnodes health check is updated to store multiple node
+    names in an array that is displayed using a (new) table text formatting.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 65271e0e9887d18318bad2ba535d7737df28abd2
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Mon Jul 30 16:48:56 2012 +0200
+
+    sys_tty_securetty: fail if terminal is specified as secure and insecure
+    
+    Let the health check fail if a terminal is specified in the secure_tty
+    and the insecure_tty check parameter.  Depending on the /etc/securetty
+    entry for a particular terminal, an exception message is always issued.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 6e64b679243844d1daef2091f6bb28bdbf8fb0a2
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Tue Jul 24 10:15:55 2012 +0200
+
+    mm_ram_usage: Check for RAM usage of the system
+    
+    mm_ram_usage check examines the RAM usage of the system. If not enough
+    RAM is available system will slow down and become much more unresponsive
+    and difficult or even impossible to use.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 2abb1c44b7770602d6f863385b555257601d3385
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Jul 16 14:32:44 2012 +0200
+
+    lnxhc: fix error when writing sysinfo XML files
+    
+    When exporting and re-importing sysinfo data which contains ^H
+    and possibly other non-printable characters, the following error
+    occurs:
+    
+    Reading sysinfo data from '/root/t'
+    lnxhc: File format error: /root/t: not well-formed (invalid token)
+           at line 715, column 96, byte 18993
+    
+    Fix this error by ensuring that non-printable characters are
+    correctly encoded when exporting sysinfo files.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit e9147ea195b3a700431222f7f4a0e861bad17973
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Jul 16 13:35:56 2012 +0200
+
+    net_dns_settings: Ensure that multiple nameservers are checked
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 839c22d1fbc8c679b6c31c4cd347a6438dfce79c
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Mon Jul 16 13:30:02 2012 +0200
+
+    net_dns_settings: Ensure nameserver is listed with correct address
+    
+    net_dns_settings check ensures if nameserver is configured with right
+    address. If nameserver is not listed or has an incorrect address it
+    would prevent accessing any of the systems in the network by their name.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 2cc67e50d843e354fd4c37cc870232496c149022
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed Jul 4 12:25:17 2012 +0530
+
+    CONTRIBUTORS: Added Rajesh checks
+    
+    Added sys_logrotate_syslog and fs_fstab_dasd checks to the
+    CONTRIBUTORS file to keep up-to-date list.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit a283b8b125cdfcf821a908b2ef115aa9db19124c
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu Jun 28 14:15:33 2012 +0530
+
+    storage_dasd_aliases : ID review changes
+    
+    ID review changes and white space removals
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit a13c75f060d91b1595f440f0a9d703ac22d14498
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu Jun 28 14:15:33 2012 +0530
+
+    storage_dasd_aliases : looking for aliases device with out a base device
+    
+    Looking for active dasd aliases devices having no base device.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit eeaba7285deef73cbc47234b1b9774e7f9802306
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Tue Jul 3 13:43:06 2012 +0200
+
+    ras_kdump_on_panic: Check if kdump is configured and running
+    
+    ras_kdump_panic check examines if kdump is configured and running on
+    the system. Kdump allows to automatically capture dump for post-mortem
+    analysis when a kernel panic occurs and makes the system available.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit fc9077d831b149ea40d9e0e637059396fbafbfdb
+Author: Rajesh K Pirati <rapirati@in.ibm.com>
+Date:   Tue Jul 3 14:58:47 2012 +0530
+
+    sys_logrotate_syslog:
+    
+    logrotate is a tool that monitors, rotates, compresses, or truncates syslog
+    files to save disk space and to limit the syslog file size.
+    This health check verifies that logrotate runs at regular intervals on your
+    system and checks your logrotate configuration settings.
+    
+    Signed-off-by: Rajesh K Pirati <rapirati@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 00b45274d0a945bf79e9219c5e38ad5ef34f0362
+Author: Rajesh K Pirati <rapirati@in.ibm.com>
+Date:   Thu Jun 28 17:15:10 2012 +0530
+
+    fs_fstab_dasd:
+    
+    The DASD device driver creates standard device nodes for DASDs that are based on the order in which DASDs are set online.
+    When you add or remove disks, the device name of a disk might change across a reboot.
+    To preserve the mapping between standard device nodes and the associated physical disk space across reboot, use device nodes
+    that are based on unique properties of a DASD and so identify a particular device.
+    
+    Signed-off-by: Rajesh K Pirati <rapirati@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 93b343db221ca499dd32513a0883d1e6b795cf1c
+Author: Rajesh K Pirati <rapirati@in.ibm.com>
+Date:   Wed Jun 27 18:28:44 2012 +0530
+
+    storage_multipath_failed_path:Removed dasd related info and rephrase the sentence
+    
+    Removed dasd related info and rephrase of the sentence from exception file
+    
+    Signed-off-by: Rajesh K Pirati <rapirati@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit bdeabd0931895f16175856b79685bf49135c2df1
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Jun 19 13:00:45 2012 +0200
+
+    lnxhc: More minor man page updates
+    
+    Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit ed516f9244f7730b90d136e358600fcb13356f32
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Jun 19 10:56:54 2012 +0200
+
+    lnxhc: Fix typo in man page
+    
+    Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit a38cd10b43b0efef2c649e362772de12c88dd896
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Jun 19 10:34:43 2012 +0200
+
+    basic_report: Use framework functions for formatting text
+    
+    Use the framework provided functions for converting exception
+    messages into formatted text output. This reduces the dependencies
+    on external tools (groff) and makes output more consistent.
+    
+    Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 6deeeba7a31fd55cc2c2360429f1fdd9eb3bfa0c
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Jun 19 10:33:53 2012 +0200
+
+    lnxhc: Fix formatting issues in check plug-ins
+    
+    Apply new formatting rules to health check texts:
+    - line items can now contain other formatting elements
+    - web addresses should be prefixed with http://
+      to allow automated conversion to links in HTML output
+    - web addresses should not be defined as preformatted text
+    - web addresses should be placed into a line of their own
+      to prevent issues on terminals with limited width
+    
+    Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 6a6945274dfa060d3220b0629dfa16228b332902
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Jun 19 10:32:40 2012 +0200
+
+    lnxhc: Improve text formatting
+    
+    Improve text formatting code:
+    - list items can now contain other formatting sections
+      if the corresponding lines are indented correctly
+    - whitespaces at the start of a line are no longer needed to
+      indicate the start of formatting elements
+    - add table formatting element
+    - fix problems with unexpected empty lines
+    
+    Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 3e4e3850867c307a2e37e14266a100ff5fa50cac
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue Jun 19 10:30:51 2012 +0200
+
+    lnxhc: Move text formatting routines to Util.pm
+    
+    Move text formatting routines to Util module in preparation of
+    making them available to plug-ins.
+    
+    Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit db805147b73f90a37cd6bd3ef6c37176e0c78afb
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Jun 15 15:30:01 2012 +0200
+
+    lnxhc: fix man page headings
+    
+    Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 2a933d01408c00484f810305d34851923f111b71
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Fri Jun 15 14:55:50 2012 +0200
+
+    sys_load_avg: Check for system load
+    
+    sys_load_avg check examines the system load (Cumulative CPU and IO
+    load). If a system is running with very high loads, system could turn
+    unresponsive and applications can take more time to react/complete.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit c15ed16b613d603437991a6fccfb3d6caded7b7e
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Fri Jun 15 13:58:24 2012 +0200
+
+    lnxhc: Intercept repeated reporting of exceptions
+    
+    Handle the condition when a check reports the same exception
+    multiple times more gracefully and print a warning to that
+    effect.
+    
+    Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 445b9d4474d77d38f212c147725bfee2a743707e
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Fri Jun 15 13:24:20 2012 +0200
+
+    sys_sysctl_log_level: Check for current console_loglevel
+    
+    sys_sysctl_log_level check examines the current console_loglevel set.
+    It determines the set of prioritized messages that gets printed on the
+    console. Setting this to a very low value would cause many
+    informational, but important messages to not be printed on the console,
+    due to which the amount of data that is available to the user to debug
+    a kernel condition would be reduced significantly.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 229e0b07156700e326707d5668753f8492bb559a
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Fri Jun 15 13:15:58 2012 +0200
+
+    mm_swap_space: Check for swap space in the system
+    
+    mm_swap_space check examines if swap space is available in the system.
+    For systems having memory constraints not having swap space might lead
+    to out-of-memory situations as also a system crash.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 7971f8cc548f8a2f8a55c4e2933df1835b850b68
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Tue Jun 12 11:12:38 2012 +0530
+
+    storage_dasd_eckd_blksize: Corrected the user permissions
+    
+    Running 'lsdasd' command as a 'root' user.
+    When not running with 'root' user the 'block size' will not
+    be fetched.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit e387cd4fc358ac8a670ff1a73d72a9fe8733b6ad
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue May 22 17:49:26 2012 +0200
+
+    lnxhc: fix formatting problems in consumer output
+    
+    Ensure that multi-line texts are correctly prepared before
+    passing them to consumer programs.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit bfc14c55b9a037af647bf4fdd752a43ddc57c55b
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Tue May 8 17:27:07 2012 +0200
+
+    lnxhc: update multiple man pages
+    
+    Improve wording and correct minor errors in multiple man pages.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 7e74d928f6aeea0be14a518a808adcdec7e8e227
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Mon May 7 11:54:41 2012 +0530
+
+    vm_priv_class: ID review changes
+    
+    ID review changes to the files descriptions and exceptions
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit f956577ec797b8fa295f14ad4f7b3ca3b761ef91
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Mon May 7 11:46:24 2012 +0530
+
+    net_bond_single_dev: ID review changes
+    
+    ID review changes to the descriptions and exceptions files
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 270f4934a8ecca522baf9b3828de610e6c3a8368
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Wed May 2 10:03:07 2012 +0200
+
+    lnxhc: update man page for the 'run' subcommand
+    
+    Correct minor errors in the man page of the 'run' subcommand.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 13144fecc8b69c89e3531facd9d38350ef8f33b4
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Apr 26 10:57:43 2012 +0200
+
+    CONTRIBUTORS: add sys_fw_cpi check and sort list
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit ea34cdf5bc8b67b62caa4195b89982f2d436ef8b
+Author: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Date:   Mon Apr 23 09:40:11 2012 +0200
+
+    lnxhc: suppress incorrect message about changing user
+    
+    Update the framework to not print a message "Changing to user ID
+    TARGETID" if the effective user ID is already TARGETID.
+    
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 7775b2673add44d53b5d2bc08fff86615ef6a8fe
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Mon Apr 23 11:35:35 2012 +0530
+
+    CONTRIBUTORS: Added vm check and network check under Nageswara
+    
+    Added vm_priv_class, net_bonding_single_dev implementation
+    details under Nageswara
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit feb514f99cc6c3e7ac635c9b2919af4bd0b2a060
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Tue Apr 10 18:44:52 2012 +0200
+
+    sys_cpi: Check if CPI can display meaningful Linux instance names
+    
+    You can use the control program identification to assign names to your
+    Linux instances.  The names are used to identify Linux instances,
+    for example, on the Hardware Management Console (HMC).
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit cef88770ddc5205b2c8cd4ccce23cdc26deca102
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Mon Apr 16 13:42:39 2012 +0530
+
+    net_bonding_single_dev: Identify bonding setups with single NICs
+    
+    Bonding setups are mainly used to increase availability or
+    performance. A bonding interface is a logical interface that
+    aggregates multiple slave interfaces. When there is only one
+    slave interface exists then it neither provide path redundancy
+    nor increased bandwidth, and so do not help to increase
+    availability or boost performance.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Acked-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 6eba110980b95bb28c2c32d68b6c0955b872eb8e
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Mon Apr 16 13:41:12 2012 +0530
+
+    vm_priv_class: check for z/VM guest virtual machine authorizations
+    
+    Looks for higher assignment of z/VM privilege classes. When there
+    is an assignment of higher privilege classes there are chances of
+    being misused and can create problems in-terms of security and
+    availability to other z/VM guest virtual machines running under
+    same z/VM instance.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Acked-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 11c8e7d1f8674ef76b77f78d6797eb39d8bfa71f
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Wed Apr 18 11:55:18 2012 +0200
+
+    LNXHC::Check::Base: add "trim" option to parse_list_param()
+    
+    Add an optional argument to remove leading and trailing whitespaces
+    for each element in the list.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Acked-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit ea30d635b586401faf93757e47df26fdb305a638
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Apr 12 18:00:51 2012 +0200
+
+    fs_fsck_order: use parse_list_param()
+    
+    Use parse_list_param() to split mount points and excludes.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit adfc576b60b7053167d909d6e1eb485c98b1b945
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Fri Apr 13 17:13:17 2012 +0530
+
+    fs_fsck_order: Check if filesystems are skipped by fsck
+    
+    fs_fsck_order checks for file systems that get skipped by
+    filesystem check (fsck) during boot. If filesystems are not
+    checked for consistency it might lead to data corruption and
+    system might even fail to boot.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 3ae7a5ebea5892f4cbc092aa480e67f7f9caafca
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Apr 12 18:00:51 2012 +0200
+
+    fs_tmp_dir_cleanup, sec_services_insecure: use parse_list_param()
+    
+    Use parse_list_param() to split space-separated lists.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit ee09cbe0424edfcffa477d4f967719b6f531e695
+Author: Rajesh K Pirati <rapirati@in.ibm.com>
+Date:   Fri Apr 13 10:17:42 2012 +0530
+
+    storage_invalid_multipath: Removed dasd related info.
+    
+        Removed dasd related info from exception file
+    
+    Signed-off-by: Rajesh K Pirati <rapirati@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit d544c1a088bfced1f7623d45b96c287c80b5c393
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Apr 12 18:00:51 2012 +0200
+
+    sys_tty_securetty: use parse_list_param()
+    
+    Use parse_list_param() to split the list of secure and insecure
+    terminal devices.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 0ddfc71ee10c270d34ec74d1299be94b20a20a2c
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Apr 12 18:00:51 2012 +0200
+
+    fs_partition_mount: use parse_list_param()
+    
+    Use parse_list_param() to split mount points.
+    
+    Acked-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 6ee9cafce2ad0f8ad4c3b4ec35e0a42b910ec46b
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Apr 12 18:00:51 2012 +0200
+
+    fs_disk_usage, fs_inode_usage: use parse_list_param()
+    
+    Use parse_list_param() to split mount points.
+    
+    Acked-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 06d8d9dd38252f79b180b9eb7f05e81702c20a82
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Apr 12 17:58:09 2012 +0200
+
+    LNXHC::Check::Base: introduce parse_list_param()
+    
+    Add parse_list_param() to parse a list specified by a check parameter.
+    It returns a hash that contains unique elements.  Each hash key evaluates
+    to true in a boolean context.
+    If the delimiter character is omitted, colon (:) is used.
+    
+    Acked-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit a95c2ac7f33e5f557996d56cde22b6f68a3931cb
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Apr 12 12:32:38 2012 +0200
+
+    fs_inode_usage: use lnxhc_exception_var_list()
+    
+    Refactor the check program to use the lnxhc_exception_var_list()
+    function to create a summary.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 241d1040e28229ad2594c73db44d039ab59280c3
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Apr 12 12:28:14 2012 +0200
+
+    fs_inode_usage: display status about processed mount points
+    
+    Update the check program to display information whether a mount point
+    has been checked or skipped if it is not specified by the mount_points
+    check parameter.
+    Also display user-specified mount points that have not been checked.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit e8671b39db3c6b3c348bc7d7db46dac6048837ed
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Apr 12 12:32:38 2012 +0200
+
+    fs_disk_usage: use lnxhc_exception_var_list()
+    
+    Refactor the check program to use the lnxhc_exception_var_list()
+    function to create a summary.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit e74c9eaa96cf54d6a922b7ca67beeab0184f41d7
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Apr 12 12:28:14 2012 +0200
+
+    fs_disk_usage: display status about processed mount points
+    
+    Update the check program to display information whether a mount point
+    has been checked or skipped if it is not specified by the mount_points
+    check parameter.
+    Also display user-specified mount points that have not been checked.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 65246c7a4e46e5d9d460ab5a4f8194d4d3cd7cd8
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu Apr 5 16:20:18 2012 +0530
+
+    crypto_openssl_ibmca_config: fixed 'libica' rpm query error
+    
+    definitions: changed 'rpm -q libica' to 'rpm -qa "libica*"'
+    as it is giving problem with SLES11 SP2
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 15cc0a278c46bec97bbce53cc5b7a5c0a3f380cd
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu Apr 5 12:35:27 2012 +0530
+
+    crypto_openssl_ibmca_config: fixed 'too many arguments' error
+    
+    check: Added to grep only one instance of "dynamic_path" and not looking
+    for commented lines.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Acked-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit d74410d91bed22bf7cdecd15fe97d3d00723a687
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Thu Apr 5 12:01:21 2012 +0530
+
+    net_qeth_buffercount: fixed array index when 'GuestLAN' is used.
+    
+    Fixed array index when 'GuestLAN' is used.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Acked-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 0603ec80fad7515ed7332492d9c0b3dd6b5fd27e
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Mar 23 16:21:11 2012 +0100
+
+    Makefile: extract changelog from git history
+    
+    Add the gencl.sh script to generate a changelog from the git history
+    and use the fixcl.sh to include the changelog into the RPM spec file.
+    
+    The generated changelog entries use this format:
+    
+      - subject (author) [commit-hash]
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit c8e079256f301cb6a9521c25757b558c71bcfe86
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Mar 22 18:28:55 2012 +0100
+
+    Makefile: generate version using git
+    
+    Add the "genvers.sh" script to generate a version using the
+    *git describe* command.  The version number is generated from a
+    git tag object, the release number specifies the "distance" to
+    the tag, for example, with the ID of the most recent commit.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 2b1e9f84ab29d2504bc461902a91c114a7684f27
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Tue Apr 3 23:09:51 2012 +0530
+
+    fs_partition_mount: Check for read-only file systems
+    
+    fs_partition_mount check examines if file systems like (/home, /proc)
+    have been mounted as read-only. If it has been mounted as read-only
+    it would inhibit file system operations like edit, delete of
+    files/folders etc.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 5dee61701c51bd0a4f2c988e5b39ab52f6004a95
+Author: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+Date:   Wed Apr 4 16:56:36 2012 +0530
+
+    sys_sysctl_privilege_dump: Ensure that privilege dump is switched off
+    
+    sys_sysctl_privilege_dump check takes care if any process having privilege
+    levels or execute only is being dumped thus applying security. fs.suid_dumpable
+    should be disabled by default, if it is set to non-zero value (1 or 2)
+    appropriate exception is issued along with the solution.
+    
+    Signed-off-by: Aruna Balakrishnaiah <aruna@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit d51a72378fd8bba523f98c04460be93d0d16d50e
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Mon Apr 2 17:31:20 2012 +0200
+
+    cleanup: correct copyright year
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 0167eecc3b7c57b4a44ade69270ba35c5a3d2803
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Mon Apr 2 17:30:06 2012 +0200
+
+    cleanup: remove whitespaces, part II.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit a7abeaf33f2ba79dd43f16e05a41e218fe39dcec
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Mar 30 16:18:18 2012 +0200
+
+    sys_idle_*: update contributors
+    
+    Update authors to align with current contributing guidelines.
+    
+    Many thanks to Mareike Moeller who helped developing and reviewing
+    these health checks as part of an 1-week internship.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit f9e3c01a3b6e6c1cb0920f0814610b237539ee37
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Mar 30 16:03:42 2012 +0200
+
+    sys_sysctl_call_home: exception: add module load specifics
+    
+    Update the exception message to load kernel modules before applying
+    sysctl settings.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 6b4d6d4f1d5bd2f68bd4b68511359857c2c03150
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Mar 22 17:53:27 2012 +0100
+
+    cleanup: remove whitespaces
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit c32eaf2d97bfda728c27315f76d3500d027acc3a
+Author: Nageswara R Sastry <nasastry@in.ibm.com>
+Date:   Wed Mar 21 14:19:20 2012 +0530
+
+    css_ccw_unused_devices: validate 'device_print_limit' parameter
+    
+    Check valid ranges of the parameter named 'device_print_limit'
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 4a2cac05cf9bb3401537a253656e09d945fce141
+Author: Rajesh K Pirati <rapirati@in.ibm.com>
+Date:   Thu Mar 1 07:07:22 2012 +0000
+
+    fs_tmp_dir_cleanup: Verify that temporary files are deleted regularly
+    
+    Linux instances have one or more directories, for example, /tmp, to
+    store temporary files. If temporary files are not deleted at regular
+    intervals, they can fill up file systems and cause the Linux instance to
+    run out of disk space.An exception message is issued unless a program is
+    configured to clear directories with temporary files at regular
+    intervals.
+    
+    Reviewed-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Rajesh K Pirati <rapirati@in.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 14276d0ee0a2fd2960283cb2df388cae212c4172
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Thu Feb 23 11:18:06 2012 +0000
+
+    LNXHC::Check::Base: introduce check_dir_list_param()
+    
+    Add check_dir_list_param() to check health check parameters that specify
+    directories.  The function ensures that the specified directories must be
+    absolute paths.
+    
+    Also introduce check_empty_param() to check for empty parameter values.
+    This function is used by the other check_* functions.
+    
+    Signed-off-by: Rajesh K Pirati <rapirati@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit a8014b223844734df2112d6ec07277d76081ef85
+Author: Nageswara R. Sastry <rnsastry@linux.vnet.ibm.com>
+Date:   Tue Feb 28 12:12:58 2012 +0000
+
+    storage_dasd_eckd_blksize: Confirm 4K block size on ECKD DASD devices
+    
+    Verify the block size of low-level formatted ECKD DASD devices.
+    If the block size is other than 4096 an exception is reported.
+    A block size of 4096 maps to the default block size of file systems
+    and typically have a good I/O throughput.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Reviewed-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit 8c3c8125a4515a67b8aa550fa8b5e7b36218ce84
+Author: Nageswara R. Sastry <rnsastry@linux.vnet.ibm.com>
+Date:   Tue Feb 28 12:11:15 2012 +0000
+
+    storage_dasd_cdl_part: check partitions of CDL-formatted DASDs
+    
+    Identify CDL-formatted DASD where the metadata area is used for storing data.
+    
+    Compatible Disk Layout (CDL) formatted DASD should have a partition and the
+    partition should not start before track 2. Otherwise data corruptions might
+    occur. Also the metadata which is stored in tracks 0 and 1 can be corrupted.
+    Metadata contains partition tables and volume labels that are required by
+    other operating systems, for example, z/OS.  If metadata is corrupted, other
+    operating systems might no longer recognize the disk.
+    
+    Signed-off-by: Nageswara R Sastry <nasastry@in.ibm.com>
+    Reviewed-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+
+commit ae31a5b151f30b41285f113f8ab91c11198cf49f
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Mar 16 17:42:38 2012 +0100
+
+    CONTRIBUTORS: update
+    
+    Update the CONTRIBUTORS file with the check authors from previous
+    health check implementations.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit b92b8f558dcc042348e11b951879fa38ea0271cf
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Mar 16 17:42:03 2012 +0100
+
+    sys_idle_users, sys_idle_ttys: Identify idle users and terminals
+    
+    These checks identify users who are logged in through a terminal
+    but are not active.  Each logged in user occupies a terminal device
+    that could be used to another user.
+    
+    sys_idle_users:
+      - Report users and filter by user ID and terminal
+    
+    sys_idle_ttys:
+      - Report users based on a set of terminals
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit b62ab8000fc157dd0eed1a2ee01325e1ec2e16cf
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Mar 16 17:38:56 2012 +0100
+
+    sys_tty_devnodes: split sys_tty_usage
+    
+    ID review turned out to split the sys_tty_usage check into two checks.
+    The sys_tty_devnodes check detects devices nodes to access the same
+    terminal device.
+    
+    Changes:
+      - sys_tty_usage: extract the sys_tty_devnodes stuff
+      - sys_tty_usage: introduce "*" wildcard for exclude_tty parameter
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit c2e8f0c5bcbee46576094df5919207eea16ff99a
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Mar 16 17:38:02 2012 +0100
+
+    sys_tty_securetty: Check list of secure terminal devices used for root logins
+    
+    The login(1) program permits root login on secure terminal
+    devices only.  The list of terminals that are considered as
+    secure are listed in /etc/securetty.
+    This check examines the terminal devices in use, classifies
+    the terminal devices according to /etc/securetty, and compares
+    the result with the check parameters.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit b2062672840a15478eca56587ab7d782a9e5afc1
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Mar 16 17:36:59 2012 +0100
+
+    sys_tty_hvc_iucv: Check configuration of z/VM IUCV HVC terminal devices
+    
+    The z/VM IUCV HVC device driver provides up to eight HVC terminal
+    devices that can be used for users logins.
+    This check verifies that the appropriate number of HVC terminal
+    devices are configured.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit 9b4ecbe01e78d695152f5abeb34478606848a769
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Mar 16 17:35:29 2012 +0100
+
+    crypto_cpacf_availability: Check if the CPACF feature is in use
+    
+    The CP Assist for Cryptographic Functions (CPACF) accelerates
+    symmetric cryptographic algorithms.  This check verifies that
+    CPACF is in use if the System z hardware supports it.
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit eb23a6ea6260d25d7146da67619a40f662d35696
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Mar 16 17:33:52 2012 +0100
+
+    storage_multipath_failed_path: Check available path configuration
+    
+    Identify multipath devices with too few available paths or too many
+    failed paths.
+    
+    Signed-off-by: Rajesh K Pirati <rapirati@in.ibm.com>
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+
+commit aa129a2582737978dd25f91a98b5b1efaecd5470
+Author: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+Date:   Fri Mar 16 17:32:42 2012 +0100
+
+    boot_zipl_update_required: remove blank comment line
+    
+    Signed-off-by: Hendrik Brueckner <brueckner@linux.vnet.ibm.com>
+    Signed-off-by: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>

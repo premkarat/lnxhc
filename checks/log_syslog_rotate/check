@@ -1,0 +1,171 @@
+#!/usr/bin/perl
+#
+# log_syslog_rotate
+#   Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Rajesh K Pirati <rapirati@in.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Check::Base;
+use LNXHC::Check::Util qw/:proc/;
+use LNXHC::Check::Util qw/load_chkconfig/;
+use File::Basename qw/basename/;
+
+#
+# Global variables
+#
+
+# Exception IDs
+my $LNXHC_EXCEPTION_LOG_SIZE_EXCEEDED = "log_size_exceeded";
+my $LNXHC_EXCEPTION_NO_LOGROTATE = "no_logrotate";
+my $LNXHC_EXCEPTION_NO_CRON = "no_cron";
+
+# Value of parameter 'max_log_size'.
+my $param_max_log_size = $ENV{"LNXHC_PARAM_max_log_size"};
+
+# Path to the file containing data for sysinfo item 'chkconfig_output'.
+my $sysinfo_chkconfig_output = $ENV{"LNXHC_SYSINFO_chkconfig_output"};
+
+# Path to the file containing data for sysinfo item 'rpm_output'.
+my $sysinfo_rpm_output = $ENV{"LNXHC_SYSINFO_rpm_output"};
+
+# Path to the file containing data for sysinfo item 'log_output'.
+my $sysinfo_log_output = $ENV{"LNXHC_SYSINFO_log_output"};
+
+# Environment variables
+my $linux_distro = $ENV{"LNXHC_SYS_sys_distro"};
+my $rpm_logrotate = $ENV{"LNXHC_SYSINFO_EXIT_CODE_rpm_output"};
+
+# Defining prototypes
+sub cron_service_status($);
+sub logrotate_installed();
+sub convert_mem_to_kb($$);
+sub sys_log();
+
+# Defining variable
+my $max_log_size;
+
+# Remove spaces at beginning and ending of param 'max_log_size' value
+$param_max_log_size =~ s/^\s+|\s+$//g;
+
+# Checking parameter value is numeric or not
+if ($param_max_log_size =~ /^(\d+(?:\.\d+)?)\s*([KMG]B)?/i) {
+	if (defined($2)) {
+		$max_log_size = convert_mem_to_kb($1, $2);
+	} else {
+		$max_log_size = $1;
+	}
+} else {
+	lnxhc_param_error("Parameter value is neither numeric nor " .
+			  "memory units(KB|MB|GB): $param_max_log_size");
+}
+
+# Converting Mb or Gb to Kb
+sub convert_mem_to_kb($$)
+{
+	my ($memory, $memory_size) = @_;
+	if (lc($memory_size) =~ m#^k#) {
+		return sprintf("%.2f", $memory);
+	} elsif (lc($memory_size) =~ m#^m#) {
+		return sprintf("%.2f", ($memory*1024));
+	} elsif (lc($memory_size) =~ m#^g#) {
+		return sprintf("%.2f", ($memory*1024*1024));
+	}
+}
+
+# Checking cron service status
+sub cron_service_status($)
+{
+	my $cron_service = shift();
+
+	# Parsing the cron service which are active
+	my $chkconfig = load_chkconfig($sysinfo_chkconfig_output);
+	die "Could not open $sysinfo_chkconfig_output: $!\n" unless $chkconfig;
+
+	my $cron_status = $chkconfig->[0]->{$cron_service};
+	if (!$cron_status) {
+		lnxhc_exception($LNXHC_EXCEPTION_NO_CRON);
+	}
+}
+
+# Checking logrotate rpm installed or not
+sub logrotate_installed()
+{
+	if ($rpm_logrotate > 0) {
+		lnxhc_exception($LNXHC_EXCEPTION_NO_LOGROTATE);
+	}
+}
+
+
+# Opening sysinfo item 'sysinfo_log_output' to get list of files
+# under '/var/log/*'
+
+sub sys_log()
+{
+	my $log_handle;
+
+	open($log_handle, '<', $sysinfo_log_output) or
+		die("Could not open '$sysinfo_log_output: $!\n");
+
+	my %sys_file;
+
+	while (<$log_handle>) {
+		chomp();
+		my ($msg, $log_file, $log_size) = split(':', $_);
+
+		# Converting into KB from Bytes
+
+		if (defined($log_size)) {
+			$log_size = $log_size/1024;
+		}
+		if ($log_size >= $max_log_size) {
+			$sys_file{$log_file} = basename($log_file);
+		}
+	}
+	close($log_handle);
+
+	# Checking any files which are greater than param value
+	if (%sys_file) {
+		my @log_file = values(%sys_file);
+		lnxhc_exception($LNXHC_EXCEPTION_LOG_SIZE_EXCEEDED);
+		lnxhc_exception_var_list("log_summ", [values(%sys_file)], ', ');
+		lnxhc_exception_var("log_exp", sprintf "#%-10s  %+40s",
+			"File names", "Absolute path");
+		foreach my $log (sort(keys(%sys_file))) {
+			lnxhc_exception_var("log_exp", sprintf "#%-10s  %+40s",
+				$sys_file{$log}, $log);
+		}
+	} else {
+		print "No files greater than $max_log_size \n";
+		exit(0);
+	}
+
+}
+# For SLES distro
+if ($linux_distro eq "SLES") {
+	cron_service_status("cron");
+	logrotate_installed();
+}
+
+# RHEL distro
+if ($linux_distro eq "RHEL") {
+	cron_service_status("crond");
+	logrotate_installed();
+}
+
+# Calling sub function
+&sys_log();
+exit(0);

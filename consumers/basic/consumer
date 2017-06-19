@@ -1,0 +1,652 @@
+#!/usr/bin/perl
+#
+# basic_consumer
+#   Report consumer program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+
+use strict;
+use warnings;
+use Term::ANSIColor;
+
+use lib $ENV{"LNXHC_LIBDIR"};
+use LNXHC::Consumer::Base qw($ALIGN_T_LEFT lprintf layout_get_width
+			     format_as_text);
+
+my $cons_id	= $ENV{"LNXHC_CONS_ID"};
+my $run_id	= $ENV{"LNXHC_RUN_ID"};
+my $run_id_max	= $ENV{"LNXHC_RUN_ID_MAX"};
+my $inv		= $ENV{"LNXHC_INVOCATION"};
+my $verbose	= $ENV{"LNXHC_VERBOSE"};
+my $details	= $ENV{"LNXHC_PARAM_show_exception_details"};
+my $stats	= $ENV{"LNXHC_PARAM_show_stats"};
+my $info	= $ENV{"LNXHC_PARAM_show_info"};
+my $full_host	= $ENV{"LNXHC_PARAM_full_hostname"};
+my $total_insts = $ENV{"LNXHC_NUM_INSTS"};
+my $total_hosts = $ENV{"LNXHC_NUM_HOSTS"};
+my $use_color	= $ENV{"LNXHC_USE_COLOR"};
+my $red		= "";
+my $green	= "";
+my $blue	= "";
+my $bold	= "";
+my $reset	= "";
+
+# Set color codes if applicable
+if ($use_color) {
+	$red = color("red");
+	$green = color("green");
+	$blue = color("blue");
+	$bold = color("bold");
+	$reset = color("reset");
+}
+
+sub warn_once($)
+{
+	my ($msg) = @_;
+
+	if (defined($run_id) && $run_id == 0) {
+		warn("$cons_id: $msg\n");
+	}
+}
+
+sub check_params()
+{
+	my $do_warn = defined($run_id) && $run_id == 0;
+	if ($details !~ /^\s*(0|1)\s*$/) {
+		warn_once("Incorrect value '$details' for parameter ".
+			  "'show_exception_details' - using default (0)");
+		$details = 0;
+	}
+	if ($stats !~ /^\s*(0|1)\s*$/) {
+		warn_once("Incorrect value '$stats' for parameter ".
+			  "'show_stats' - using default (0)");
+		$stats = 0;
+	}
+	if ($info !~ /^\s*(0|1)\s*$/) {
+		warn_once("Incorrect value '$info' for parameter ".
+			  "'show_info' - using default (0)");
+		$info = 0;
+	}
+	if ($full_host !~ /^\s*(0|1)\s*$/) {
+		warn_once("Incorrect value '$full_host' for parameter ".
+			  "'full_hostname' - using default (0)");
+		$full_host = 0;
+	}
+}
+
+sub print_indented($$)
+{
+	my ($text, $level) = @_;
+	my $prefix = " "x$level;
+	my @lines = split(/\n/, $text);
+	my $line;
+
+	foreach $line (@lines) {
+		print($prefix.$line."\n");
+	}
+}
+
+sub format_runtime($$)
+{
+	my ($start, $end) = @_;
+	my $runtime;
+	my $h;
+	my $m;
+	my $s;
+
+	if (!defined($start) || !defined($end)) {
+		return "-";
+	}
+	$runtime = $end - $start;
+
+	$h = int($runtime / 3600);
+	$m = int($runtime / 60) % 60;
+	$s = $runtime % 60 + $runtime - int($runtime);
+
+	if ($h > 0) {
+		return sprintf("%dh%02dm%02ds", $h, $m, $s);
+	} elsif ($m > 0) {
+		return sprintf("%dm%02ds", $m, $s);
+	}
+	return sprintf("%.3fs", $s);
+}
+
+sub format_time($)
+{
+	my ($timestamp) = @_;
+	my $y;
+	my $m;
+	my $d;
+	my $h;
+	my $min;
+	my $s;
+	my $rem;
+
+	if (!($timestamp =~ /^\s*(\d+)\_(\d+)\s*$/)) {
+		return "<invalid timestamp: $timestamp>";
+	}
+	$rem = $2;
+	($s, $min, $h, $d, $m, $y) = localtime($1);
+	$y += 1900;
+	$m++;
+
+	return sprintf("%04d-%02d-%02d %-2d:%02d:%02d.%04d", $y, $m, $d, $h,
+		       $min, $s, $rem);
+}
+
+sub print_exception($$$$$$$)
+{
+	my ($check_id, $ex_id, $severity, $summary, $explanation, $solution,
+	    $reference) = @_;
+	my @sev_str = ("low", "medium", "high");
+	my $sev = $sev_str[$severity];
+	local *HANDLE;
+
+	$summary	= format_as_text($summary, 4, -4);
+	$explanation	= format_as_text($explanation, 4, -4);
+	$solution	= format_as_text($solution, 4, -4);
+	$reference	= format_as_text($reference, 4, -4);
+
+	$summary	=~ s/\n$//;
+	$explanation	=~ s/\n$//;
+	$solution	=~ s/\n$//;
+	$reference	=~ s/\n$//;
+
+	print(<<EOF);
+ $bold>EXCEPTION$reset $red$check_id.$ex_id($sev)$reset
+
+$bold  SUMMARY$reset
+$summary
+
+$bold  EXPLANATION$reset
+$explanation
+
+$bold  SOLUTION$reset
+$solution
+
+$bold  REFERENCE$reset
+$reference
+
+EOF
+}
+
+sub print_exceptions($$)
+{
+	my ($prefix, $check_id) = @_;
+	my $num_ex = $ENV{$prefix."NUM_EXCEPTIONS"};
+	my $ex_num;
+	my $first = 1;
+
+	for ($ex_num = 0 ; $ex_num < $num_ex; $ex_num++) {
+		my $eprefix	= $prefix."EX_".$ex_num."_";
+		my $ex_id	= $ENV{$eprefix."ID"};
+		my $severity	= $ENV{$eprefix."SEVERITY"};
+		my $summary	= $ENV{$eprefix."SUMMARY"};
+		my $explanation	= $ENV{$eprefix."EXPLANATION"};
+		my $solution	= $ENV{$eprefix."SOLUTION"};
+		my $reference	= $ENV{$eprefix."REFERENCE"};
+
+		if ($first)  {
+			print("\n");
+			$first = 0;
+		}
+		print_exception($check_id, $ex_id, $severity, $summary,
+				$explanation, $solution, $reference);
+	}
+
+	return $num_ex == 0 ? undef : 1;
+}
+
+sub print_summary($$$$)
+{
+	my ($check_id, $ex_id, $severity, $summary) = @_;
+	my @sev_str = ("low", "medium", "high");
+	my $sev = $sev_str[$severity];
+	local *HANDLE;
+
+	$summary = format_as_text($summary, 4, -4);
+	$summary =~ s/\n$//;
+
+	print(<<EOF);
+ $bold>EXCEPTION$reset $red$check_id.$ex_id($sev)$reset
+$summary
+
+EOF
+}
+
+sub print_summaries($$)
+{
+	my ($prefix, $check_id) = @_;
+	my $num_ex = $ENV{$prefix."NUM_EXCEPTIONS"};
+	my $ex_num;
+	my $first = 1;
+
+	for ($ex_num = 0 ; $ex_num < $num_ex; $ex_num++) {
+		my $eprefix	= $prefix."EX_".$ex_num."_";
+		my $ex_id	= $ENV{$eprefix."ID"};
+		my $severity	= $ENV{$eprefix."SEVERITY"};
+		my $summary	= $ENV{$eprefix."SUMMARY"};
+
+		if ($first)  {
+			print("\n");
+			$first = 0;
+		}
+		print_summary($check_id, $ex_id, $severity, $summary);
+	}
+
+	return $num_ex == 0 ? undef : 1;
+}
+
+sub get_runtimes()
+{
+	my $num_runs = $ENV{"LNXHC_STATS_NUM_RUNS_SCHEDULED"};
+	my $run_num;
+	my $num = 0;
+	my $total;
+	my $avg;
+	my $min;
+	my $max;
+
+	for ($run_num = 0; $run_num < $num_runs; $run_num++) {
+		my $rprefix	= "LNXHC_RUN_".$run_num."_";
+		my $start	= $ENV{$rprefix."START_TIME"};
+		my $end		= $ENV{$rprefix."END_TIME"};
+		my $runtime;
+
+		if (!defined($start) || !defined($end)) {
+			next;
+		}
+		$runtime = $end - $start;
+		if (!defined($min) || ($min > $runtime)) {
+			$min = $runtime;
+		}
+		if (!defined($max) || ($max < $runtime)) {
+			$max = $runtime;
+		}
+		$num++;
+		$total += $runtime;
+	}
+
+	if ($num > 0) {
+		$avg = $total / $num;
+	}
+
+	return ($avg, $min, $max);
+}
+
+sub get_summary($$)
+{
+	my ($prefix, $summary) = @_;
+	my @sum_str = ("SUCCESS", "EXCEPTION", "NOT APPLICABLE",
+		       "FAILED SYSINFO", "FAILED CHKPROG", "PARAM ERROR");
+	my @sev_str = ("-LOW", "-MED", "-HIGH");
+	my $num_ex = $ENV{$prefix."NUM_EXCEPTIONS"};
+	my $ex_num;
+	my $max_sev;
+	my $result;
+
+	for ($ex_num = 0; $ex_num < $num_ex; $ex_num++) {
+		my $severity = $ENV{$prefix."EX_".$ex_num."_SEVERITY"};
+
+		if (!defined($max_sev) || ($severity > $max_sev)) {
+			$max_sev = $severity;
+		}
+	}
+
+	$result = $sum_str[$summary].(defined($max_sev) ?
+				      $sev_str[$max_sev] : "");
+
+	$result = $green.$result.$reset if ($summary == 0);
+	$result = $red.$result.$reset if ($summary == 1);
+	$result = $blue.$result.$reset if ($summary > 1);
+
+	return $result;
+}
+
+sub print_failed_deps($)
+{
+	my ($prefix) = @_;
+
+	my $num_inst_ids = $ENV{$prefix."NUM_INSTS"};
+	my $num_host_ids = $ENV{$prefix."NUM_HOSTS"};
+	my $inst_num;
+	my $host_num;
+
+	for ($inst_num = 0; $inst_num < $num_inst_ids; $inst_num++) {
+		my $inst_id = $ENV{$prefix."INST_".$inst_num."_ID"};
+
+		for ($host_num = 0; $host_num < $num_host_ids; $host_num++) {
+			my $host_id = $ENV{$prefix."HOST_".$host_num."_ID"};
+			my $hprefix = $prefix."INST_".$inst_num."_HOST_".
+				      $host_num."_";
+			my $num_deps = $ENV{$hprefix."NUM_DEPS"};
+			my $dep_num;
+
+			for ($dep_num = 0; $dep_num < $num_deps; $dep_num++) {
+				my $dprefix = $hprefix."DEP_".$dep_num."_";
+				my $statement = $ENV{$dprefix."STATEMENT"};
+				my $result = $ENV{$dprefix."RESULT"};
+
+				if ($result) {
+					next;
+				}
+				print("    $statement\n");
+			}
+		}
+	}
+}
+
+sub print_inactive_exceptions($$)
+{
+	my ($prefix, $num_inactive) = @_;
+	my $ex_num;
+
+	for ($ex_num = 0; $ex_num < $num_inactive; $ex_num++) {
+		my $ex_id = $ENV{$prefix."INACTIVE_EX_".$ex_num."_ID"};
+
+		print("    $ex_id\n");
+	}
+}
+
+sub get_host_ids($)
+{
+	my ($prefix) = @_;
+
+	my $num_hosts = $ENV{$prefix."NUM_HOSTS"};
+	my $host_num;
+	my @host_ids;
+
+	for ($host_num = 0; $host_num < $num_hosts; $host_num++) {
+		my $host_id = $ENV{$prefix."HOST_".$host_num."_ID"};
+
+		$host_id =~ s/^([^\.]+)\..*$/$1/ if (!$full_host);
+		push(@host_ids, $host_id);
+	}
+
+	return @host_ids;
+}
+
+sub get_inst_ids($)
+{
+	my ($prefix) = @_;
+
+	my $num_insts = $ENV{$prefix."NUM_INSTS"};
+	my $inst_num;
+	my @inst_ids;
+
+	for ($inst_num = 0; $inst_num < $num_insts; $inst_num++) {
+		my $inst_id = $ENV{$prefix."INST_".$inst_num."_ID"};
+
+		push(@inst_ids, $inst_id);
+	}
+
+	return @inst_ids;
+}
+
+sub read_file($)
+{
+	my ($filename) = @_;
+	my $handle;
+	my $result = "";
+
+	if (!defined($filename) || !-e $filename || -z $filename) {
+		return "";
+	}
+	open($handle, "<", $filename) or
+		warn("Could not read file '$filename': $!\n");
+	local $/;
+	$result = <$handle>;
+	close($handle);
+
+	return $result;
+}
+
+# Check parameters first
+check_params();
+
+if (defined($run_id)) {
+	# Write overview line for single check data
+	my $prefix 	= "LNXHC_RUN_".$run_id."_";
+	my $check_id	= $ENV{$prefix."CHECK_ID"};
+	my $rc		= $ENV{$prefix."RC"};
+	my $multihost	= $ENV{$prefix."MULTIHOST"};
+	my $multitime	= $ENV{$prefix."MULTITIME"};
+	my $prog_rc	= $ENV{$prefix."PROG_EXIT_CODE"};
+	my $prog_info	= read_file($ENV{$prefix."PROG_INFO"});
+	my $prog_err	= read_file($ENV{$prefix."PROG_ERR"});
+	my $num_inactive = $ENV{$prefix."NUM_INACTIVE_EX_IDS"};
+	my $summary;
+	my $check_id_fmt;
+	my $nl;
+	my $layout;
+	my @inst_ids = get_inst_ids($prefix);
+	my $inst_id;
+	my $inst_num;
+	my @host_ids = get_host_ids($prefix);
+	my $host_id;
+	my $host_num;
+	my $first;
+
+	if ($total_insts == 1) {
+		$layout  = [
+			[
+				[ 40, 40, 0, $ALIGN_T_LEFT, " " ],
+				[ 23, undef, 1, $ALIGN_T_LEFT, " " ],
+				[ 14, 14, 0, $ALIGN_T_LEFT, " " ],
+			],
+		];
+		if ($run_id == 0) {
+			# Print heading
+			lprintf($layout, "CHECK NAME", "HOST", "RESULT");
+			print("\n".("="x(layout_get_width($layout)))."\n");
+		}
+	} else {
+		$layout  = [
+			[
+				[ 40, 40, 0, $ALIGN_T_LEFT, " " ],
+				[ 10, 30, 1, $ALIGN_T_LEFT, " " ],
+				[ 12, 40, 2, $ALIGN_T_LEFT, " " ],
+				[ 14, 14, 0, $ALIGN_T_LEFT, " " ],
+			],
+		];
+		if ($run_id == 0) {
+			# Print heading
+			lprintf($layout, "CHECK NAME", "INSTANCE", "HOST",
+			        "RESULT");
+			print("\n".("="x(layout_get_width($layout)))."\n");
+		}
+	}
+
+	# Pad check ID
+	if (length($check_id) < 39) {
+		$check_id_fmt = $check_id." ".("."x(39 - length($check_id)));
+	} else {
+		$check_id_fmt = $check_id." ";
+	}
+	# Get summary
+	$summary = get_summary($prefix, $rc);
+
+	# Print result line
+	$first = 1;
+	$inst_num = 0;
+	foreach $inst_id (@inst_ids) {
+		$host_num = 0;
+		foreach $host_id (@host_ids) {
+			if (!$ENV{$prefix."INST_".$inst_num."_HOST_".$host_num.
+				  "_SOURCE"}) {
+				$host_num++;
+				next;
+			}
+			if ($first) {
+				$first = 0;
+				if ($total_insts == 1) {
+					lprintf($layout, $check_id_fmt,
+						$host_id, $summary);
+				} else {
+					lprintf($layout, $check_id_fmt,
+						$inst_id, $host_id, $summary);
+				}
+			} else {
+				if ($total_insts == 1) {
+					lprintf($layout, "", $host_id);
+				} else {
+					lprintf($layout, "", $inst_id,
+						$host_id);
+				}
+			}
+			print("\n");
+			$host_num++;
+		}
+		$inst_num++;
+	}
+
+	# Print exceptions
+	if ($details || $verbose) {
+		$nl = print_exceptions($prefix, $check_id);
+	} else {
+		$nl = print_summaries($prefix, $check_id);
+	}
+
+	# Print check informational output
+	if (($info || $verbose >= 2) && defined($prog_info) &&
+	    $prog_info ne "") {
+		if (!$nl) {
+			print("\n");
+		}
+		print(" $bold>INFO$reset\n");
+		print_indented($prog_info, 4);
+		$nl = 0;
+	}
+
+	# Print check error messages
+	if (defined($prog_rc) &&
+	    $prog_rc != 0 && $prog_rc != 64 && $prog_rc != 65) {
+		if (!$nl) {
+			print("\n");
+		}
+		print(" $bold>ERROR$reset $prog_rc\n");
+		if (defined($prog_err)) {
+			print($blue);
+			print_indented($prog_err, 4);
+			print($reset);
+		}
+		$nl = 0;
+	} elsif (defined($prog_err) && $prog_err ne "") {
+		if (!$nl) {
+			print("\n");
+		}
+		print(" $bold>ERROR$reset\n");
+		print($blue);
+		print_indented($prog_err, 4);
+		print($reset);
+		$nl = 0;
+	}
+
+	# Print failed dependencies
+	if ($verbose >= 2 && $rc == 2) {
+		if (!$nl) {
+			print("\n");
+		}
+		print(" $bold>FAILED DEPENDENCIES$reset\n");
+		print($blue);
+		if (defined($prog_rc) && $prog_rc == 64) {
+			print("    Check program identified failed dependency ".
+			      "at run-time\n");
+		} else {
+			print_failed_deps($prefix);
+		}
+		print($reset);
+		$nl = 0;
+	}
+
+	# Print inactive exception IDs
+	if ($verbose >= 2 && $num_inactive > 0) {
+		if (!$nl) {
+			print("\n");
+		}
+		print(" $bold>SUPPRESSED EXCEPTIONS$reset\n");
+		print_inactive_exceptions($prefix, $num_inactive);
+		$nl = 0;
+	}
+
+	# Add final newline if needed
+	if (defined($nl) && $nl == 0) {
+		# No newline for the last entry if there's going to be a summary
+		if (!($run_id == $run_id_max && ($stats || $verbose))) {
+			print("\n");
+		}
+	}
+} else {
+	my $sprefix		= "LNXHC_STATS_";
+	my $start		= $ENV{$sprefix."START_TIME"};
+	my $end			= $ENV{$sprefix."END_TIME"};
+	my $num_run		= $ENV{$sprefix."NUM_RUNS_SCHEDULED"};
+	my $num_run_ok		= $ENV{$sprefix."NUM_RUNS_SUCCESS"};
+	my $num_run_ex		= $ENV{$sprefix."NUM_RUNS_EXCEPTIONS"};
+	my $num_run_failed_deps	= $ENV{$sprefix."NUM_RUNS_NOT_APPLICABLE"};
+	my $num_run_failed_si	= $ENV{$sprefix."NUM_RUNS_FAILED_SYSINFO"};
+	my $num_run_failed_prog	= $ENV{$sprefix."NUM_RUNS_FAILED_CHKPROG"};
+	my $num_run_param_error = $ENV{$sprefix."NUM_RUNS_PARAM_ERROR"};
+	my $num_ex_low		= $ENV{$sprefix."NUM_EX_LOW"};
+	my $num_ex_medium	= $ENV{$sprefix."NUM_EX_MEDIUM"};
+	my $num_ex_high		= $ENV{$sprefix."NUM_EX_HIGH"};
+	my $num_ex_inactive	= $ENV{$sprefix."NUM_EX_INACTIVE"};
+	my $num_ex_total	= $num_ex_low + $num_ex_medium + $num_ex_high;
+	my $cr1 = sprintf("%-4d", $num_run);
+	my $cr2 = sprintf("%-4d", $num_run_ok);
+	my $cr3 = sprintf("%-4d", $num_run_ex);
+	my $cr4 = sprintf("%-4d", $num_run_failed_deps);
+	my $cr5 = sprintf("%-4d", $num_run_failed_si);
+	my $cr6 = sprintf("%-4d", $num_run_failed_prog);
+	my $cr7 = sprintf("%-4d", $num_run_param_error);
+	my $ex1;
+	my $ex2 = sprintf("%-4d", $num_ex_high);
+	my $ex3 = sprintf("%-4d", $num_ex_medium);
+	my $ex4 = sprintf("%-4d", $num_ex_low);
+	my ($avg, $min, $max) = get_runtimes();
+	my $rt1 = format_runtime($start, $end);
+	my $rt2 = format_runtime(0, $avg);
+	my $rt3 = format_runtime(0, $min);
+	my $rt4 = format_runtime(0, $max);
+
+	if ($num_ex_inactive > 0) {
+		$ex1 = sprintf("%-9s",
+			sprintf("%d (+%d)", $num_ex_total, $num_ex_inactive));
+	} else {
+		$ex1 = sprintf("%-9d", $num_ex_total);
+	}
+	if ($stats || $verbose) {
+		my @sum_str = ("SUCCESS", "EXCEPTION", "NOT APPLICABLE",
+			       "FAILED SYSINFO", "FAILED CHKPROG",
+			       "PARAM ERROR");
+		# Write run-time statistics
+		print($bold);
+		print(<<EOF);
+
+Check results:             Exceptions:              Run-time:$reset
+$green  SUCCESS........: $cr2$reset     $red High.........: $ex2$reset      Min per check.: $rt3
+$red  EXCEPTION......: $cr3$reset     $red Medium.......: $ex3$reset      Max per check.: $rt4
+$blue  NOT APPLICABLE.: $cr4$reset     $red Low..........: $ex4$reset      Avg per check.: $rt2
+$blue  FAILED SYSINFO.: $cr5$reset      Total........: $ex1 Total.........: $rt1
+$blue  FAILED CHKPROG.: $cr6$reset
+$blue  PARAM ERROR....: $cr7$reset
+  Total..........: $cr1
+EOF
+	} else {
+		my $num = $num_run_ok + $num_run_ex;
+		my $tool_inv = $ENV{"LNXHC_INVOCATION"};
+
+		print("\n$num checks run, $num_ex_total exceptions ".
+		      "found (use '$tool_inv run --replay -V' for details)\n");
+	}
+}

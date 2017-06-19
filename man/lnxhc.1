@@ -1,0 +1,252 @@
+.\" Macro for inserting an option synopsis string.
+.\" .OS <long> [<short>] [args]
+.de OS
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  ds result "[
+.  if !'\\$2'' .as result \fB\-\\$2\fP|
+.  as result \fB\-\-\\$1\fP
+.  if !'\\*[args]'' .as result "\ \\*[args]
+.  as result "]
+\\*[result]
+..
+.\" Macro for inserting an option description prologue.
+.\" .OD <long> [<short>] [args]
+.de OD
+.  ds args "
+.  if !'\\$3'' .as args \fI\\$3\fP
+.  if !'\\$4'' .as args \\$4
+.  if !'\\$5'' .as args \fI\\$5\fP
+.  if !'\\$6'' .as args \\$6
+.  if !'\\$7'' .as args \fI\\$7\fP
+.  PD 0
+.  if !'\\$2'' .IP "\fB\-\\$2\fP \\*[args]" 4
+.  if !'\\$1'' .IP "\fB\-\-\\$1\fP \\*[args]" 4
+.  PD
+..
+.\" Macro for inserting a keyword description prologue.
+.\" .KY <keyword> <terminal> <non-terminal> <terminal> <non-terminal>
+.de KY
+\fB\\$1\fP\\$2\fI\\$3\fP\\$4\fI\\$5\fP
+..
+.\" Macro for inserting code line.
+.\" .CL <text>
+.de CL
+.  ds pfont \fP
+.  nh
+.  na
+.  ft CW
+\\$*
+.  ft \\*[pfont]
+.  ad
+.  hy
+.  br
+..
+.\" Macro for inserting a man page reference.
+.\" .MP man-page section [suffix]
+.de MP
+.  nh
+.  na
+.  BR \\$1 (\\$2)\\$3
+.  ad
+.  hy
+..
+.\" Macro for inserting a note.
+.\" .NT <text>
+.de NT
+.  RS 0
+.  TP
+.  B Note:
+\\$*
+.  RE
+..
+.\" Full name of the health checker
+.ds lhc "Linux Health Checker
+.\" Man page start
+.TH lnxhc 1 "lnxhc 1.3-1" 2013-12-18 "\*[lhc]"
+.
+.SH NAME
+lnxhc \- Linux Health Checker command-line interface
+.
+.SH SYNOPSIS
+.BI "lnxhc " SUBCOMMAND
+.OS help h
+.OS version v
+.RS 17
+.
+.OS verbose V
+.OS quiet q
+.br
+.
+.OS user\-dir U directory-name
+.OS system
+.br
+.
+.OS color "" "" always|never|auto
+.RE
+.
+.
+.SH DESCRIPTION
+The purpose of the \*[lhc] is to identify potential
+problems before they impact your system's availability or cause outages.
+It collects Linux settings and system status and compares them with
+best-practice setups or values defined by you. It produces output in the form
+of detailed messages (called "exception messages"), which provide information
+about potential problems and the suggested actions to take.
+.PP
+.
+.
+.SH SUBCOMMANDS
+The first argument passed to the lnxhc command-line interface is called the
+.IR SUBCOMMAND .
+The \*[lhc] uses subcommands to group related
+functions for easier access.
+You can shorten the subcommand argument for the lnxhc command as long as the
+resulting word is not ambiguous.
+.PP
+The lnxhc command supports the following subcommands:
+.TP 4
+.B check
+Display, configure and manage health checks. See
+.MP lnxhc-check 1 .
+.TP 4
+.B consumer
+Display, configure and manage consumers. See
+.MP lnxhc-consumer 1 .
+.TP 4
+.B devel
+Access miscellaneous support functions for developing new health check
+plug-ins. See
+.MP lnxhc-devel 1 .
+.TP 4
+.B profile
+Display, modify and manage configuration profiles. See
+.MP lnxhc-profile 1 .
+.TP 4
+.B run
+Run health checks. See
+.MP lnxhc-run 1 .
+.TP 4
+.B sysinfo
+Display and manage health check input data (called "system information"). See
+.MP lnxhc-sysinfo 1 .
+.PP
+.
+.
+.SH "GLOBAL OPTIONS"
+You can specify these global options in any of the subcommands:
+.PP
+.OD help h
+Print usage information, then exit.
+
+Combine this option with a subcommand or another option to receive details
+about the combination of arguments. Not all combinations have detailed
+information.
+.PP
+.
+.OD quiet q
+Print only warning and error messages.
+
+This overrides the \-\-verbose option.
+.PP
+.
+.OD user\-dir U directory-name
+Use
+.I directory-name
+as user data directory.
+
+The user data directory contains user information, such as user-specific checks,
+consumers and profiles. This directory also contains the current system
+information and the most recent health check results.
+
+The default location for the user data directory is ~/.lnxhc.
+.PP
+.
+.OD version v
+Print version information, then exit.
+.PP
+.
+.OD verbose V
+Print additional run-time information.
+
+Increases the amount of additional run-time information
+that is displayed by the \*[lhc]. This option can be specified
+more than once.
+.PP
+.
+.OD color "" "" always|never|auto
+Specify when to use color in terminal output.
+
+Use "always" to always get color output, "never" to never get color output and
+"auto" to let the lnxhc tool automatically determine if color output is
+appropriate.
+
+Default value is "auto".
+.PP
+.
+.
+.SH "ENVIRONMENT VARIABLES"
+The \*[lhc] evaluates the following environment variables:
+.PP
+.TP
+LC_MESSAGES
+Specify the preferred language to use when reporting exception messages. See
+.MP locale 1 .
+
+If no translation is available for the specified language, the \*[lhc]
+uses the default language, which is American English (en_US).
+.PP
+.
+.TP
+LNXHC_USER_DIR
+Specify the location of the user data directory. The default location is
+~/.lnxhc/. You can use option
+.B \-\-user\-dir
+to override the value specified in this environment variable.
+.PP
+.
+.
+.SH FILES
+.TP
+~/.lnxhc/
+Default location for the user data directory.
+
+The user data directory contains user information, such as user-specific checks,
+consumers and profiles. This directory also contains the current system
+information and the most recent health check results.
+.PP
+.
+.TP
+~/.lnxhc/lnxhcrc
+User-specific configuration file. If present, the system-wide configuration
+file is not read. See
+.MP lnxhcrc 5 .
+.PP
+.
+.TP
+/etc/lnxhcrc
+System-wide configuration file. See
+.MP lnxhcrc 5 .
+.PP
+.
+.
+.SH "SEE ALSO"
+.TP 4
+Subcommands:
+.MP lnxhc-check 1 ,
+.MP lnxhc-consumer 1 ,
+.MP lnxhc-devel 1 ,
+.MP lnxhc-profile 1 ,
+.MP lnxhc-run 1 ,
+.MP lnxhc-sysinfo 1
+.TP 4
+Instructions for writing health check plug-ins:
+.MP lnxhc_writing_checks 7 ,
+.MP lnxhc_check_definitions 5 ,
+.MP lnxhc_check_descriptions 5 ,
+.MP lnxhc_check_exceptions 5 ,
+.MP lnxhc_check_program 7

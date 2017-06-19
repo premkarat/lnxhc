@@ -1,0 +1,15 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "storage/dasd"
+repeat = "7d"
+
+[deps]
+sys_platform=s390 or sys_platform=s390x
+(sys_distro=RHEL and sys_rhel_version>=5.0) or (sys_distro=SLES and sys_sles_version>=10)
+
+[sysinfo lsdasd]
+program = "/sbin/lsdasd"
+user = "root"
+
+[exception unexpected_eckd_block_size]
+severity = medium

@@ -1,0 +1,31 @@
+[summary rports_not_usable]
+There are unusable Fibre Channel (FC) remote ports: &rport_summ;
+
+[explanation rports_not_usable]
+Some remote ports have a state other than "Online". Such remote ports cannot be
+used for connecting to I/O devices.
+
+The following remote ports are unusable:
+
+|Remote Target Port|FC Host Bus ID|WWPN|State
+&rport;
+
+Read the sysfs port_state attribute of each remote port to check the port
+state:
+
+For example, issue:
+## cat /sys/class/fc_remote_ports/<rport>/port_state
+where <rport> is an unusable Fibre Channel remote port.
+
+[solution rports_not_usable]
+Search for Storage Server errors and resolve them using the documentation of
+your Storage Server.
+
+[reference rports_not_usable]
+For more information about "Fibre Channel", refer to "How to use FC-attached
+SCSI devices with Linux on System z".
+For more information about "port_state", refer to "Device Drivers, Features,
+and Commands".
+
+You can obtain the above publications from
+http://www.ibm.com/developerworks/linux/linux390/documentation_dev.html

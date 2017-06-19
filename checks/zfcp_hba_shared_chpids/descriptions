@@ -1,0 +1,15 @@
+[title]
+Identify FCP devices that share channel-path identifiers (CHPIDs)
+
+[description]
+A single FCP channel can be represented inside Linux by more than one CCW
+device. Such a configuration is possible but does not provide an increase
+in availability or I/O performance. Also extra FCP CCW devices waste FCP
+channel resources especially in an N_Port ID Virtualization (NPIV) setup.
+It can cause hardware limitations such as maximum number of open ports or
+open LUNs to be be reached faster.
+
+[param check_offline]
+This parameter determines if the check is extended to offline FCP devices.
+Change this value to 1 if you want to also check offline FCP devices, 0 if
+you want to exclude offline devices from checking.

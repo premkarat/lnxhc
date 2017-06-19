@@ -1,0 +1,30 @@
+[check]
+author = "Nageswara R Sastry <nasastry@in.ibm.com>"
+component = "storage/multipath"
+
+[sysinfo transport_data]
+program = "$LNXHC_CHECK_DIR/transport_data"
+extrafile = "transport_data"
+
+[sysinfo chkconfig_list]
+program = "/sbin/chkconfig --list"
+ignorerc=1
+
+[sysinfo systemctl_list]
+program = "/bin/systemctl list-unit-files --type=service"
+ignorerc=1
+
+[sysinfo service_multipathd]
+program = "/sbin/service multipathd status"
+user = "root"
+ignorerc=1
+
+[sysinfo systemctl_multipathd]
+program = "/bin/systemctl show multipathd.service"
+ignorerc=1
+
+[exception service_disabled]
+severity = high
+
+[exception service_not_running]
+severity = high
