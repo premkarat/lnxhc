@@ -1,0 +1,93 @@
+#!/usr/bin/python
+################################################################################
+# health_check.py: Health Check utility for KVM environment
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License, version 2, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# Copyright (C) IBM Corporation, 2012
+#
+#
+#   Author: Prem Karat<prem.karat@linux.vnet.ibm.com>
+#
+################################################################################
+
+import commands, re, os, sys
+
+
+def domain_list():
+    """
+    Get a list of domain names both active and inactive domains
+    """
+
+    virsh_list_cmd = commands.getstatusoutput("virsh list --all --name ")
+    if not virsh_list_cmd[0]:
+      virsh_list =  virsh_list_cmd[1].strip('\n').split('\n')
+      if virsh_list:
+        return virsh_list
+      else:
+        return 1
+    else:
+      return 0
+
+def clock_policy():
+    """
+    This function will output the value of rtc & pit timer clock policy if set.
+    The if rtc & pit timer is not set, then NULL is displayed.
+    Output format is <domain name> <rtc> <tickpolicy> <pit> <tickpolicy>
+    """
+
+    virsh_list =  domain_list() 
+    if virsh_list and not virsh_list == 1:
+        output = ""
+        for domain in virsh_list:
+            rtc = commands.getstatusoutput("virsh dumpxml '%s' | \
+                                          egrep \"<timer name='rtc'\"" %domain)
+            if rtc[0]:
+                output = "%s NULL NULL" %(domain) 
+            else:
+                match = re.findall(r"<timer name='rtc' tickpolicy='(\S*)'/>", \
+                                                                       rtc[1])
+                if match:
+                    if match[0] == 'catchup':
+                        output = "%s rtc catchup" % domain
+                    else:
+                        output =  "%s rtc %s" % (domain, match[0])
+                else:
+                    output = "%s rtc NULL" % domain
+            pit = commands.getstatusoutput("virsh dumpxml '%s' | \
+                                          egrep \"<timer name='pit'\"" %domain)
+            if pit[0]:
+                output = output + " NULL NULL" 
+            else:
+                match = re.findall(r"<timer name='pit' tickpolicy='(\S*)'/>", \
+                                                                       pit[1])
+                if match:
+                    if match[0] == 'delay':
+                        output = output + " pit delay"
+                    else:
+                        output = output + " pit %s" % match[0]
+                else:
+                    output = output + " pit NULL"
+            print output
+    elif virsh_list == 1:
+        return 0
+    else:
+        return 64
+
+
+def main():
+    clock_policy()
+
+if __name__ == '__main__':
+    main()

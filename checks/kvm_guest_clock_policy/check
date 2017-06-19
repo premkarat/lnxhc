@@ -1,0 +1,66 @@
+#!/usr/bin/python
+#
+# kvm_guest_clock_policy
+
+# Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Prem Karat <prem.karat@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+import os, re, sys, commands
+
+# Import local modules
+checklib = os.path.join(os.environ['LNXHC_LIBDIR'], 'python')
+sys.path.insert(0, checklib)
+from check.base import *
+from check.util import *
+
+def lnxhc_readlines(filename):
+    f = open(filename, "rU")
+    buf = f.readlines()
+    f.close()
+    return buf
+
+def kvm_clockpolicy():
+    SYSINFO_TIMERINFO = os.environ["LNXHC_SYSINFO_guest_clockpolicy"]
+    domains = lnxhc_readlines(SYSINFO_TIMERINFO)
+    rtc_notset=[]
+    pit_notset=[]
+    for domain in domains:
+        field = re.findall(r"(\S+)\s(rtc|NULL)\s(\S*)\s(pit|NULL)\s(\S*)", \
+                                                                   domain)
+        if field[0][1] == "rtc":
+            if field[0][2] != "catchup":
+                rtc_notset.append(field[0][0])
+        else:
+            rtc_notset.append(field[0][0])
+
+        if field[0][3] == "pit":
+            if field[0][4] != "delay":
+                pit_notset.append(field[0][0])
+        else:
+            pit_notset.append(field[0][0])
+
+    if rtc_notset:
+        lnxhc_exception("rtc_notset")
+        lnxhc_exception_var("rtc_notset",  rtc_notset)
+
+    if pit_notset:
+        lnxhc_exception("pit_notset")
+        lnxhc_exception_var("pit_notset", pit_notset)
+
+
+def main():
+    kvm_clockpolicy()
+
+
+if __name__ == '__main__':
+  main()

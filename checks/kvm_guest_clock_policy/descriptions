@@ -1,0 +1,9 @@
+[title]
+Check if guest's clock tick policy is set appropriately for rtc and pit timer.
+
+[description]
+
+Check if rtc timer is available and if so, check if tickpolicy is catchup.
+Check if pit timer is availalbe and if so, check if tickpolicy is delay.
+
+This is more relevant and important for Windows guest and guests running either  RHEL 5.4 and SLES10 SP4 or lower versions.

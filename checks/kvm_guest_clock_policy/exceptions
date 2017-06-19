@@ -1,0 +1,54 @@
+[summary rtc_notset]
+Following domains don't have the rtc timer set appropriately
+
+	&rtc_notset;
+
+[explanation rtc_notset]
+Following domains don't have the rtc timer set appropriately.
+
+
+	&rtc_notset;
+
+Ensure that you only set the timer clock policy  if your domain is 
+        1. Windows
+        2. RHEL 5.4 or lower version 
+        3. SLES10 SP4 or lower version.
+
+[solution rtc_notset]
+Edit the <domain>.xml file to set the following policies for the displayed domain.
+
+	# virsh edit <domain>
+
+ 	<clock offset='utc'> 
+	   <timer name='rtc' tickpolicy='catchup'/> 
+	 </clock>
+
+[reference rtc_notset]
+Run "# virsh help edit" to find more details on editing domain xml file.
+
+[summary pit_notset]
+Following domains don't have the pit timer set appropriately
+
+        &pit_notset;
+
+[explanation pit_notset]
+Following domains don't have the pit timer set appropriately.
+
+        &pit_notset;
+
+Ensure that you only set the timer clock policy if your domain is
+        1. Windows
+        2. RHEL 5.4 or lower version
+        3. SLES10 SP4 or lower version.
+
+[solution pit_notset]
+Edit the <domain>.xml file to set the following policies for the displayed domain.
+
+        # virsh edit <domain>
+
+        <clock offset='utc'>
+           <timer name='rtc' tickpolicy='catchup'/>
+         </clock>
+
+[reference pit_notset]
+Run "# virsh help edit" to find more details on editing domain xml file.
