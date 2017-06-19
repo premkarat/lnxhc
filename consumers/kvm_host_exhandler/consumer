@@ -1,0 +1,45 @@
+#!/usr/bin/python
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Prem Karat <prem.karat@linux.vnet.ibm.com>
+
+import os, commands, sys
+
+
+def rm_virbr0():
+    virbr_destroy = commands.getstatusoutput("virsh net-destroy " \
+                                                        "default")
+    virbr_undef = commands.getstatusoutput("virsh net-undefine " \
+                                                       "default")
+    virbr = commands.getstatusoutput("ifconfig virbr0")
+    if virbr[0]:
+        print "Virtual bridge removed"
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+
+# Remove default bridge setup for networking if present
+def undef_bridge():
+    RUNIDMAX = os.environ["LNXHC_RUN_ID_MAX"]
+    for id in range(int(RUNIDMAX) + 1):
+        try:
+            check_name = os.environ["LNXHC_RUN_%s_CHECK_ID" % id]
+        except KeyError:
+            continue
+        if check_name == "kvm_host_virbr0_exists":
+            # There can be only 1 exception from virbr0 check run
+            exception_id = os.environ["LNXHC_RUN_%s_EX_0_ID" % id]
+            if exception_id == "virbr0_exists":
+                rm_virbr0()
+
+
+# Main program
+if __name__ == '__main__':
+    # Run this consumer only when user choses to remove virbr0
+    REMOVE_VIRBR0 = os.environ["LNXHC_PARAM_remove_virbr0"]
+    if REMOVE_VIRBR0 == 'y':
+        undef_bridge()
+    else:
+        sys.exit(0)

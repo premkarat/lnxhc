@@ -1,0 +1,11 @@
+[title]
+Handle exceptions reported from kvm_host health checks.
+
+[description]
+This exception handler will handle exceptions reported from kvm_host health checks. User can use the remove the network bridge, when the consumer parameter remove_virbr0=y is passed.
+You can pass this parameter using command 'lnxhc run -P kvm_rm_virbr0_handler.remove_virbr0=y'
+
+[param remove_virbr0]
+This parameter can be used to control the deletion of default bridge virbr0.
+By default remove_virbr0='n'. If remove_virbr0='y' is passed, then it will remove the default bridge if it exists and when the exception is reported.
+You can pass this parameter using command 'lnxhc consumer -p kvm_host_exhandler.remove_virbr0=y'

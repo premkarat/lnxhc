@@ -1,0 +1,10 @@
+[consumer]
+author    = "Prem Karat <prem.karat@linux.vnet.ibm.com>"
+state     = active
+format    = env
+frequency = foreach
+event     = exception
+type      = handler
+
+[param remove_virbr0]
+default = "n"

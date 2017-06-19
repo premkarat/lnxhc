@@ -1,0 +1,41 @@
+[check]
+author = "Prem Karat<prem.karat@linux.vnet.ibm.com>"
+component = "kvm-host"
+state = active
+
+[deps]
+sys_platform=i386 or sys_platform=x86_64
+sys_distro=RHEL and sys_rhel_version>=6.2
+
+[sysinfo lsmod]
+program = "lsmod"
+ignorerc = 1
+
+[sysinfo rpm_qa]
+program = "rpm -qa"
+ignorerc = 1
+
+[sysinfo service_libvirtd_status]
+program = "service libvirtd status"
+ignorerc = 1
+
+[sysinfo vtenabled]
+file = "/proc/cpuinfo"
+
+[exception kvm_module_notfound]
+severity = high
+
+[exception kvm_archmod_notfound]
+severity = high
+
+[exception qemukvm_package_notfound]
+severity = high
+
+[exception libvirt_package_notfound]
+severity = high
+
+[exception libvirt_service_failed]
+severity = high
+
+[exception vt_notenabled]
+severity = high

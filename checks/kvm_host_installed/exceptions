@@ -1,0 +1,88 @@
+[summary kvm_module_notfound]
+KVM modules are not loaded
+
+[explanation kvm_module_notfound]
+KVM modules are not loaded.
+	KVM (for Kernel-based Virtual Machine) is a full virtualization solution for Linux on x86 hardware containing virtualization extensions (Intel VT or AMD-V). It consists of a loadable kernel module, kvm.ko, that provides the core virtualization infrastructure and a processor specific module, kvm-intel.ko or kvm-amd.ko. For KVM to work, these 2 kernel modules should be loaded.
+
+[solution kvm_module_notfound]
+As root user, try inserting the kvm and kvm_$arch kernel modules using
+	# modprobe -a kvm kvm_intel|kvm_amd
+
+[reference kvm_module_notfound]
+See the modprobe man page.
+You can find the processor vendor from /proc/cpuinfo or by running dmidecode
+
+[summary kvm_archmod_notfound]
+KVM processor specific module is not loaded
+
+[explanation kvm_archmod_notfound]
+KVM processor specific module is not loaded.
+	KVM (for Kernel-based Virtual Machine) is a full virtualization solution for Linux on x86 hardware containing virtualization extensions (Intel VT or AMD-V). It consists of a loadable kernel module, kvm.ko, that provides the core virtualization infrastructure and a processor specific module, kvm-intel.ko or kvm-amd.ko. For KVM to work, these 2 kernel modules should be loaded.
+
+[solution kvm_archmod_notfound]
+As root user, try inserting the  kvm_$arch kernel module using
+	# modprobe kvm_intel|kvm_amd
+
+[reference kvm_archmod_notfound]
+See the modprobe man page.
+You can find the processor vendor from /proc/cpuinfo or by running dmidecode
+
+[summary qemukvm_package_notfound]
+&qemu_package; rpm package is not installed
+
+[explanation qemukvm_package_notfound]
+&qemu_package; rpm package is not installed.
+	To use virtualization on Red Hat Enterprise Linux you require at least the qemu-kvm and qemu-img packages. These packages provide the user-level KVM emulator and disk image manager on the host Red Hat Enterprise Linux system.
+
+[solution qemukvm_package_notfound]
+As root user, install the &qemu_package;  using
+	# yum install &qemu_package;
+
+[reference qemukvm_package_notfound]
+See the yum man page.
+
+[summary libvirt_package_notfound]
+&libvirt_package; rpm package is not installed
+
+[explanation libvirt_package_notfound]
+&libvirt_package; rpm package is not installed.
+	 The libvirt package provides the server and host side libraries for interacting with hypervisors and host systems. The libvirt package provides the libvirtd daemon. Without this package, user wouldn't be able to manage guests and control the hypervisor.
+
+[solution libvirt_package_notfound]
+As root user, install the libvirt client package using
+	# yum install &libvirt_package;
+
+[reference libvirt_package_notfound]
+Refer yum man page
+
+[summary libvirt_service_failed]
+Libvirtd daemon is not running
+
+[explanation libvirt_service_failed]
+Libvirtd daemon is not running.
+	libvirtd daemon handles the library calls, manages virtualized guests and controls the hypervisor. So the service should be running to perform these actions.
+
+[solution libvirt_service_failed]
+As root user, start the libvirtd daemon using
+	# service libvirtd start
+
+[reference libvirt_service_failed]
+Refer service man page
+
+[summary vt_notenabled]
+VT-x is not enabled in the BIOS
+
+[explanation vt_notenabled]
+VT-x is not enabled in the BIOS
+	The host machines must use either Intel VT or AMD-V chipsets that support hardware-assisted virtualization. If Linux is already installed on your system, you can also determine if your system processor supports KVM by running the following command:
+
+	# egrep 'vmx|svm' /proc/cpuinfo
+
+If this command returns output, then your system supports KVM. The vmx processor feature flag represents Intel VT chipset while the svm flag represents AMD-V. Note which KVM flag was returned as it will be useful for loading the correct module later.
+
+[solution vt_notenabled]
+Reboot the system and enable VT-x in BIOS
+
+[reference vt_notenabled]
+Refer your BIOS manual to know how to enable VT-x in BIOS.

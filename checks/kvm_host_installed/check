@@ -1,0 +1,100 @@
+#!/usr/bin/python
+#
+# kvm_host_installed
+# Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Prem Karat <prem.karat@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+import os, re, sys, commands
+
+# Import local modules
+checklib = os.path.join(os.environ['LNXHC_LIBDIR'], 'python')
+sys.path.insert(0, checklib)
+from check.base import *
+from check.util import *
+
+
+def lnxhc_get_fcontent(filename):
+    try:
+        f = open(filename, "rU")
+    except IOError:
+        sys.stderr.write("Failed to open %s" % filename)
+    else:
+        buf = f.read()
+        f.close()
+        return buf
+    
+
+#check if KVM is installed and loaded
+def kvm_install():
+    #Check if VT is enabled in bios
+    SYSINFO_VTENABLED = os.environ["LNXHC_SYSINFO_vtenabled"]
+    vtenabled_rc = commands.getstatusoutput("egrep 'vmx|svm' %s" \
+                                             % SYSINFO_VTENABLED)
+    if vtenabled_rc[0]:
+        lnxhc_exception("vtenabled")
+
+    # check if KVM module is loaded
+    SYSINFO_LSMOD = os.environ["LNXHC_SYSINFO_lsmod"]
+    lsmod = lnxhc_get_fcontent(SYSINFO_LSMOD)
+    kvm_loaded = re.findall(r"^kvm", lsmod, re.M)
+    if kvm_loaded:
+        # check if arch specific module (either kvm_intel or kmv_amd is loaded
+        kvm_arch_loaded = re.findall(r"kvm_intel|kvm_amd", lsmod, re.M)
+        if not kvm_arch_loaded:
+            lnxhc_exception("kvm_archmod_notfound")
+    else:
+        lnxhc_exception("kvm_module_notfound")
+
+    # check if qemu-kvm package is installed
+    SYSINFO_QEMUKVM = os.environ["LNXHC_SYSINFO_rpm_qa"]
+    rpm_qa = lnxhc_get_fcontent(SYSINFO_QEMUKVM)
+    qemukvm = re.findall(r"^qemu-kvm-\d.*", rpm_qa, re.M)
+    qemuimg = re.findall(r"^qemu-img", rpm_qa, re.M) 
+    if not qemukvm and not qemuimg:
+        lnxhc_exception("qemukvm_package_notfound")
+        lnxhc_exception_var("qemu_package", "qemu-kvm qemu-img")
+    elif not qemuimg:
+        lnxhc_exception("qemukvm_package_notfound")
+        lnxhc_exception_var("qemu_package", "qemu-img")
+    elif not qemukvm:
+        lnxhc_exception("qemukvm_package_notfound")
+        lnxhc_exception_var("qemu_package", "qemu-kvm")
+
+    # check if libvirt-client package is installed
+    libvirt = re.findall(r"^libvirt-\d.*", rpm_qa, re.M)
+    libpython = re.findall(r"^libvirt-python", rpm_qa, re.M)
+
+    if not libvirt and not libpython:
+        lnxhc_exception("libvirt_package_notfound")
+        lnxhc_exception_var("libvirt_package", "libvirt libvirt-client " \
+                                                        "libvirt-python")
+    elif not libvirt:
+        lnxhc_exception("libvirt_package_notfound")
+        lnxhc_exception_var("libvirt_package", "libvirt libvirt-client")
+    elif not libpython:
+        lnxhc_exception("libvirt_package_notfound")
+        lnxhc_exception_var("libvirt_package", "libvirt-python")
+
+
+    # check the status of libvirtd service
+    SYSINFO_LIBSERVICE_RC = os.environ["LNXHC_SYSINFO_EXIT_" \
+                              "CODE_service_libvirtd_status"]
+    if int(SYSINFO_LIBSERVICE_RC):
+        lnxhc_exception("libvirt_service_failed")
+
+def main():
+    kvm_install()
+
+
+if __name__ == '__main__':
+  main()

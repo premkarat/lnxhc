@@ -1,0 +1,23 @@
+[title]
+Check if KVM is installed and loaded
+
+[description]
+All the 5 checks/requirements are mandatory for KVM to work.
+
+1. Check if VT-x is enabled in BIOS.
+
+The KVM hypervisor requires:
+	an Intel processor with the Intel VT-x and Intel 64 extensions for x86-based systems, or
+	an AMD processor with the AMD-V and the AMD64 extensions.
+
+2. Check if kvm.ko & processor specific kvm_intel.ko or kvm_amd.ko  kernel module is loaded.
+	KVM (for Kernel-based Virtual Machine) is a full virtualization solution for Linux on x86 hardware containing virtualization extensions (Intel VT or AMD-V). It consists of a loadable kernel module, kvm.ko, that provides the core virtualization infrastructure and a processor specific module, kvm-intel.ko or kvm-amd.ko
+
+3. Check if qem-kvm rpm package is installed.
+	To use virtualization on Red Hat Enterprise Linux you require at least the qemu-kvm and qemu-img packages. These packages provide the user-level KVM emulator and disk image manager on the host Red Hat Enterprise Linux system. 
+
+4. Check if libvirt rpm package is installed
+	The libvirt package provides the server and host side libraries for interacting with hypervisors and host systems. The libvirt package provides the libvirtd daemon.
+
+5. Check if libvirtd daemon is running.
+	libvirtd daemon handles the library calls, manages virtualized guests and controls the hypervisor. So the service should be running.
