@@ -1,0 +1,54 @@
+#!/usr/bin/python
+#
+# kvm_host_profile
+# Health check program for the Linux Health Checker
+#
+# Copyright IBM Corp. 2012
+#
+# Author(s): Prem Karat <prem.karat@linux.vnet.ibm.com>
+#
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Eclipse Public License v1.0
+# which accompanies this distribution, and is available at
+# http://www.eclipse.org/legal/epl-v10.html
+#
+# Contributors: See file CONTRIBUTORS which is part of this package
+#
+import os, re, sys, commands
+
+# Import local modules
+checklib = os.path.join(os.environ['LNXHC_LIBDIR'], 'python')
+sys.path.insert(0, checklib)
+from check.base import *
+from check.util import *
+
+
+#check if current profile is enterprise-storgae.
+def kvm_profile():
+    io_sched_disks = {}
+    s_disksched = ""
+    SYSINFO_FSCHED = "/sys/block/%s/queue/scheduler" 
+    SYSINFO_LSBLK = os.environ["LNXHC_SYSINFO_lsblk"]
+    disks = commands.getstatusoutput("egrep 'disk$'  %s" % SYSINFO_LSBLK)
+    mpath = commands.getstatusoutput("egrep 'mpath$' %s" % SYSINFO_LSBLK)
+    local_disks = re.findall(r"^(\S*).*", disks[1], re.M)
+    lmpath_disks = re.findall(r"\((\S*)\)", mpath[1], re.M)
+    for blk_disk in local_disks + list(set(lmpath_disks)):
+        fsched = (SYSINFO_FSCHED % blk_disk)
+        sched = commands.getstatusoutput("sed -nr 's/.*\[(.+)\].*/\\1/p' '%s'" \
+								       %fsched)
+        if sched[1] != "deadline":
+            io_sched_disks[blk_disk] = sched[1]
+    if io_sched_disks:
+        for disk, sched in io_sched_disks.items():
+            s_disksched = s_disksched + "%s->%s, " %(disk, sched)
+        lnxhc_exception("unrecommended_scheduler")
+        lnxhc_exception_var("disk_sched", "%s" % s_disksched)
+
+
+def main():
+    kvm_profile()
+
+
+if __name__ == '__main__':
+  main()

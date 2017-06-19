@@ -1,0 +1,5 @@
+[title]
+Check if IO scheduler for all local and mpath disks is deadline.
+
+[description]
+The deadline I/O scheduler attempts to provide a guaranteed latency for requests. By default, reads are given priority over writes, since applications are more likely to block on read I/O. Deadline dispatches I/Os in batches. A batch is a sequence of either read or write I/Os which are in increasing LBA order (the one-way elevator). After processing each batch, the I/O scheduler checks to see whether write requests have been starved for too long, and then decides whether to start a new batch of reads or writes. The FIFO list of requests is only checked for expired requests at the start of each batch, and then only for the data direction of that batch. So, if a write batch is selected, and there is an expired read request, that read request will not get serviced until the write batch completes. 

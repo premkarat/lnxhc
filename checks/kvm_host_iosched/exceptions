@@ -1,0 +1,20 @@
+[summary unrecommended_scheduler]
+Current IO scheduler for following disks is not deadline.
+	&disk_sched;
+
+[explanation unrecommended_scheduler]
+Current IO scheduler is not deadline for the displayed disks. Recommended scheduler is 'deadline'
+	DEADLINE is a latency-oriented I/O scheduler. Each I/O request has got a deadline assigned. Usually, requests are stored in queues (read and write) sorted by sector numbers. The DEADLINE algorithm maintains two additional queues (read and write) where the requests are sorted by deadline. As long as no request has timed out, the “sector” queue is used. If timeouts occur, requests from the “deadline” queue are served until there are no more expired requests. Generally, the algorithm prefers reads over writes.
+
+This scheduler can provide a superior throughput over the CFQ I/O scheduler in cases where several threads read and write and fairness is not an issue.
+
+[solution unrecommended_scheduler]
+As root user, change the tuning profile to 'enterprise-storage' by running
+	# tuned-adm profile enterprise-storage
+This would ensure that IO scheduler for all disks is 'deadline'
+
+To change it for a specific block device, run
+	#echo deadline > /sys/block/<device>/queue/scheduler
+
+[reference unrecommended_scheduler]
+See the tuned-adm man page for futher details on available profiles.
