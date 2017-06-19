@@ -1,0 +1,15 @@
+[summary virtio_notset]
+One or more domain's disks are not virtio enabled
+
+[explanation virtio_notset]
+One or more domain's disks are not virtio enabled
+List of the domains & disk driver information is listed under INFO section below.
+Run lnxhc run --replay -V -V to see see the INFO section.
+
+[solution virtio_notset]
+Edit the domain xml file and set <device>=virtio.
+Edit the domain xml using command
+ #virsh edit <domain>
+
+[reference virtio_notset]
+Refer to libvirt xml manual to get more information.

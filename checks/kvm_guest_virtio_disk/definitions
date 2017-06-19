@@ -1,0 +1,15 @@
+[check]
+author = "Prem Karat <prem.karat@in.ibm.com>"
+component = "kvm-guest"
+state = active
+
+[deps]
+sys_platform=i386 or sys_platform=x86_64
+sys_distro=RHEL and sys_rhel_version>=6.2
+
+[sysinfo guest_virtio_info]
+program = "$LNXHC_CHECK_DIR/domvirtioinfo"
+extrafile = "domvirtioinfo"
+
+[exception virtio_notset]
+severity = high
